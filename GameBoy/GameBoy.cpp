@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (!vm.Run())
+    if (!vm.Start())
     {
         LOG_ERROR("Error while running the virtual machine");
         return -1;

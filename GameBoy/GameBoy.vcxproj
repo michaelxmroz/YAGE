@@ -148,17 +148,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CommandLineArguments.cpp" />
+    <ClCompile Include="CPU.cpp" />
     <ClCompile Include="FileParser.cpp" />
     <ClCompile Include="GameBoy.cpp" />
     <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="InstructionFunctions.cpp" />
     <ClCompile Include="Logging.cpp" />
+    <ClCompile Include="Registers.cpp" />
     <ClCompile Include="VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h" />
+    <ClInclude Include="CPU.h" />
     <ClInclude Include="FileParser.h" />
     <ClInclude Include="Helpers.h" />
+    <ClInclude Include="InstructionFunctions.h" />
     <ClInclude Include="Logging.h" />
+    <ClInclude Include="Registers.h" />
     <ClInclude Include="VirtualMachine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
