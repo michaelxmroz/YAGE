@@ -10,9 +10,19 @@
 class VirtualMachine
 {
 public:
-	VirtualMachine()
+	VirtualMachine() 
+	: _memory()
 	{
+		_memory = new uint8_t[MEMORY_SIZE];
 	}
+
+	~VirtualMachine()
+	{
+		delete[] _memory;
+	}
+
+	VirtualMachine(const VirtualMachine& other) = delete;
+	VirtualMachine operator= (const VirtualMachine& other) = delete;
 
 	bool Load(std::shared_ptr<std::vector<char>> romBlob)
 	{
@@ -27,7 +37,7 @@ public:
 		ClearMemory();
 		MapROM();
 		_cpu.Reset();
-		_cpu.SetProgramCounter(ROM_ENTRY_POINT);
+		_cpu.SetProgramCounter(0);
 
 		// Run
 		while (true)
@@ -75,7 +85,7 @@ private:
 	  FFFF        Interrupt Enable Register
 	*/
 
-	uint8_t _memory[MEMORY_SIZE];
+	uint8_t* _memory;
 
 	CPU _cpu;
 

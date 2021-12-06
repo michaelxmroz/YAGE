@@ -1,9 +1,15 @@
 #include "CPU.h"
 
 
-CPU::CPU() : _instructions
+
+
+CPU::CPU()  
+	: _registers()
+	, _instructions
 {
-	  { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	  { "NOP", 1, 1, &InstructionFunctions::Nop }
+	, { "LD BC", 3, 3, &InstructionFunctions::LD_BC_nn }
+	, { "LD (BC) A", 1, 2, &InstructionFunctions::LD_mBC_A }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -18,6 +24,8 @@ CPU::CPU() : _instructions
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "LD DE", 3, 3, &InstructionFunctions::LD_DE_nn }
+	, { "LD (DE) A", 1, 2, &InstructionFunctions::LD_mDE_A }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -32,6 +40,8 @@ CPU::CPU() : _instructions
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "LD HL", 3, 3, &InstructionFunctions::LD_HL_nn }
+	, { "LD (HL+) A", 1, 2, &InstructionFunctions::LD_mHLinc_A }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -46,14 +56,8 @@ CPU::CPU() : _instructions
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "LD SP", 3, 3, &InstructionFunctions::LD_SP_nn }
+	, { "LD (HL-) A", 1, 2, &InstructionFunctions::LD_mHLdec_A }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }

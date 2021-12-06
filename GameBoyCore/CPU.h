@@ -4,6 +4,8 @@
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define INSTRUCTION_SET_SIZE 512
+#define EXTENSION_OPCODE 0xCB
+#define EXTENSION_OFFSET 256
 
 class CPU
 {
@@ -13,17 +15,20 @@ public:
 	void Step(uint8_t* memory)
 	{
 		//Fetch
-		uint8_t encodedInstruction = memory[_registers.PC];
-
-		_registers.PC++;
+		uint8_t encodedInstruction = memory[_registers.PC++];
 
 		//TODO handle instruction extension
 
 		//Decode
+		if (encodedInstruction == EXTENSION_OPCODE)
+		{
+			encodedInstruction = memory[_registers.PC++] + EXTENSION_OFFSET;
+		}
+
 		const Instruction& instruction = _instructions[encodedInstruction];
 
 		//Execute
-		instruction._func(instruction._mnemonic, instruction._length, &_registers, memory);
+		instruction._func(instruction._mnemonic, &_registers, memory);
 
 		//TODO check for interrups
 		//TODO adjust timings
@@ -39,8 +44,16 @@ public:
 		ClearRegisters();
 	}
 
+	// Tests want to set the register state directly.
+#ifdef _DEBUG
+	Registers& GetRegisters()
+	{
+		return _registers;
+	}
+#endif // _DEBUG
+
 private:
-	typedef void (*InstructionFunc)(const char* mnemonic, uint8_t length, Registers* registers, uint8_t* memory);
+	typedef void (*InstructionFunc)(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	struct Instruction
 	{
