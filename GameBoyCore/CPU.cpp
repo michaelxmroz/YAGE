@@ -4,17 +4,17 @@
 
 
 CPU::CPU()  
-	: _registers()
-	, _instructions
+	: m_registers()
+	, m_instructions
 {
-	  { "NOP", 1, 1, &InstructionFunctions::Nop }
+	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC", 3, 3, &InstructionFunctions::LD_BC_nn }
 	, { "LD (BC) A", 1, 2, &InstructionFunctions::LD_mBC_A }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "INC BC", 1, 2, &InstructionFunctions::INC_BC }
+	, { "INC B", 1, 1, &InstructionFunctions::INC_B }
+	, { "DEC B", 1, 1, &InstructionFunctions::DEC_B }
+	, { "LD B", 1, 2, &InstructionFunctions::LD_B_n }
+	, { "RLCA", 1, 1, &InstructionFunctions::RLCA }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -26,11 +26,11 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "LD DE", 3, 3, &InstructionFunctions::LD_DE_nn }
 	, { "LD (DE) A", 1, 2, &InstructionFunctions::LD_mDE_A }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "INC DE", 1, 2, &InstructionFunctions::INC_DE }
+	, { "INC D", 1, 1, &InstructionFunctions::INC_D }
+	, { "DEC D", 1, 1, &InstructionFunctions::DEC_D }
+	, { "LD D", 1, 2, &InstructionFunctions::LD_D_n }
+	, { "RLA", 1, 1, &InstructionFunctions::RLA }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -42,10 +42,10 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "LD HL", 3, 3, &InstructionFunctions::LD_HL_nn }
 	, { "LD (HL+) A", 1, 2, &InstructionFunctions::LD_mHLinc_A }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "INC HL", 1, 1, &InstructionFunctions::INC_HL }
+	, { "INC H", 1, 1, &InstructionFunctions::INC_H }
+	, { "DEC H", 1, 1, &InstructionFunctions::DEC_H }
+	, { "LD H", 1, 2, &InstructionFunctions::LD_H_n }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
@@ -58,10 +58,10 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "LD SP", 3, 3, &InstructionFunctions::LD_SP_nn }
 	, { "LD (HL-) A", 1, 2, &InstructionFunctions::LD_mHLdec_A }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
-	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
+	, { "INC SP", 1, 2, &InstructionFunctions::INC_SP }
+	, { "INC (HL)", 1, 3, &InstructionFunctions::INC_mHL }
+	, { "DEC (HL)", 1, 3, &InstructionFunctions::DEC_mHL }
+	, { "LD (HL)", 1, 3, &InstructionFunctions::LD_mHL_n }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }
 	, { "TEST", 1, 1, &InstructionFunctions::LoadToRegister }

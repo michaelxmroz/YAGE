@@ -4,6 +4,8 @@
 #include <string>
 #include <stdexcept>
 
+#define FORCE_INLINE __inline
+
 // Taken from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 // License: https://creativecommons.org/publicdomain/zero/1.0/ 
 template<typename ... Args>

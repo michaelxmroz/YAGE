@@ -1,4 +1,6 @@
 #pragma once
+#include "Helpers.h"
+
 struct Registers
 {
 	/*
@@ -22,32 +24,70 @@ struct Registers
 	union // Accumulator & Flags
 	{
 		unsigned short AF;
-		unsigned char A;
-		unsigned char FLAGS;
+		struct
+		{
+			unsigned char A;
+			unsigned char FLAGS;
+		};
 	};
 
 	union // BC
 	{
 		unsigned short BC;
-		unsigned char B;
-		unsigned char C;
+		struct
+		{
+			unsigned char B;
+			unsigned char C;
+		};
 	};
 
 	union // DE
 	{
 		unsigned short DE;
-		unsigned char D;
-		unsigned char E;
+		struct
+		{
+			unsigned char D;
+			unsigned char E;
+		};
 	};
 
 	union // HL
 	{
 		unsigned short HL;
-		unsigned char H;
-		unsigned char L;
+		struct
+		{
+			unsigned char H;
+			unsigned char L;
+		};
 	};
 
 	unsigned short SP; // Stack Pointer
 	unsigned short PC; // Program Counter
+
+	FORCE_INLINE void SetFlag(Flags flag)
+	{
+		FLAGS |= static_cast<uint8_t>(flag);
+	}
+
+	FORCE_INLINE void SetFlag(Flags flag, uint8_t val)
+	{
+		FLAGS &= (~static_cast<uint8_t>(flag));
+		FLAGS |= (static_cast<uint8_t>(flag) * val);
+	}
+
+	FORCE_INLINE void ResetFlag(Flags flag)
+	{
+		FLAGS &= (~static_cast<uint8_t>(flag));
+	}
+
+	FORCE_INLINE bool IsFlagSet(Flags flag) const
+	{
+		return (FLAGS & static_cast<uint8_t>(flag)) != 0;
+	}
+
+	FORCE_INLINE uint8_t GetFlag(Flags flag) const
+	{
+		return static_cast<uint8_t>(IsFlagSet(flag));
+	}
 };
 

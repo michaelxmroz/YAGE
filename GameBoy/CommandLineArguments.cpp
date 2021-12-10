@@ -7,9 +7,9 @@ CommandLineParser::CommandLineParser(int argc, char** argv)
 
 std::string CommandLineParser::GetArgument(const std::string& arg)
 {
-	if (_argumentDb.count(arg))
+	if (m_argumentDb.count(arg))
 	{
-		return _argumentDb[arg];
+		return m_argumentDb[arg];
 	}
 	return "";
 }
@@ -26,6 +26,6 @@ void CommandLineParser::Parse(int argc, char** argv)
 		size_t index = i * 2 + 1;
 		std::string key(argv[index]);
 		std::string value(argv[index + 1]);
-		_argumentDb.emplace(key, value);
+		m_argumentDb.emplace(key, value);
 	}
 }

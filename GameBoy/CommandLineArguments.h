@@ -12,6 +12,6 @@ public:
 private:
 	void Parse(int argc, char** argv);
 
-	std::map<std::string, std::string> _argumentDb;
+	std::map<std::string, std::string> m_argumentDb;
 };
 

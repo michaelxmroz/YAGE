@@ -11,14 +11,14 @@ class VirtualMachine
 {
 public:
 	VirtualMachine() 
-	: _memory()
+	: m_memory()
 	{
-		_memory = new uint8_t[MEMORY_SIZE];
+		m_memory = new uint8_t[MEMORY_SIZE];
 	}
 
 	~VirtualMachine()
 	{
-		delete[] _memory;
+		delete[] m_memory;
 	}
 
 	VirtualMachine(const VirtualMachine& other) = delete;
@@ -26,7 +26,7 @@ public:
 
 	bool Load(std::shared_ptr<std::vector<char>> romBlob)
 	{
-		_romBlob = romBlob;
+		m_romBlob = romBlob;
 
 		return true;
 	}
@@ -36,13 +36,13 @@ public:
 		// Setup memory
 		ClearMemory();
 		MapROM();
-		_cpu.Reset();
-		_cpu.SetProgramCounter(0);
+		m_cpu.Reset();
+		m_cpu.SetProgramCounter(0);
 
 		// Run
 		while (true)
 		{
-			_cpu.Step(_memory);
+			m_cpu.Step(m_memory);
 
 			//TODO process I/O
 			//TODO process PPU
@@ -58,15 +58,15 @@ private:
 
 	void ClearMemory()
 	{
-		memset(_memory, 0, MEMORY_SIZE);
+		memset(m_memory, 0, MEMORY_SIZE);
 	}
 
 	void MapROM()
 	{
-		memcpy(_memory, &((*_romBlob)[0]), _romBlob->size());
+		memcpy(m_memory, &((*m_romBlob)[0]), m_romBlob->size());
 	}
 
-	std::shared_ptr<std::vector<char>> _romBlob;
+	std::shared_ptr<std::vector<char>> m_romBlob;
 
 	/*
 	  Memory Map
@@ -85,9 +85,9 @@ private:
 	  FFFF        Interrupt Enable Register
 	*/
 
-	uint8_t* _memory;
+	uint8_t* m_memory;
 
-	CPU _cpu;
+	CPU m_cpu;
 
 };
 

@@ -15,20 +15,20 @@ public:
 	void Step(uint8_t* memory)
 	{
 		//Fetch
-		uint8_t encodedInstruction = memory[_registers.PC++];
+		uint8_t encodedInstruction = memory[m_registers.PC++];
 
 		//TODO handle instruction extension
 
 		//Decode
 		if (encodedInstruction == EXTENSION_OPCODE)
 		{
-			encodedInstruction = memory[_registers.PC++] + EXTENSION_OFFSET;
+			encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
 		}
 
-		const Instruction& instruction = _instructions[encodedInstruction];
+		const Instruction& instruction = m_instructions[encodedInstruction];
 
 		//Execute
-		instruction._func(instruction._mnemonic, &_registers, memory);
+		instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
 
 		//TODO check for interrups
 		//TODO adjust timings
@@ -36,7 +36,7 @@ public:
 
 	void SetProgramCounter(unsigned short addr)
 	{
-		_registers.PC = addr;
+		m_registers.PC = addr;
 	}
 
 	void Reset()
@@ -48,7 +48,7 @@ public:
 #ifdef _DEBUG
 	Registers& GetRegisters()
 	{
-		return _registers;
+		return m_registers;
 	}
 #endif // _DEBUG
 
@@ -57,25 +57,25 @@ private:
 
 	struct Instruction
 	{
-		const char* _mnemonic;
-		const uint8_t _length;
-		const uint8_t _duration;
-		const InstructionFunc _func;
+		const char* m_mnemonic;
+		const uint8_t m_length;
+		const uint8_t m_duration;
+		const InstructionFunc m_func;
 	};
 
 	void ClearRegisters()
 	{
-		_registers.SP = DEFAULT_STACK_POINTER;
+		m_registers.SP = DEFAULT_STACK_POINTER;
 		//TODO do the other registers need to be initialized to the boot ROM values?
-		_registers.AF = 0;
-		_registers.BC = 0;
-		_registers.DE = 0;
-		_registers.HL = 0;
-		_registers.PC = 0;
+		m_registers.AF = 0;
+		m_registers.BC = 0;
+		m_registers.DE = 0;
+		m_registers.HL = 0;
+		m_registers.PC = 0;
 	}
 
-	Registers _registers;
+	Registers m_registers;
 
-	const Instruction _instructions[INSTRUCTION_SET_SIZE];
+	const Instruction m_instructions[INSTRUCTION_SET_SIZE];
 };
 
