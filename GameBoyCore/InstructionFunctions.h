@@ -42,6 +42,60 @@ namespace InstructionFunctions
 	void LD_B_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_B_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void LD_C_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_C_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_D_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_D_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_E_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_E_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_H_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_H_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_L_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_L_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	void LD_A_mBC(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_A_mDE(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_A_mHLinc(const char* mnemonic, Registers* registers, uint8_t* memory);

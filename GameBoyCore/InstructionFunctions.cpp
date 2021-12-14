@@ -267,6 +267,294 @@ void InstructionFunctions::LD_B_A(const char* mnemonic, Registers* registers, ui
 	LOG_INSTRUCTION(mnemonic);
 }
 
+void InstructionFunctions::LD_C_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_C_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->C = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_D_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->D = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_E_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->E = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_H_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->H = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_L_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->L = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = memory[registers->HL];
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->A = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
 void InstructionFunctions::LD_A_mBC(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	registers->A = memory[registers->BC];
