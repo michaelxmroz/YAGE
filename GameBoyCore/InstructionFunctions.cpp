@@ -42,9 +42,21 @@ namespace InstructionFunctions
 		{
 			SetZeroFlag(result, registers);
 
-			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && (previousReg & 0xF) < operand;
+			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && static_cast<int16_t>(previousReg & 0xF) < static_cast<int16_t>(operand & 0xF);
 			registers->SetFlag(Registers::Flags::h, halfCarry);
 			registers->SetFlag(Registers::Flags::n, subtract);
+		}
+
+		FORCE_INLINE void SetCarry(uint8_t previousReg, uint8_t operand, Registers* registers, bool subtract)
+		{
+			bool carry = (!subtract && (static_cast<uint16_t>(previousReg) + static_cast<uint16_t>(operand) > 0xFF)) || (subtract && (static_cast<uint16_t>(previousReg) < static_cast<uint16_t>(operand)));
+			registers->SetFlag(Registers::Flags::cy, carry);
+		}
+
+		FORCE_INLINE void SetFlags(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
+		{
+			SetCarry(previousReg, operand, registers, subtract);
+			SetFlagsNoCarry(previousReg, operand, result, subtract, registers);
 		}
 
 		FORCE_INLINE void SetFlags16(uint16_t previousReg, uint16_t operand, Registers* registers)
@@ -56,6 +68,71 @@ namespace InstructionFunctions
 			registers->SetFlag(Registers::Flags::h, halfCarry);
 
 			registers->ResetFlag(Registers::Flags::n);
+		}
+
+		FORCE_INLINE void Addition(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			uint8_t prevReg = operand1;
+			operand1 += operand2;
+			Helpers::SetFlags(prevReg, operand2, operand1, false, registers);
+		}
+
+		FORCE_INLINE void Subtraction(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			uint8_t prevReg = operand1;
+			operand1 -= operand2;
+			Helpers::SetFlags(prevReg, operand2, operand1, true, registers);
+		}
+
+		FORCE_INLINE void CompareSubtraction(uint8_t operand1, uint8_t operand2, Registers* registers)
+		{
+			uint8_t copyOperand = operand1;
+			Subtraction(copyOperand, operand2, registers);
+		}
+
+		FORCE_INLINE void SubtractionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
+			operand2 += cy;
+			Helpers::Subtraction(operand1, operand2, registers);
+		}
+
+		FORCE_INLINE void AdditionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
+			Helpers::Addition(operand1, cy, registers);
+			uint8_t tmpCy = registers->GetFlag(Registers::Flags::cy);
+			uint8_t tmpH = registers->GetFlag(Registers::Flags::h);
+			Helpers::Addition(operand1, operand2, registers);
+			registers->OrFlag(Registers::Flags::cy, tmpCy);
+			registers->OrFlag(Registers::Flags::h, tmpCy);
+		}
+
+		FORCE_INLINE void BitwiseAnd(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			operand1 = operand1 & operand2;
+			Helpers::SetZeroFlag(operand1, registers);
+			registers->SetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::cy);
+		}
+
+		FORCE_INLINE void BitwiseXor(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			operand1 = operand1 ^ operand2;
+			Helpers::SetZeroFlag(operand1, registers);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::cy);
+		}
+
+		FORCE_INLINE void BitwiseOr(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		{
+			operand1 = operand1 | operand2;
+			Helpers::SetZeroFlag(operand1, registers);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::cy);
 		}
 	}
 }
@@ -507,6 +584,48 @@ void InstructionFunctions::LD_L_A(const char* mnemonic, Registers* registers, ui
 	LOG_INSTRUCTION(mnemonic);
 }
 
+void InstructionFunctions::LD_mHL_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->B;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->C;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->D;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->E;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->H;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->L;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::LD_mHL_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	memory[registers->HL] = registers->A;
+	LOG_INSTRUCTION(mnemonic);
+}
+
 void InstructionFunctions::LD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	registers->A = registers->B;
@@ -735,6 +854,390 @@ void InstructionFunctions::CPL(const char* mnemonic, Registers* registers, uint8
 	registers->A = ~registers->A;
 	registers->SetFlag(Registers::Flags::n);
 	registers->SetFlag(Registers::Flags::h);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Addition(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADC_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::AdditionWithCarry(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SUB_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Subtraction(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SBC_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SubtractionWithCarry(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::AND_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseAnd(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::XOR_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseXor(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::OR_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::BitwiseOr(registers->A, registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CP_A_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::CompareSubtraction(registers->A, registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 

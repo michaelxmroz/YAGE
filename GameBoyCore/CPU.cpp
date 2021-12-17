@@ -119,14 +119,14 @@ CPU::CPU()
 	, { "LD L L", 1, 1, &InstructionFunctions::LD_L_L }
 	, { "LD L (HL)", 1, 2, &InstructionFunctions::LD_L_mHL }
 	, { "LD L A", 1, 1, &InstructionFunctions::LD_L_A }
+	, { "LD (HL) B", 1, 2, &InstructionFunctions::LD_mHL_B }
+	, { "LD (HL) C", 1, 2, &InstructionFunctions::LD_mHL_C }
+	, { "LD (HL) D", 1, 2, &InstructionFunctions::LD_mHL_D }
+	, { "LD (HL) E", 1, 2, &InstructionFunctions::LD_mHL_E }
+	, { "LD (HL) H", 1, 2, &InstructionFunctions::LD_mHL_H }
+	, { "LD (HL) L", 1, 2, &InstructionFunctions::LD_mHL_L }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "LD (HL) A", 1, 2, &InstructionFunctions::LD_mHL_A }
 	, { "LD A B", 1, 1, &InstructionFunctions::LD_A_B }
 	, { "LD A C", 1, 1, &InstructionFunctions::LD_A_C }
 	, { "LD A D", 1, 1, &InstructionFunctions::LD_A_D }
@@ -135,70 +135,70 @@ CPU::CPU()
 	, { "LD A L", 1, 1, &InstructionFunctions::LD_A_L }
 	, { "LD A (HL)", 1, 2, &InstructionFunctions::LD_A_mHL }
 	, { "LD A A", 1, 1, &InstructionFunctions::LD_A_A }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "ADD A B", 1, 1, &InstructionFunctions::ADD_A_B }
+	, { "ADD A C", 1, 1, &InstructionFunctions::ADD_A_C }
+	, { "ADD A D", 1, 1, &InstructionFunctions::ADD_A_D }
+	, { "ADD A E", 1, 1, &InstructionFunctions::ADD_A_E }
+	, { "ADD A H", 1, 1, &InstructionFunctions::ADD_A_H }
+	, { "ADD A L", 1, 1, &InstructionFunctions::ADD_A_L }
+	, { "ADD A (HL)", 1, 2, &InstructionFunctions::ADD_A_mHL }
+	, { "ADD A A", 1, 1, &InstructionFunctions::ADD_A_A }
+	, { "ADC A B", 1, 1, &InstructionFunctions::ADC_A_B }
+	, { "ADC A C", 1, 1, &InstructionFunctions::ADC_A_C }
+	, { "ADC A D", 1, 1, &InstructionFunctions::ADC_A_D }
+	, { "ADC A E", 1, 1, &InstructionFunctions::ADC_A_E }
+	, { "ADC A H", 1, 1, &InstructionFunctions::ADC_A_H }
+	, { "ADC A L", 1, 1, &InstructionFunctions::ADC_A_L }
+	, { "ADC A (HL)", 1, 2, &InstructionFunctions::ADC_A_mHL }
+	, { "ADC A A", 1, 1, &InstructionFunctions::ADC_A_A }
+	, { "SUB A B", 1, 1, &InstructionFunctions::SUB_A_B }
+	, { "SUB A C", 1, 1, &InstructionFunctions::SUB_A_C }
+	, { "SUB A D", 1, 1, &InstructionFunctions::SUB_A_D }
+	, { "SUB A E", 1, 1, &InstructionFunctions::SUB_A_E }
+	, { "SUB A H", 1, 1, &InstructionFunctions::SUB_A_H }
+	, { "SUB A L", 1, 1, &InstructionFunctions::SUB_A_L }
+	, { "SUB A (HL)", 1, 2, &InstructionFunctions::SUB_A_mHL }
+	, { "SUB A A", 1, 1, &InstructionFunctions::SUB_A_A }
+	, { "SBC A B", 1, 1, &InstructionFunctions::SBC_A_B }
+	, { "SBC A C", 1, 1, &InstructionFunctions::SBC_A_C }
+	, { "SBC A D", 1, 1, &InstructionFunctions::SBC_A_D }
+	, { "SBC A E", 1, 1, &InstructionFunctions::SBC_A_E }
+	, { "SBC A H", 1, 1, &InstructionFunctions::SBC_A_H }
+	, { "SBC A L", 1, 1, &InstructionFunctions::SBC_A_L }
+	, { "SBC A (HL)", 1, 2, &InstructionFunctions::SBC_A_mHL }
+	, { "SBC A A", 1, 1, &InstructionFunctions::SBC_A_A }
+	, { "AND A B", 1, 1, &InstructionFunctions::AND_A_B }
+	, { "AND A C", 1, 1, &InstructionFunctions::AND_A_C }
+	, { "AND A D", 1, 1, &InstructionFunctions::AND_A_D }
+	, { "AND A E", 1, 1, &InstructionFunctions::AND_A_E }
+	, { "AND A H", 1, 1, &InstructionFunctions::AND_A_H }
+	, { "AND A L", 1, 1, &InstructionFunctions::AND_A_L }
+	, { "AND A (HL)", 1, 2, &InstructionFunctions::AND_A_mHL }
+	, { "AND A A", 1, 1, &InstructionFunctions::AND_A_A }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_B }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_C }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_D }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_E }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_H }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_L }
+	, { "XOR A B", 1, 2, &InstructionFunctions::XOR_A_mHL }
+	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_A }
+	, { "OR A B", 1, 1, &InstructionFunctions::OR_A_B }
+	, { "OR A C", 1, 1, &InstructionFunctions::OR_A_C }
+	, { "OR A D", 1, 1, &InstructionFunctions::OR_A_D }
+	, { "OR A E", 1, 1, &InstructionFunctions::OR_A_E }
+	, { "OR A H", 1, 1, &InstructionFunctions::OR_A_H }
+	, { "OR A L", 1, 1, &InstructionFunctions::OR_A_L }
+	, { "OR A (HL)", 1, 2, &InstructionFunctions::OR_A_mHL }
+	, { "OR A A", 1, 1, &InstructionFunctions::OR_A_A }
+	, { "CP A B", 1, 1, &InstructionFunctions::CP_A_B }
+	, { "CP A C", 1, 1, &InstructionFunctions::CP_A_C }
+	, { "CP A D", 1, 1, &InstructionFunctions::CP_A_D }
+	, { "CP A E", 1, 1, &InstructionFunctions::CP_A_E }
+	, { "CP A H", 1, 1, &InstructionFunctions::CP_A_H }
+	, { "CP A L", 1, 1, &InstructionFunctions::CP_A_L }
+	, { "CP A (HL)", 1, 2, &InstructionFunctions::CP_A_mHL }
+	, { "CP A A", 1, 1, &InstructionFunctions::CP_A_A }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }

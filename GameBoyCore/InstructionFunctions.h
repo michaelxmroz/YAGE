@@ -87,6 +87,14 @@ namespace InstructionFunctions
 	void LD_L_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_L_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void LD_mHL_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_mHL_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	void LD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
@@ -122,6 +130,78 @@ namespace InstructionFunctions
 	void DEC_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	void CPL(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void ADD_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void ADC_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SUB_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SBC_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void AND_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void XOR_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void OR_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void CP_A_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	//8 bit shifts
 	//-------------------------------------------------------------------------------------------------

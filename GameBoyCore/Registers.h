@@ -26,8 +26,8 @@ struct Registers
 		unsigned short AF;
 		struct
 		{
-			unsigned char A;
 			unsigned char FLAGS;
+			unsigned char A;
 		};
 	};
 
@@ -36,8 +36,8 @@ struct Registers
 		unsigned short BC;
 		struct
 		{
-			unsigned char B;
 			unsigned char C;
+			unsigned char B;
 		};
 	};
 
@@ -46,8 +46,8 @@ struct Registers
 		unsigned short DE;
 		struct
 		{
-			unsigned char D;
 			unsigned char E;
+			unsigned char D;
 		};
 	};
 
@@ -56,8 +56,8 @@ struct Registers
 		unsigned short HL;
 		struct
 		{
-			unsigned char H;
 			unsigned char L;
+			unsigned char H;
 		};
 	};
 
@@ -72,6 +72,11 @@ struct Registers
 	FORCE_INLINE void SetFlag(Flags flag, uint8_t val)
 	{
 		FLAGS &= (~static_cast<uint8_t>(flag));
+		FLAGS |= (static_cast<uint8_t>(flag) * val);
+	}
+
+	FORCE_INLINE void OrFlag(Flags flag, uint8_t val)
+	{
 		FLAGS |= (static_cast<uint8_t>(flag) * val);
 	}
 
