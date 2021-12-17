@@ -698,6 +698,22 @@ void InstructionFunctions::LD_A_mHLdec(const char* mnemonic, Registers* register
 	LOG_INSTRUCTION(mnemonic);
 }
 
+void InstructionFunctions::LDH_mn_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	uint16_t addr = Helpers::u16(immediate, 0xFF);
+	memory[addr] = registers->A;
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LDH_A_mn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	uint16_t addr = Helpers::u16(immediate, 0xFF);
+	registers->A = memory[addr];
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
 //8 bit arithmatic/logic 
 //-------------------------------------------------------------------------------------------------
 void InstructionFunctions::INC_B(const char* mnemonic, Registers* registers, uint8_t* memory)
@@ -1239,6 +1255,54 @@ void InstructionFunctions::CP_A_A(const char* mnemonic, Registers* registers, ui
 {
 	Helpers::CompareSubtraction(registers->A, registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::Addition(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::SUB_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::Subtraction(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::AND_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::BitwiseAnd(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::OR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::BitwiseOr(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::ADC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::AdditionWithCarry(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::SBC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::SubtractionWithCarry(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::XOR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::BitwiseXor(registers->A, immediate, registers);
+}
+
+void InstructionFunctions::CP_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint8_t immediate = memory[registers->PC++];
+	Helpers::CompareSubtraction(registers->A, immediate, registers);
 }
 
 void InstructionFunctions::RLCA(const char* mnemonic, Registers* registers, uint8_t* memory)

@@ -109,6 +109,9 @@ namespace InstructionFunctions
 	void LD_A_mHLinc(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LD_A_mHLdec(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void LDH_mn_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LDH_A_mn(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//8 bit arithmatic/logic 
 	//-------------------------------------------------------------------------------------------------
 	void INC_B(const char* mnemonic, Registers* registers, uint8_t* memory);
@@ -202,6 +205,15 @@ namespace InstructionFunctions
 	void CP_A_L(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void CP_A_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void CP_A_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void ADD_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SUB_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void AND_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void OR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SBC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void XOR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CP_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	//8 bit shifts
 	//-------------------------------------------------------------------------------------------------

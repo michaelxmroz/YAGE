@@ -386,6 +386,27 @@ TEST(Loads8Bit, Instructions)
 		cpu.Step(command);
 		EXPECT_EQ(regVal, 0x79);
 	}
+	//LDH
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xE0;
+		command[1] = 0x0;
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x15;
+		cpu.Step(command);
+		EXPECT_EQ(command[0xFF00], 0x15);
+		delete[] command;
+	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xF0;
+		command[1] = 0x1;
+		command[0xFF01] = 0x15;
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x15);
+		delete[] command;
+	}
 }
 
 TEST(Loads16Bit, Instructions) 
@@ -1048,6 +1069,70 @@ TEST(Arithmatic8Bit, Instructions)
 		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
 
 		cpu.Step(command);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	//IMMEDIATE ADD, SUB, AND, OR, ADC, SBC, XOR, CP
+	{
+		uint8_t command[16] = { 0xC6, 0x03, 0xD6, 0x02, 0xE6, 0xFF, 0xF6, 0xFF, 0xCE, 0x01, 0xDE, 0x02, 0xEE, 0xFF, 0xFE, 0x02 };
+		cpu.Reset();
+
+		cpu.GetRegisters().A = 0xFF;
+		uint8_t& regVal = cpu.GetRegisters().A;
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x02);
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x00);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x00);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0xFF);
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x00);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0xFD);
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x02);
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		cpu.Step(command);
+		EXPECT_EQ(regVal, 0x02);
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::zf));
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::n));
 		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));

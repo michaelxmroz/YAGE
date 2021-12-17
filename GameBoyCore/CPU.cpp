@@ -205,6 +205,7 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "ADD A n", 2, 2, &InstructionFunctions::ADD_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
@@ -212,6 +213,7 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "ADC A n", 2, 2, &InstructionFunctions::ADC_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
@@ -219,6 +221,7 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "SUB A n", 2, 2, &InstructionFunctions::SUB_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
@@ -226,6 +229,15 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "SBC A n", 2, 2, &InstructionFunctions::SBC_A_n }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "LDH (n) A", 2, 3, &InstructionFunctions::LDH_mn_A }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "AND A n", 2, 2, &InstructionFunctions::AND_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
@@ -233,6 +245,15 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "XOR A n", 2, 2, &InstructionFunctions::XOR_A_n }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "LDH A (n)", 2, 3, &InstructionFunctions::LDH_A_mn }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "OR A n", 2, 2, &InstructionFunctions::OR_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
@@ -240,28 +261,7 @@ CPU::CPU()
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "CP A n", 2, 2, &InstructionFunctions::CP_A_n }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
