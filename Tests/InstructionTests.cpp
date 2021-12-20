@@ -407,6 +407,58 @@ TEST(Loads8Bit, Instructions)
 		EXPECT_EQ(cpu.GetRegisters().A, 0x15);
 		delete[] command;
 	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xE2;
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x15;
+		cpu.GetRegisters().C = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(command[0xFF01], 0x15);
+		delete[] command;
+	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xF2;
+		command[0xFF01] = 0x15;
+		cpu.Reset();
+		cpu.GetRegisters().C = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x15);
+		delete[] command;
+	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xF2;
+		command[0xFF01] = 0x15;
+		cpu.Reset();
+		cpu.GetRegisters().C = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x15);
+		delete[] command;
+	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xEA;
+		command[1] = 0xF1;
+		command[2] = 0x01;
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x05;
+		cpu.Step(command);
+		EXPECT_EQ(command[0x01F1], 0x05);
+		delete[] command;
+	}
+	{
+		uint8_t* command = new uint8_t[0xFFFF];
+		command[0] = 0xFA;
+		command[1] = 0xF1;
+		command[2] = 0x01;
+		command[0x01F1] = 0x05;
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x05);
+		delete[] command;
+	}
 }
 
 TEST(Loads16Bit, Instructions) 
@@ -443,6 +495,92 @@ TEST(Loads16Bit, Instructions)
 		cpu.Step(command);
 		EXPECT_EQ(u16(command[3], command[4]), cpu.GetRegisters().SP);
 	}
+	{
+		uint8_t command[2] = { 0xF8, 0x05};
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x01FF;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().HL, 0x0204);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+	}
+	{
+		uint8_t command[1] = { 0xF9 };
+		cpu.Reset();
+		cpu.GetRegisters().HL = 0x01FF;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01FF);
+	}
+	//PUSH
+	{
+		uint8_t command[3] = { 0xF5, 0x00 , 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x03;
+		cpu.GetRegisters().AF = 0x0203;
+		cpu.Step(command);
+		EXPECT_EQ(command[1], 0x03);
+		EXPECT_EQ(command[2], 0x02);
+	}
+	{
+		uint8_t command[3] = { 0xC5, 0x00 , 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x03;
+		cpu.GetRegisters().BC = 0x0203;
+		cpu.Step(command);
+		EXPECT_EQ(command[1], 0x03);
+		EXPECT_EQ(command[2], 0x02);
+	}
+	{
+		uint8_t command[3] = { 0xD5, 0x00 , 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x03;
+		cpu.GetRegisters().DE = 0x0203;
+		cpu.Step(command);
+		EXPECT_EQ(command[1], 0x03);
+		EXPECT_EQ(command[2], 0x02);
+	}
+	{
+		uint8_t command[3] = { 0xE5, 0x00 , 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x03;
+		cpu.GetRegisters().HL = 0x0203;
+		cpu.Step(command);
+		EXPECT_EQ(command[1], 0x03);
+		EXPECT_EQ(command[2], 0x02);
+	}
+	//POP
+	{
+		uint8_t command[3] = { 0xF1, 0x03 , 0x02 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().AF, 0x0203);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xC1, 0x03 , 0x02 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().BC, 0x0203);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xD1, 0x03 , 0x02 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().DE, 0x0203);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xE1, 0x03 , 0x02 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x01;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().HL, 0x0203);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+	}
+	
 }
 
 TEST(Arithmatic16Bit, Instructions)
@@ -507,6 +645,28 @@ TEST(Arithmatic16Bit, Instructions)
 		cpu.GetRegisters().SP = 0x980;
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().HL, 0x1308);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+	}
+	{
+		uint8_t command[2] = { 0xE8, 0xF };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x00F1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x100);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0xFFF1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+
+		command[1] = 0xF1;
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0xF1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0xE2);
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
 	}
 	//DEC
@@ -1203,10 +1363,10 @@ TEST(Control, Instructions)
 	}
 	//Jumps
 	{
-		uint8_t command[2] = { 0x20, 0x01 };
+		uint8_t command[2] = { 0x20, 0xFF };
 		cpu.Reset();
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x01);
 
 		cpu.Reset();
 		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
@@ -1251,5 +1411,290 @@ TEST(Control, Instructions)
 		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xC2, 0x02, 0x03  };
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xD2, 0x02, 0x03 };
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xC3, 0x02, 0x03 };
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+	}
+	{
+		uint8_t command[1] = { 0xE9 };
+		cpu.Reset();
+		cpu.GetRegisters().HL = 0x0302;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+	}
+	{
+		uint8_t command[3] = { 0xCA, 0x02, 0x03 };
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xDA, 0x02, 0x03 };
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	//CALL
+	{
+		uint8_t command[5] = { 0xC4, 0x02, 0x03, 0x00, 0x00 };
+		cpu.Reset();
+		
+		cpu.GetRegisters().SP = 0x5;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_EQ(command[3], 0x03);
+		EXPECT_EQ(command[4], 0x00);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[5] = { 0xD4, 0x02, 0x03, 0x00, 0x00 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x5;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_EQ(command[3], 0x03);
+		EXPECT_EQ(command[4], 0x00);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[5] = { 0xCC, 0x02, 0x03, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.GetRegisters().SP = 0x5;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_EQ(command[3], 0x03);
+		EXPECT_EQ(command[4], 0x00);
+
+		cpu.Reset();
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[5] = { 0xDC, 0x02, 0x03, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.GetRegisters().SP = 0x5;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_EQ(command[3], 0x03);
+		EXPECT_EQ(command[4], 0x00);
+
+		cpu.Reset();
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x03);
+	}
+	{
+		uint8_t command[5] = { 0xCD, 0x02, 0x03, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x5;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_EQ(command[3], 0x03);
+		EXPECT_EQ(command[4], 0x00);
+	}
+	//RST
+	{
+		uint8_t command[3] = { 0xC7, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x00);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xD7, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x10);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xE7, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x20);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xF7, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x30);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xCF, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x08);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xDF, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x18);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xEF, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x28);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	{
+		uint8_t command[3] = { 0xFF, 0x00, 0x00 };
+		cpu.Reset();
+		cpu.GetRegisters().SP = 0x3;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x38);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x01);
+		EXPECT_EQ(command[1], 0x01);
+		EXPECT_EQ(command[2], 0x00);
+	}
+	//RET
+	{
+		uint8_t command[3] = { 0xC0, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x01);
+	}
+	{
+		uint8_t command[3] = { 0xD0, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+
+		cpu.Reset();
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x01);
+	}
+	{
+		uint8_t command[3] = { 0xC8, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.GetRegisters().SetFlag(Registers::Flags::zf);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+
+		cpu.Reset();
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x01);
+	}
+	{
+		uint8_t command[3] = { 0xD8, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.GetRegisters().SetFlag(Registers::Flags::cy);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+
+		cpu.Reset();
+		cpu.Step(command);
+
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x01);
+	}
+	{
+		uint8_t command[3] = { 0xC9, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
 	}
 }

@@ -199,70 +199,70 @@ CPU::CPU()
 	, { "CP A L", 1, 1, &InstructionFunctions::CP_A_L }
 	, { "CP A (HL)", 1, 2, &InstructionFunctions::CP_A_mHL }
 	, { "CP A A", 1, 1, &InstructionFunctions::CP_A_A }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RET NZ", 1, 5, &InstructionFunctions::RET_NZ }
+	, { "POP BC", 1, 3, &InstructionFunctions::POP_BC }
+	, { "JP NZ nn", 3, 3, &InstructionFunctions::JP_NZ_nn }
+	, { "JP nn", 3, 4, &InstructionFunctions::JP_nn }
+	, { "CALL NZ nn", 3, 6, &InstructionFunctions::CALL_NZ_nn }
+	, { "PUSH BC", 1, 4, &InstructionFunctions::PUSH_BC }
 	, { "ADD A n", 2, 2, &InstructionFunctions::ADD_A_n }
+	, { "RST 0x00", 1, 4, &InstructionFunctions::RST_00 }
+	, { "RET Z", 1, 5, &InstructionFunctions::RET_Z }
+	, { "RET", 1, 4, &InstructionFunctions::RET }
+	, { "JP Z nn", 3, 3, &InstructionFunctions::JP_Z_nn }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "CALL Z nn", 3, 6, &InstructionFunctions::CALL_Z_nn }
+	, { "CALL nn", 3, 6, &InstructionFunctions::CALL_nn }
 	, { "ADC A n", 2, 2, &InstructionFunctions::ADC_A_n }
+	, { "RST 0x08", 1, 4, &InstructionFunctions::RST_08 }
+	, { "RET NC", 1, 5, &InstructionFunctions::RET_NC }
+	, { "POP DE", 1, 3, &InstructionFunctions::POP_DE }
+	, { "JP NC nn", 3, 3, &InstructionFunctions::JP_NC_nn }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "CALL NC nn", 3, 6, &InstructionFunctions::CALL_NC_nn }
+	, { "PUSH DE", 1, 4, &InstructionFunctions::PUSH_DE }
 	, { "SUB A n", 2, 2, &InstructionFunctions::SUB_A_n }
+	, { "RST 0x10", 1, 4, &InstructionFunctions::RST_10 }
+	, { "RET C", 1, 5, &InstructionFunctions::RET_C }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "JP C nn", 3, 3, &InstructionFunctions::JP_C_nn }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "CALL C nn", 3, 6, &InstructionFunctions::CALL_C_nn }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "SBC A n", 2, 2, &InstructionFunctions::SBC_A_n }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RST 0x18", 1, 4, &InstructionFunctions::RST_18 }
 	, { "LDH (n) A", 2, 3, &InstructionFunctions::LDH_mn_A }
+	, { "POP HL", 1, 3, &InstructionFunctions::POP_HL }
+	, { "LDH (C) A", 1, 2, &InstructionFunctions::LDH_mC_A }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "PUSH HL", 1, 4, &InstructionFunctions::PUSH_HL }
 	, { "AND A n", 2, 2, &InstructionFunctions::AND_A_n }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RST 0x20", 1, 4, &InstructionFunctions::RST_20 }
+	, { "ADD SP n", 2, 4, &InstructionFunctions::ADD_SP_n }
+	, { "JP HL", 1, 1, &InstructionFunctions::JP_HL }
+	, { "LD (nn) A", 3, 4, &InstructionFunctions::LD_mnn_A }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "XOR A n", 2, 2, &InstructionFunctions::XOR_A_n }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RST 0x28", 1, 4, &InstructionFunctions::RST_28 }
 	, { "LDH A (n)", 2, 3, &InstructionFunctions::LDH_A_mn }
+	, { "POP AF", 1, 3, &InstructionFunctions::POP_AF }
+	, { "LDH A (C)", 1, 2, &InstructionFunctions::LDH_A_mC }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "PUSH AF", 1, 4, &InstructionFunctions::PUSH_AF }
 	, { "OR A n", 2, 2, &InstructionFunctions::OR_A_n }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RST 0x30", 1, 4, &InstructionFunctions::RST_30 }
+	, { "LD HL SP+n", 2, 3, &InstructionFunctions::LD_HL_SP_n }
+	, { "LD SP HL", 1, 2, &InstructionFunctions::LD_SP_HL }
+	, { "LD A (nn)", 3, 4, &InstructionFunctions::LD_A_mnn }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "CP A n", 2, 2, &InstructionFunctions::CP_A_n }
-	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RST 0x38", 1, 4, &InstructionFunctions::RST_38 }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "TEST", 1, 1, &InstructionFunctions::UNIMPLEMENTED }

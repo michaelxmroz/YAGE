@@ -17,6 +17,35 @@ namespace InstructionFunctions
 	void JR_NC_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void JR_C_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void JR_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void JP_NZ_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void JP_Z_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void JP_NC_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void JP_C_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void JP_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void JP_HL(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void CALL_NZ_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CALL_Z_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CALL_NC_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CALL_C_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void CALL_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RST_00(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_10(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_20(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_30(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_08(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_18(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_28(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RST_38(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RET_NZ(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RET_Z(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RET_NC(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RET_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RET(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//8 bit loads 
 	//-------------------------------------------------------------------------------------------------
 	void LD_mBC_A(const char* mnemonic, Registers* registers, uint8_t* memory);
@@ -111,6 +140,11 @@ namespace InstructionFunctions
 
 	void LDH_mn_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void LDH_A_mn(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LDH_mC_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LDH_A_mC(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void LD_mnn_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_A_mnn(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	//8 bit arithmatic/logic 
 	//-------------------------------------------------------------------------------------------------
@@ -231,6 +265,19 @@ namespace InstructionFunctions
 
 	void LD_mnn_SP(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void LD_HL_SP_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void LD_SP_HL(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void POP_BC(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void POP_DE(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void POP_HL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void POP_AF(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void PUSH_BC(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void PUSH_DE(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void PUSH_HL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void PUSH_AF(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//16 bit arithmatic/logic 
 	//-------------------------------------------------------------------------------------------------
 	void INC_BC(const char* mnemonic, Registers* registers, uint8_t* memory);
@@ -242,6 +289,7 @@ namespace InstructionFunctions
 	void ADD_HL_DE(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void ADD_HL_HL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void ADD_HL_SP(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void ADD_SP_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	void DEC_BC(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void DEC_DE(const char* mnemonic, Registers* registers, uint8_t* memory);

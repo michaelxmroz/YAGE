@@ -6,15 +6,16 @@ namespace InstructionFunctions
 {
 	namespace Helpers
 	{
+		void SetHalfCarryFlag(bool subtract, const uint8_t& previousReg, const uint8_t& operand, Registers* registers);
 		FORCE_INLINE uint16_t u16(uint8_t lsb, uint8_t msb)
 		{
 			return static_cast<uint16_t>(msb) << 8 | static_cast<uint16_t>(lsb);
 		}
 
-		FORCE_INLINE uint16_t DecodeImmediate16(uint16_t& pc, uint8_t* memory)
+		FORCE_INLINE uint16_t Read16Bit(uint16_t& addr, uint8_t* memory)
 		{
-			uint8_t lsb = memory[pc++];
-			uint8_t msb = memory[pc++];
+			uint8_t lsb = memory[addr++];
+			uint8_t msb = memory[addr++];
 			return u16(lsb, msb);
 		}
 
@@ -38,12 +39,17 @@ namespace InstructionFunctions
 			}
 		}
 
+		FORCE_INLINE void SetHalfCarryFlag(const uint8_t& previousReg, const uint8_t& operand, bool subtract, Registers* registers)
+		{
+			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && static_cast<int16_t>(previousReg & 0xF) < static_cast<int16_t>(operand & 0xF);
+			registers->SetFlag(Registers::Flags::h, halfCarry);
+		}
+
 		FORCE_INLINE void SetFlagsNoCarry(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
 		{
 			SetZeroFlag(result, registers);
 
-			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && static_cast<int16_t>(previousReg & 0xF) < static_cast<int16_t>(operand & 0xF);
-			registers->SetFlag(Registers::Flags::h, halfCarry);
+			SetHalfCarryFlag(previousReg, operand, subtract, registers);
 			registers->SetFlag(Registers::Flags::n, subtract);
 		}
 
@@ -134,6 +140,13 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::cy);
 		}
+
+		FORCE_INLINE void Call(uint16_t addr, Registers* registers, uint8_t* memory)
+		{
+			registers->SP -= 2;
+			Helpers::Write16Bit(registers->PC, registers->SP, memory);
+			registers->PC = addr;
+		}
 	}
 }
 
@@ -168,7 +181,7 @@ void InstructionFunctions::CCF(const char* mnemonic, Registers* registers, uint8
 
 void InstructionFunctions::JR_NZ_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t immediate = memory[registers->PC++];
+	int8_t immediate = memory[registers->PC++];
 	if (!registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC += immediate;
@@ -178,7 +191,7 @@ void InstructionFunctions::JR_NZ_n(const char* mnemonic, Registers* registers, u
 
 void InstructionFunctions::JR_Z_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t immediate = memory[registers->PC++];
+	int8_t immediate = memory[registers->PC++];
 	if (registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC += immediate;
@@ -188,7 +201,7 @@ void InstructionFunctions::JR_Z_n(const char* mnemonic, Registers* registers, ui
 
 void InstructionFunctions::JR_NC_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t immediate = memory[registers->PC++];
+	int8_t immediate = memory[registers->PC++];
 	if (!registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC += immediate;
@@ -198,7 +211,7 @@ void InstructionFunctions::JR_NC_n(const char* mnemonic, Registers* registers, u
 
 void InstructionFunctions::JR_C_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t immediate = memory[registers->PC++];
+	int8_t immediate = memory[registers->PC++];
 	if (registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC += immediate;
@@ -208,9 +221,201 @@ void InstructionFunctions::JR_C_n(const char* mnemonic, Registers* registers, ui
 
 void InstructionFunctions::JR_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t immediate = memory[registers->PC++];
+	int8_t immediate = memory[registers->PC++];
 	registers->PC += immediate;
 	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_NZ_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (!registers->IsFlagSet(Registers::Flags::zf))
+	{
+		registers->PC = immediate;
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_Z_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (registers->IsFlagSet(Registers::Flags::zf))
+	{
+		registers->PC = immediate;
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_NC_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (!registers->IsFlagSet(Registers::Flags::cy))
+	{
+		registers->PC = immediate;
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_C_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (registers->IsFlagSet(Registers::Flags::cy))
+	{
+		registers->PC = immediate;
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	registers->PC = immediate;
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::JP_HL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->PC = registers->HL;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::CALL_NZ_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (!registers->IsFlagSet(Registers::Flags::zf))
+	{
+		registers->SP -= 2;
+		Helpers::Write16Bit(registers->PC, registers->SP, memory);
+		registers->PC = immediate;
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::CALL_Z_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (registers->IsFlagSet(Registers::Flags::zf))
+	{
+		Helpers::Call(immediate, registers, memory);
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::CALL_NC_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (!registers->IsFlagSet(Registers::Flags::cy))
+	{
+		Helpers::Call(immediate, registers, memory);
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::CALL_C_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	if (registers->IsFlagSet(Registers::Flags::cy))
+	{
+		Helpers::Call(immediate, registers, memory);
+	}
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::CALL_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	Helpers::Call(immediate, registers, memory);
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::RST_00(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x00, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_10(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x10, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_20(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x20, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_30(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x30, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_08(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x08, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_18(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x18, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_28(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x28, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RST_38(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::Call(0x38, registers, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RET_NZ(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	if (!registers->IsFlagSet(Registers::Flags::zf))
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	}
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RET_Z(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	if (registers->IsFlagSet(Registers::Flags::zf))
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	}
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RET_NC(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	if (!registers->IsFlagSet(Registers::Flags::cy))
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	}
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RET_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	if (registers->IsFlagSet(Registers::Flags::cy))
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	}
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RET(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
 }
 
 
@@ -711,6 +916,34 @@ void InstructionFunctions::LDH_A_mn(const char* mnemonic, Registers* registers, 
 	uint8_t immediate = memory[registers->PC++];
 	uint16_t addr = Helpers::u16(immediate, 0xFF);
 	registers->A = memory[addr];
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LDH_mC_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t addr = Helpers::u16(registers->C, 0xFF);
+	memory[addr] = registers->A;
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LDH_A_mC(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t addr = Helpers::u16(registers->C, 0xFF);
+	registers->A = memory[addr];
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LD_mnn_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	memory[immediate] = registers->A;
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LD_A_mnn(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
+	registers->A = memory[immediate];
 	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
@@ -1368,37 +1601,109 @@ void InstructionFunctions::RRA(const char* mnemonic, Registers* registers, uint8
 
 void InstructionFunctions::LD_BC_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t immediate = Helpers::DecodeImmediate16(registers->PC, memory);
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
 	registers->BC = immediate;
 	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::LD_DE_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t immediate = Helpers::DecodeImmediate16(registers->PC, memory);
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
 	registers->DE = immediate;
 	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::LD_HL_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t immediate = Helpers::DecodeImmediate16(registers->PC, memory);
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
 	registers->HL = immediate;
 	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::LD_SP_nn(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t immediate = Helpers::DecodeImmediate16(registers->PC, memory);
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
 	registers->SP = immediate;
 	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::LD_mnn_SP(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t immediate = Helpers::DecodeImmediate16(registers->PC, memory);
+	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
 	Helpers::Write16Bit(registers->SP, immediate, memory);
 	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LD_HL_SP_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	int8_t immediate = memory[registers->PC++];
+	bool subtraction = immediate < 0;
+	uint8_t previous = static_cast<uint8_t>(registers->SP);
+	registers->HL = registers->SP + immediate;
+	registers->ResetFlag(Registers::Flags::zf);
+	registers->ResetFlag(Registers::Flags::n);
+	uint8_t operand = static_cast<uint8_t>(abs(immediate));
+	Helpers::SetCarry(previous, operand, registers, subtraction);
+	Helpers::SetHalfCarryFlag(previous, operand, subtraction, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::LD_SP_HL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->SP = registers->HL;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::POP_BC(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->BC = Helpers::Read16Bit(registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::POP_DE(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->DE = Helpers::Read16Bit(registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::POP_HL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->HL = Helpers::Read16Bit(registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::POP_AF(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->AF = Helpers::Read16Bit(registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::PUSH_BC(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->SP -= 2;
+	Helpers::Write16Bit(registers->BC, registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::PUSH_DE(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->SP -= 2;
+	Helpers::Write16Bit(registers->DE, registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::PUSH_HL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->SP -= 2;
+	Helpers::Write16Bit(registers->HL, registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::PUSH_AF(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->SP -= 2;
+	Helpers::Write16Bit(registers->AF, registers->SP, memory);
+	LOG_INSTRUCTION(mnemonic);
 }
 
 //16 bit arithmatic/logic 
@@ -1453,6 +1758,19 @@ void InstructionFunctions::ADD_HL_SP(const char* mnemonic, Registers* registers,
 	Helpers::SetFlags16(registers->HL, registers->SP, registers);
 	registers->HL += registers->SP;
 	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::ADD_SP_n(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	int8_t immediate = memory[registers->PC++];
+	bool subtraction = immediate < 0;
+	uint8_t previous = static_cast<uint8_t>(registers->SP);
+	registers->SP += immediate;
+	registers->ResetFlag(Registers::Flags::n);
+	uint8_t operand = static_cast<uint8_t>(abs(immediate));
+	Helpers::SetCarry(previous, operand, registers, subtraction);
+	Helpers::SetHalfCarryFlag(previous, operand, subtraction, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::DEC_BC(const char* mnemonic, Registers* registers, uint8_t* memory)
