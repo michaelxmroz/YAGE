@@ -256,6 +256,42 @@ namespace InstructionFunctions
 	void RRCA(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void RRA(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void RLC_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RLC_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RRC_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RRC_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RL_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RL_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RR_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RR_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//16 bit loads 
 	//-------------------------------------------------------------------------------------------------
 	void LD_BC_nn(const char* mnemonic, Registers* registers, uint8_t* memory);

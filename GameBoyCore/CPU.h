@@ -15,7 +15,7 @@ public:
 	void Step(uint8_t* memory)
 	{
 		//Fetch
-		uint8_t encodedInstruction = memory[m_registers.PC++];
+		uint16_t encodedInstruction = memory[m_registers.PC++];
 
 		//TODO handle instruction extension
 

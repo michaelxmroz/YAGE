@@ -147,6 +147,60 @@ namespace InstructionFunctions
 			Helpers::Write16Bit(registers->PC, registers->SP, memory);
 			registers->PC = addr;
 		}
+
+		FORCE_INLINE void RotateLeft(uint8_t& reg, Registers* registers)
+		{
+			uint16_t extendedReg = static_cast<uint16_t>(reg);
+			extendedReg = extendedReg << 1;
+			reg = static_cast<uint8_t>(extendedReg);
+			bool carry = (extendedReg & 0xFF00) != 0;
+			reg = reg | static_cast<uint8_t>(carry);
+			registers->SetFlag(Registers::Flags::cy, carry);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::zf);
+		}
+
+		FORCE_INLINE void RotateLeftWithCarry(uint8_t& reg, Registers* registers)
+		{
+			uint8_t carry = registers->GetFlag(Registers::Flags::cy);
+			uint16_t extendedReg = static_cast<uint16_t>(reg);
+			extendedReg = extendedReg << 1;
+			extendedReg = (extendedReg & 0xFFFE) | carry;
+			reg = static_cast<uint8_t>(extendedReg);
+
+			registers->SetFlag(Registers::Flags::cy, (extendedReg & 0xFF00) != 0);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::zf);
+		}
+
+		FORCE_INLINE void RotateRight(uint8_t& reg, Registers* registers)
+		{
+			uint8_t carry = reg & 0x1;
+			registers->SetFlag(Registers::Flags::cy, carry);
+			reg = reg >> 1;
+			carry = carry << 7;
+			reg |= carry;
+
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::zf);
+		}
+
+		FORCE_INLINE void RotateRightWithCarry(uint8_t& reg, Registers* registers)
+		{
+			uint8_t carry = registers->GetFlag(Registers::Flags::cy);
+
+			registers->SetFlag(Registers::Flags::cy, reg & 0x1);
+			reg = reg >> 1;
+			carry = carry << 7;
+			reg |= carry;
+
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			registers->ResetFlag(Registers::Flags::zf);
+		}
 	}
 }
 
@@ -1540,59 +1594,217 @@ void InstructionFunctions::CP_A_n(const char* mnemonic, Registers* registers, ui
 
 void InstructionFunctions::RLCA(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint16_t reg = static_cast<uint16_t>(registers->A);
-	reg = reg << 1;
-	registers->A = static_cast<uint8_t>(reg);
-
-	registers->SetFlag(Registers::Flags::cy, (reg & 0xFF00) != 0);
-	registers->ResetFlag(Registers::Flags::n);
-	registers->ResetFlag(Registers::Flags::h);
-	Helpers::SetZeroFlag(registers->A, registers);
-
+	Helpers::RotateLeft(registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 
 void InstructionFunctions::RLA(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t carry = registers->GetFlag(Registers::Flags::cy);
-	uint16_t reg = static_cast<uint16_t>(registers->A);
-	reg = reg << 1;
-	reg = (reg & 0xFFFE) | carry;
-	registers->A = static_cast<uint8_t>(reg);
-
-	registers->SetFlag(Registers::Flags::cy, (reg & 0xFF00) != 0);
-	registers->ResetFlag(Registers::Flags::n);
-	registers->ResetFlag(Registers::Flags::h);
-	Helpers::SetZeroFlag(registers->A, registers);
-
+	Helpers::RotateLeftWithCarry(registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 
 void InstructionFunctions::RRCA(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	registers->SetFlag(Registers::Flags::cy, registers->A & 0x1);
-	registers->A = registers->A >> 1;
-
-	registers->ResetFlag(Registers::Flags::n);
-	registers->ResetFlag(Registers::Flags::h);
-	Helpers::SetZeroFlag(registers->A, registers);
-
+	Helpers::RotateRight(registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 
 void InstructionFunctions::RRA(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
-	uint8_t carry = registers->GetFlag(Registers::Flags::cy);
+	Helpers::RotateRightWithCarry(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
 
-	registers->SetFlag(Registers::Flags::cy, registers->A & 0x1);
-	registers->A = registers->A >> 1;
-	carry = carry << 7;
-	registers->A |= carry;
+void InstructionFunctions::RLC_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
 
-	registers->ResetFlag(Registers::Flags::n);
-	registers->ResetFlag(Registers::Flags::h);
-	Helpers::SetZeroFlag(registers->A, registers);
+void InstructionFunctions::RLC_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
 
+void InstructionFunctions::RLC_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RLC_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RLC_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RLC_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RLC_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RLC_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeft(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RRC_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRight(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RL_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateLeftWithCarry(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RR_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::RotateRightWithCarry(registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 
