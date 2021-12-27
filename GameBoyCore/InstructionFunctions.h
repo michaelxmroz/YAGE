@@ -292,6 +292,42 @@ namespace InstructionFunctions
 	void RR_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void RR_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	void SLA_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SLA_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SRA_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRA_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SWAP_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SWAP_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SRL_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SRL_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//16 bit loads 
 	//-------------------------------------------------------------------------------------------------
 	void LD_BC_nn(const char* mnemonic, Registers* registers, uint8_t* memory);

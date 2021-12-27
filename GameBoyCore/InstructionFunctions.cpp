@@ -158,7 +158,7 @@ namespace InstructionFunctions
 			registers->SetFlag(Registers::Flags::cy, carry);
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::h);
-			registers->ResetFlag(Registers::Flags::zf);
+			SetZeroFlag(reg, registers);
 		}
 
 		FORCE_INLINE void RotateLeftWithCarry(uint8_t& reg, Registers* registers)
@@ -172,7 +172,7 @@ namespace InstructionFunctions
 			registers->SetFlag(Registers::Flags::cy, (extendedReg & 0xFF00) != 0);
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::h);
-			registers->ResetFlag(Registers::Flags::zf);
+			SetZeroFlag(reg, registers);
 		}
 
 		FORCE_INLINE void RotateRight(uint8_t& reg, Registers* registers)
@@ -185,7 +185,7 @@ namespace InstructionFunctions
 
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::h);
-			registers->ResetFlag(Registers::Flags::zf);
+			SetZeroFlag(reg, registers);
 		}
 
 		FORCE_INLINE void RotateRightWithCarry(uint8_t& reg, Registers* registers)
@@ -199,7 +199,55 @@ namespace InstructionFunctions
 
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::h);
-			registers->ResetFlag(Registers::Flags::zf);
+			SetZeroFlag(reg, registers);
+		}
+
+		FORCE_INLINE void ShiftLeftArithmetic(uint8_t& reg, Registers* registers)
+		{
+			uint16_t extendedReg = static_cast<uint16_t>(reg);
+			extendedReg = extendedReg << 1;
+			reg = static_cast<uint8_t>(extendedReg);
+			bool carry = (extendedReg & 0xFF00) != 0;
+			registers->SetFlag(Registers::Flags::cy, carry);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			SetZeroFlag(reg, registers);
+		}
+
+		FORCE_INLINE void ShiftRightArithmetic(uint8_t& reg, Registers* registers)
+		{
+			uint8_t carry = reg & 0x1;
+			registers->SetFlag(Registers::Flags::cy, carry);
+			uint8_t sign = reg >> 7;
+			reg = reg >> 1;
+
+			reg |= (sign << 7);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			SetZeroFlag(reg, registers);
+		}
+
+		FORCE_INLINE void SwapNibbles(uint8_t& reg, Registers* registers)
+		{
+			uint8_t lhb = reg << 4;
+			uint8_t rhb = reg >> 4;
+			reg = lhb | rhb;
+
+			registers->ResetFlag(Registers::Flags::cy);
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			SetZeroFlag(reg, registers);
+		}
+
+		FORCE_INLINE void ShiftRightLogic(uint8_t& reg, Registers* registers)
+		{
+			uint8_t carry = reg & 0x1;
+			registers->SetFlag(Registers::Flags::cy, carry);
+			reg = reg >> 1;
+
+			registers->ResetFlag(Registers::Flags::n);
+			registers->ResetFlag(Registers::Flags::h);
+			SetZeroFlag(reg, registers);
 		}
 	}
 }
@@ -1805,6 +1853,198 @@ void InstructionFunctions::RR_mHL(const char* mnemonic, Registers* registers, ui
 void InstructionFunctions::RR_A(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	Helpers::RotateRightWithCarry(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SLA_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftLeftArithmetic(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRA_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightArithmetic(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SWAP_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SwapNibbles(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->B, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->C, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->D, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->E, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->H, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->L, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(memory[registers->HL], registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SRL_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ShiftRightLogic(registers->A, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 

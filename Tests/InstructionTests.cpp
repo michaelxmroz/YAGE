@@ -1609,7 +1609,6 @@ TEST(Shift8Bit, Instructions)
 		EXPECT_EQ(cpu.GetRegisters().A, 0x40);
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
 	}
-	/*
 	//CB SLA
 	{
 		uint8_t command[2] = { 0xCB, 0x20 };
@@ -1675,7 +1674,193 @@ TEST(Shift8Bit, Instructions)
 		EXPECT_EQ(cpu.GetRegisters().A, 0x2);
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
 	}
-	*/
+	//CB SRA
+	{
+		uint8_t command[2] = { 0xCB, 0x28 };
+		cpu.Reset();
+		cpu.GetRegisters().B = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().B, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x29 };
+		cpu.Reset();
+		cpu.GetRegisters().C = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().C, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x2A };
+		cpu.Reset();
+		cpu.GetRegisters().D = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().D, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x2B };
+		cpu.Reset();
+		cpu.GetRegisters().E = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().E, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x2C };
+		cpu.Reset();
+		cpu.GetRegisters().H = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().H, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x2D };
+		cpu.Reset();
+		cpu.GetRegisters().L = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().L, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[3] = { 0xCB, 0x2E, 0x81 };
+		cpu.Reset();
+		cpu.GetRegisters().HL = 0x02;
+		cpu.Step(command);
+		EXPECT_EQ(command[2], 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x2F };
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0xC0);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	//CB SWAP
+	{
+		uint8_t command[2] = { 0xCB, 0x30 };
+		cpu.Reset();
+		cpu.GetRegisters().B = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().B, 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x31 };
+		cpu.Reset();
+		cpu.GetRegisters().C = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().C, 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x32 };
+		cpu.Reset();
+		cpu.GetRegisters().D = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().D, 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x33 };
+		cpu.Reset();
+		cpu.GetRegisters().E = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().E, 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x34 };
+		cpu.Reset();
+		cpu.GetRegisters().H = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().H, 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x35 };
+		cpu.Reset();
+		cpu.GetRegisters().L = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().L, 0x18);
+	}
+	{
+		uint8_t command[3] = { 0xCB, 0x36, 0x81 };
+		cpu.Reset();
+		cpu.GetRegisters().HL = 0x02;
+		cpu.Step(command);
+		EXPECT_EQ(command[2], 0x18);
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x37 };
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x18);
+	}
+	//CB SRA
+	{
+		uint8_t command[2] = { 0xCB, 0x38 };
+		cpu.Reset();
+		cpu.GetRegisters().B = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().B, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x39 };
+		cpu.Reset();
+		cpu.GetRegisters().C = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().C, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x3A };
+		cpu.Reset();
+		cpu.GetRegisters().D = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().D, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x3B };
+		cpu.Reset();
+		cpu.GetRegisters().E = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().E, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x3C };
+		cpu.Reset();
+		cpu.GetRegisters().H = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().H, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x3D };
+		cpu.Reset();
+		cpu.GetRegisters().L = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().L, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[3] = { 0xCB, 0x3E, 0x81 };
+		cpu.Reset();
+		cpu.GetRegisters().HL = 0x02;
+		cpu.Step(command);
+		EXPECT_EQ(command[2], 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
+	{
+		uint8_t command[2] = { 0xCB, 0x3F };
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x81;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x40);
+		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
+	}
 }
 
 TEST(Control, Instructions)
