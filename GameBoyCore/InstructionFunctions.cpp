@@ -249,6 +249,25 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::h);
 			SetZeroFlag(reg, registers);
 		}
+
+		FORCE_INLINE void TestBit(uint8_t reg, uint8_t bit, Registers* registers)
+		{
+			uint8_t bitset = (reg >> bit) & 0x1;
+
+			registers->ResetFlag(Registers::Flags::n);
+			registers->SetFlag(Registers::Flags::h);
+			registers->SetFlag(Registers::Flags::zf, bitset == 0);
+		}
+
+		FORCE_INLINE void ResetBit(uint8_t& reg, uint8_t bit, Registers* registers)
+		{
+			reg &= ~(0x1 << bit);
+		}
+
+		FORCE_INLINE void SetBit(uint8_t& reg, uint8_t bit, Registers* registers)
+		{
+			reg |= (0x1 << bit);
+		}
 	}
 }
 
@@ -2045,6 +2064,1158 @@ void InstructionFunctions::SRL_mHL(const char* mnemonic, Registers* registers, u
 void InstructionFunctions::SRL_A(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	Helpers::ShiftRightLogic(registers->A, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_0_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_1_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_2_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_3_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_4_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_5_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_6_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->B, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->C, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->D, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->E, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->H, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->L, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(memory[registers->HL], 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::BIT_7_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::TestBit(registers->A, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_0_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_1_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_2_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_3_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_4_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_5_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_6_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->B, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->C, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->D, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->E, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->H, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->L, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(memory[registers->HL], 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::RES_7_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::ResetBit(registers->A, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_0_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 0, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_1_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 1, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_2_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 2, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_3_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 3, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_4_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 4, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_5_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 5, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_6_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 6, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_B(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->B, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_C(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->C, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_D(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->D, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_E(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->E, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_H(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->H, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_L(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->L, 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(memory[registers->HL], 7, registers);
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::SET_7_A(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	Helpers::SetBit(registers->A, 7, registers);
 	LOG_INSTRUCTION(mnemonic);
 }
 

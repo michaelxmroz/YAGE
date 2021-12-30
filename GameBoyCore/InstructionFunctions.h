@@ -328,6 +328,224 @@ namespace InstructionFunctions
 	void SRL_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void SRL_A(const char* mnemonic, Registers* registers, uint8_t* memory);
 
+	//Singlebit operations
+	//-------------------------------------------------------------------------------------------------
+	void BIT_0_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_0_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_1_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_1_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_2_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_2_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_3_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_3_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_4_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_4_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_5_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_5_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_6_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_6_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void BIT_7_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void BIT_7_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_0_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_0_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_1_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_1_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_2_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_2_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_3_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_3_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_4_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_4_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_5_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_5_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_6_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_6_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void RES_7_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RES_7_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_0_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_0_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_1_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_1_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_2_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_2_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_3_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_3_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_4_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_4_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_5_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_5_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_6_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_6_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void SET_7_B(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_C(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_D(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_E(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_H(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_L(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_mHL(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void SET_7_A(const char* mnemonic, Registers* registers, uint8_t* memory);
+
 	//16 bit loads 
 	//-------------------------------------------------------------------------------------------------
 	void LD_BC_nn(const char* mnemonic, Registers* registers, uint8_t* memory);
