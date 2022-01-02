@@ -539,6 +539,38 @@ void InstructionFunctions::RET(const char* mnemonic, Registers* registers, uint8
 	LOG_INSTRUCTION(mnemonic);
 }
 
+void InstructionFunctions::RETI(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->PC = Helpers::Read16Bit(registers->SP, memory);
+	registers->IMEF = true;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::EI(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->IMEF = true;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::DI(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->IMEF = false;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::HALT(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->CpuState = Registers::State::Halt;
+	LOG_INSTRUCTION(mnemonic);
+}
+
+void InstructionFunctions::STOP(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	registers->PC++;
+	registers->CpuState = Registers::State::Halt;
+	LOG_INSTRUCTION(mnemonic);
+}
+
 
 //8 bit loads 
 //-------------------------------------------------------------------------------------------------
@@ -1615,48 +1647,81 @@ void InstructionFunctions::ADD_A_n(const char* mnemonic, Registers* registers, u
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::Addition(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::SUB_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::Subtraction(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::AND_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::BitwiseAnd(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::OR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::BitwiseOr(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::ADC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::AdditionWithCarry(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::SBC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::SubtractionWithCarry(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::XOR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::BitwiseXor(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
 }
 
 void InstructionFunctions::CP_A_n(const char* mnemonic, Registers* registers, uint8_t* memory)
 {
 	uint8_t immediate = memory[registers->PC++];
 	Helpers::CompareSubtraction(registers->A, immediate, registers);
+	LOG_INSTRUCTION(mnemonic, immediate);
+}
+
+void InstructionFunctions::DAA(const char* mnemonic, Registers* registers, uint8_t* memory)
+{
+	bool subtraction = registers->GetFlag(Registers::Flags::n);
+	bool halfCarry = registers->GetFlag(Registers::Flags::h);
+	bool carry = registers->GetFlag(Registers::Flags::cy);
+	uint8_t correction = 0;
+	if (halfCarry || (!subtraction && (registers->A & 0xf) > 9)) {
+		correction |= 0x6;
+	}
+
+	if (carry || (!subtraction && registers->A > 0x99)) {
+		correction |= 0x60;
+		registers->SetFlag(Registers::Flags::cy);
+	}
+
+	registers->A += subtraction ? -correction : correction;
+
+	registers->A &= 0xff;
+
+	Helpers::SetZeroFlag(registers->A, registers);
+	registers->ResetFlag(Registers::Flags::h);
+	
+	LOG_INSTRUCTION(mnemonic);
 }
 
 void InstructionFunctions::RLCA(const char* mnemonic, Registers* registers, uint8_t* memory)

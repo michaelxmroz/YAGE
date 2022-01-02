@@ -1299,6 +1299,14 @@ TEST(Arithmatic8Bit, Instructions)
 		EXPECT_FALSE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
 
 	}
+	//DAA
+	{
+		uint8_t command[1] = { 0x27 };
+		cpu.Reset();
+		cpu.GetRegisters().A = 0x0A;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().A, 0x10);
+	}
 }
 
 TEST(Shift8Bit, Instructions)
@@ -2757,5 +2765,51 @@ TEST(Control, Instructions)
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+	}
+	{
+		uint8_t command[3] = { 0xD9, 0x02, 0x03 };
+		cpu.Reset();
+
+		cpu.GetRegisters().SP = 0x1;
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0302);
+		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
+		EXPECT_TRUE(cpu.GetRegisters().IMEF);
+	}
+	// Enable / Disable interrupts
+	{
+		uint8_t command[1] = { 0xFB };
+		cpu.Reset();
+		EXPECT_FALSE(cpu.GetRegisters().IMEF);
+		cpu.Step(command);
+		EXPECT_TRUE(cpu.GetRegisters().IMEF);
+	}
+	{
+		uint8_t command[1] = { 0xF3 };
+		cpu.Reset();
+		cpu.GetRegisters().IMEF = true;
+		EXPECT_TRUE(cpu.GetRegisters().IMEF);
+		cpu.Step(command);
+		EXPECT_FALSE(cpu.GetRegisters().IMEF);
+	}
+	{
+		uint8_t command[1] = { 0x76 };
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x1);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x1);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x1);
+	}
+	{
+		uint8_t command[2] = { 0x10, 0x00 };
+		cpu.Reset();
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
 	}
 }

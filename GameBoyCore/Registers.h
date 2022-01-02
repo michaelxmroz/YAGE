@@ -21,6 +21,13 @@ struct Registers
 		zf = 1 << 7
 	};
 
+	enum class State
+	{
+		Running = 0,
+		Halt = 1,
+		Stop = 2
+	};
+
 	union // Accumulator & Flags
 	{
 		unsigned short AF;
@@ -63,6 +70,10 @@ struct Registers
 
 	unsigned short SP; // Stack Pointer
 	unsigned short PC; // Program Counter
+
+	bool IMEF; // Interrupt Master Enable Flag
+
+	State CpuState;
 
 	FORCE_INLINE void SetFlag(Flags flag)
 	{

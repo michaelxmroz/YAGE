@@ -20,7 +20,7 @@ CPU::CPU()
 	, { "DEC C", 1, 1, &InstructionFunctions::DEC_C }
 	, { "LD C n", 2, 2, &InstructionFunctions::LD_C_n }
 	, { "RRCA", 1, 1, &InstructionFunctions::RRCA }
-	, { "STOP", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "STOP", 1, 2, &InstructionFunctions::STOP }
 	, { "LD DE nn", 3, 3, &InstructionFunctions::LD_DE_nn }
 	, { "LD (DE) A", 1, 2, &InstructionFunctions::LD_mDE_A }
 	, { "INC DE", 1, 2, &InstructionFunctions::INC_DE }
@@ -43,7 +43,7 @@ CPU::CPU()
 	, { "INC H", 1, 1, &InstructionFunctions::INC_H }
 	, { "DEC H", 1, 1, &InstructionFunctions::DEC_H }
 	, { "LD H n", 2, 2, &InstructionFunctions::LD_H_n }
-	, { "DAA", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "DAA", 1, 1, &InstructionFunctions::DAA }
 	, { "JR Z n", 2, 2, &InstructionFunctions::JR_Z_n }
 	, { "ADD HL HL", 1, 2, &InstructionFunctions::ADD_HL_HL }
 	, { "LD A (HL+)", 1, 2, &InstructionFunctions::LD_A_mHLinc }
@@ -122,7 +122,7 @@ CPU::CPU()
 	, { "LD (HL) E", 1, 2, &InstructionFunctions::LD_mHL_E }
 	, { "LD (HL) H", 1, 2, &InstructionFunctions::LD_mHL_H }
 	, { "LD (HL) L", 1, 2, &InstructionFunctions::LD_mHL_L }
-	, { "HALT", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "HALT", 1, 1, &InstructionFunctions::HALT }
 	, { "LD (HL) A", 1, 2, &InstructionFunctions::LD_mHL_A }
 	, { "LD A B", 1, 1, &InstructionFunctions::LD_A_B }
 	, { "LD A C", 1, 1, &InstructionFunctions::LD_A_C }
@@ -221,7 +221,7 @@ CPU::CPU()
 	, { "SUB A n", 2, 2, &InstructionFunctions::SUB_A_n }
 	, { "RST 0x10", 1, 4, &InstructionFunctions::RST_10 }
 	, { "RET C", 1, 5, &InstructionFunctions::RET_C }
-	, { "RETI", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "RETI", 1, 4, &InstructionFunctions::RETI }
 	, { "JP C nn", 3, 3, &InstructionFunctions::JP_C_nn }
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "CALL C nn", 3, 6, &InstructionFunctions::CALL_C_nn }
@@ -247,7 +247,7 @@ CPU::CPU()
 	, { "LDH A (n)", 2, 3, &InstructionFunctions::LDH_A_mn }
 	, { "POP AF", 1, 3, &InstructionFunctions::POP_AF }
 	, { "LDH A (C)", 1, 2, &InstructionFunctions::LDH_A_mC }
-	, { "DI", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "DI", 1, 1, &InstructionFunctions::DI }
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "PUSH AF", 1, 4, &InstructionFunctions::PUSH_AF }
 	, { "OR A n", 2, 2, &InstructionFunctions::OR_A_n }
@@ -255,7 +255,7 @@ CPU::CPU()
 	, { "LD HL SP+n", 2, 3, &InstructionFunctions::LD_HL_SP_n }
 	, { "LD SP HL", 1, 2, &InstructionFunctions::LD_SP_HL }
 	, { "LD A (nn)", 3, 4, &InstructionFunctions::LD_A_mnn }
-	, { "EI", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
+	, { "EI", 1, 1, &InstructionFunctions::EI }
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "CP A n", 2, 2, &InstructionFunctions::CP_A_n }

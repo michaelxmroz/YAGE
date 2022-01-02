@@ -14,22 +14,22 @@ public:
 
 	void Step(uint8_t* memory)
 	{
-		//Fetch
-		uint16_t encodedInstruction = memory[m_registers.PC++];
+		if (m_registers.CpuState == Registers::State::Running)
+		{		
+			//Fetch
+			uint16_t encodedInstruction = memory[m_registers.PC++];
 
-		//TODO handle instruction extension
+			//Decode
+			if (encodedInstruction == EXTENSION_OPCODE)
+			{
+				encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
+			}
 
-		//Decode
-		if (encodedInstruction == EXTENSION_OPCODE)
-		{
-			encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
+			const Instruction& instruction = m_instructions[encodedInstruction];
+
+			//Execute
+			instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
 		}
-
-		const Instruction& instruction = m_instructions[encodedInstruction];
-
-		//Execute
-		instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
-
 		//TODO check for interrups
 		//TODO adjust timings
 	}
@@ -53,6 +53,7 @@ public:
 #endif // _DEBUG
 
 private:
+
 	typedef void (*InstructionFunc)(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	struct Instruction
@@ -72,6 +73,8 @@ private:
 		m_registers.DE = 0;
 		m_registers.HL = 0;
 		m_registers.PC = 0;
+		m_registers.IMEF = false;
+		m_registers.CpuState = Registers::State::Running;
 	}
 
 	Registers m_registers;

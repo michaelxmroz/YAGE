@@ -45,6 +45,13 @@ namespace InstructionFunctions
 	void RET_NC(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void RET_C(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void RET(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void RETI(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void EI(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void DI(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void HALT(const char* mnemonic, Registers* registers, uint8_t* memory);
+	void STOP(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	//8 bit loads 
 	//-------------------------------------------------------------------------------------------------
@@ -248,6 +255,8 @@ namespace InstructionFunctions
 	void SBC_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void XOR_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
 	void CP_A_n(const char* mnemonic, Registers* registers, uint8_t* memory);
+
+	void DAA(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	//8 bit shifts
 	//-------------------------------------------------------------------------------------------------
