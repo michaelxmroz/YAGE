@@ -4,7 +4,7 @@
 #include <string>
 #include <stdexcept>
 
-#define FORCE_INLINE __inline
+#define FORCE_INLINE inline
 
 // Taken from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 // License: https://creativecommons.org/publicdomain/zero/1.0/ 
@@ -18,3 +18,13 @@ std::string string_format(const std::string& format, Args ... args)
     std::snprintf(buf.get(), size, format.c_str(), args ...);
     return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
 }
+
+namespace Helpers
+{
+    FORCE_INLINE unsigned int GetFirstSetBit(int n)
+    {
+        return static_cast<uint32_t>(log2(n & -n));
+    }
+}
+
+

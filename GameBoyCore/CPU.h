@@ -1,37 +1,87 @@
 #pragma once
 #include "Registers.h"
 #include "InstructionFunctions.h"
+#include "Interrupts.h"
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define INSTRUCTION_SET_SIZE 512
 #define EXTENSION_OPCODE 0xCB
 #define EXTENSION_OFFSET 256
+#define INTERRUPT_DURATION 5
+
+#define EI_OPCODE 0xFB
 
 class CPU
 {
 public:
-	CPU();
+	CPU(bool enableInterruptHandling = true);
 
-	void Step(uint8_t* memory)
+	uint32_t Step(uint8_t* memory)
 	{
+		uint32_t mCycles = 0;
+		bool handleInterrupts = true;
+
 		if (m_registers.CpuState == Registers::State::Running)
 		{		
-			//Fetch
-			uint16_t encodedInstruction = memory[m_registers.PC++];
+			ExecuteInstruction(memory, mCycles, handleInterrupts);
+		}
 
-			//Decode
-			if (encodedInstruction == EXTENSION_OPCODE)
+		if (m_InterruptHandlingEnabled)
+		{
+			bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
+
+			//Wake up from low energy states
+			if (hasInterrupt)
 			{
-				encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
+				if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::ShouldHandleInterrupt(Interrupts::Types::Joypad, memory)))
+				{
+					m_registers.CpuState = Registers::State::Running;
+					m_haltBug = true;
+				}
 			}
 
-			const Instruction& instruction = m_instructions[encodedInstruction];
+			//Handle interrupt
+			if (handleInterrupts && hasInterrupt && m_registers.IMEF)
+			{
+				m_registers.IMEF = false;
+				uint16_t jumpAddr = Interrupts::GetJumpAddrAndClear(memory);
 
-			//Execute
-			instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
+				mCycles += INTERRUPT_DURATION;
+
+				InstructionFunctions::Helpers::Call(jumpAddr, &m_registers, memory);
+			}
 		}
-		//TODO check for interrups
-		//TODO adjust timings
+
+		return mCycles;
+	}
+
+	void ExecuteInstruction(uint8_t* memory, uint32_t& mCycles, bool& handleInterrupts)
+	{
+		//Fetch
+		uint16_t encodedInstruction = memory[m_registers.PC++];
+
+		//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
+		if (m_haltBug)
+		{
+			m_registers.PC--;
+			m_haltBug = false;
+		}
+
+		//Decode
+		if (encodedInstruction == EXTENSION_OPCODE)
+		{
+			encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
+		}
+
+		const Instruction& instruction = m_instructions[encodedInstruction];
+
+		mCycles += instruction.m_duration;
+
+		//Execute
+		mCycles += instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
+
+		//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
+		handleInterrupts = encodedInstruction != EI_OPCODE;
 	}
 
 	void SetProgramCounter(unsigned short addr)
@@ -41,6 +91,7 @@ public:
 
 	void Reset()
 	{
+		m_haltBug = false;
 		ClearRegisters();
 	}
 
@@ -54,7 +105,7 @@ public:
 
 private:
 
-	typedef void (*InstructionFunc)(const char* mnemonic, Registers* registers, uint8_t* memory);
+	typedef uint32_t (*InstructionFunc)(const char* mnemonic, Registers* registers, uint8_t* memory);
 
 	struct Instruction
 	{
@@ -80,5 +131,8 @@ private:
 	Registers m_registers;
 
 	const Instruction m_instructions[INSTRUCTION_SET_SIZE];
+
+	bool m_haltBug;
+	const bool m_InterruptHandlingEnabled;
 };
 

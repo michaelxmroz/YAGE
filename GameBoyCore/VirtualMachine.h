@@ -4,7 +4,7 @@
 #include "Registers.h"
 #include "CPU.h"
 
-#define MEMORY_SIZE 0xFFFF
+#define MEMORY_SIZE 0x10000
 #define ROM_ENTRY_POINT 0x0100
 
 class VirtualMachine
@@ -12,6 +12,7 @@ class VirtualMachine
 public:
 	VirtualMachine() 
 	: m_memory()
+	, m_cpu()
 	{
 		m_memory = new uint8_t[MEMORY_SIZE];
 	}
@@ -37,7 +38,7 @@ public:
 		ClearMemory();
 		MapROM();
 		m_cpu.Reset();
-		m_cpu.SetProgramCounter(0);
+		m_cpu.SetProgramCounter(ROM_ENTRY_POINT);
 
 		// Run
 		while (true)

@@ -6,9 +6,9 @@ uint16_t u16(uint8_t lsb, uint8_t msb)
 	return static_cast<uint16_t>(msb) << 8 | static_cast<uint16_t>(lsb);
 }
 
-TEST(Loads8Bit, Instructions)
+TEST(Instructions, Loads8Bit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	//LD A to memory
 	{
 		uint8_t command[2] = { 0x02, 0x00 };
@@ -388,7 +388,7 @@ TEST(Loads8Bit, Instructions)
 	}
 	//LDH
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xE0;
 		command[1] = 0x0;
 		cpu.Reset();
@@ -398,7 +398,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xF0;
 		command[1] = 0x1;
 		command[0xFF01] = 0x15;
@@ -408,7 +408,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xE2;
 		cpu.Reset();
 		cpu.GetRegisters().A = 0x15;
@@ -418,7 +418,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xF2;
 		command[0xFF01] = 0x15;
 		cpu.Reset();
@@ -428,7 +428,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xF2;
 		command[0xFF01] = 0x15;
 		cpu.Reset();
@@ -438,7 +438,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xEA;
 		command[1] = 0xF1;
 		command[2] = 0x01;
@@ -449,7 +449,7 @@ TEST(Loads8Bit, Instructions)
 		delete[] command;
 	}
 	{
-		uint8_t* command = new uint8_t[0xFFFF];
+		uint8_t* command = new uint8_t[0x10000];
 		command[0] = 0xFA;
 		command[1] = 0xF1;
 		command[2] = 0x01;
@@ -461,9 +461,9 @@ TEST(Loads8Bit, Instructions)
 	}
 }
 
-TEST(Loads16Bit, Instructions) 
+TEST(Instructions, Loads16Bit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	//LD
 	{
 		uint8_t command[3] = { 0x01, 0x05 , 0x01 };
@@ -583,9 +583,9 @@ TEST(Loads16Bit, Instructions)
 	
 }
 
-TEST(Arithmatic16Bit, Instructions)
+TEST(Instructions, Arithmatic16Bit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	//INC
 	{
 		uint8_t command[1] = { 0x03 };
@@ -700,9 +700,9 @@ TEST(Arithmatic16Bit, Instructions)
 	}
 }
 
-TEST(Arithmatic8Bit, Instructions)
+TEST(Instructions, Arithmatic8Bit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	//INC
 	{
 		uint8_t command[1] = { 0x04 };
@@ -1309,9 +1309,9 @@ TEST(Arithmatic8Bit, Instructions)
 	}
 }
 
-TEST(Shift8Bit, Instructions)
+TEST(Instructions, Shift8Bit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	{
 		uint8_t command[1] = { 0x07 };
 		cpu.Reset();
@@ -1871,9 +1871,9 @@ TEST(Shift8Bit, Instructions)
 	}
 }
 
-TEST(SingleBit, Instructions)
+TEST(Instructions, SingleBit)
 {
-	CPU cpu;
+	CPU cpu(false);
 	// Bit tests
 	{
 		uint8_t command[16] = { 0xCB, 0x40, 0xCB, 0x48, 0xCB, 0x50, 0xCB, 0x58, 0xCB, 0x60, 0xCB, 0x68, 0xCB, 0x70, 0xCB, 0x78 };
@@ -2409,9 +2409,9 @@ TEST(SingleBit, Instructions)
 	}
 }
 
-TEST(Control, Instructions)
+TEST(Instructions, Control)
 {
-	CPU cpu;
+	CPU cpu(false);
 	// Carry set/toggle
 	{
 		uint8_t command[1] = { 0x37 };

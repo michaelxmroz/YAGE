@@ -6,7 +6,8 @@ namespace Logger_Helpers
 	void OutputToVisualStudioConsole(const char* message);
 }
 
-//Easier to specifically define my 3 use cases than mess around with variadic macros.
+//#define _LOG_INSTRUCTIONS 1
+
 #ifdef _LOG_INSTRUCTIONS
 #define LOG_INSTRUCTION(...) \
 { \
