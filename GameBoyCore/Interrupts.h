@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "Helpers.h"
+#include "Memory.h"
 
 namespace Interrupts
 {
@@ -13,17 +14,17 @@ namespace Interrupts
         Joypad = 4
     };
 
-    void EnableInterrupt(Types type, uint8_t* memory);
+    void EnableInterrupt(Types type, Memory& memory);
 
-    void DisableInterrupt(Types type, uint8_t* memory);
+    void DisableInterrupt(Types type, Memory& memory);
 
-    void RequestInterrupt(Types type, uint8_t* memory);
+    void RequestInterrupt(Types type, Memory& memory);
 
-    void ClearInterruptRequest(Types type, uint8_t* memory);
+    void ClearInterruptRequest(Types type, Memory& memory);
 
-    bool ShouldHandleInterrupt(uint8_t* memory);
+    bool ShouldHandleInterrupt(Memory& memory);
 
-    bool ShouldHandleInterrupt(Types type, uint8_t* memory);
+    bool ShouldHandleInterrupt(Types type, Memory& memory);
 
-    uint16_t GetJumpAddrAndClear(uint8_t* memory);
+    uint16_t GetJumpAddrAndClear(Memory& memory);
 }

@@ -148,20 +148,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Clock.cpp" />
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="InstructionFunctions.cpp" />
     <ClCompile Include="Interrupts.cpp" />
     <ClCompile Include="Logging.cpp" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Registers.cpp" />
     <ClCompile Include="VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Clock.h" />
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="InstructionFunctions.h" />
     <ClInclude Include="Interrupts.h" />
     <ClInclude Include="Logging.h" />
+    <ClInclude Include="Memory.h" />
     <ClInclude Include="Registers.h" />
     <ClInclude Include="VirtualMachine.h" />
   </ItemGroup>

@@ -11,7 +11,8 @@ TEST(Interrupts, Vblank)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -24,8 +25,9 @@ TEST(Interrupts, Vblank)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -43,7 +45,8 @@ TEST(Interrupts, LCD_STAT)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -56,8 +59,9 @@ TEST(Interrupts, LCD_STAT)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0048);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -75,7 +79,8 @@ TEST(Interrupts, Timer)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::RequestInterrupt(Interrupts::Types::Timer, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::Timer, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -88,8 +93,9 @@ TEST(Interrupts, Timer)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::Timer, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::Timer, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::Timer, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::Timer, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0050);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -107,7 +113,8 @@ TEST(Interrupts, Serial)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::RequestInterrupt(Interrupts::Types::Serial, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::Serial, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -120,8 +127,9 @@ TEST(Interrupts, Serial)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::Serial, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::Serial, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::Serial, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::Serial, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0058);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -139,7 +147,8 @@ TEST(Interrupts, Joypad)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -152,8 +161,9 @@ TEST(Interrupts, Joypad)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::Joypad, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::Joypad, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0060);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -171,11 +181,12 @@ TEST(Interrupts, Priority)
 
 		cpu.Reset();
 		cpu.GetRegisters().IMEF = true;
-		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, command);
+		Memory mem(command);
+		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
 
-		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, command);
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, command);
+		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, mem);
+		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
@@ -194,8 +205,9 @@ TEST(Interrupts, EI_delay)
 
 		cpu.GetRegisters().IMEF = false;
 		command[0] = 0xFB;
-		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, command);
-		Interrupts::EnableInterrupt(Interrupts::Types::Joypad, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, mem);
+		Interrupts::EnableInterrupt(Interrupts::Types::Joypad, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
@@ -224,10 +236,11 @@ TEST(Interrupts, HALT_Continue)
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
 		EXPECT_TRUE(cpu.GetRegisters().IMEF);
+		Memory mem(command);
 		EXPECT_EQ(cpu.GetRegisters().CpuState, Registers::State::Halt);
 
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, command);
-		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, command);
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
+		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
 
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
@@ -256,8 +269,9 @@ TEST(Interrupts, HALT_Bug)
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		EXPECT_EQ(cpu.GetRegisters().CpuState, Registers::State::Halt);
 
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, command);
-		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, command);
+		Memory mem(command);
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
+		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().CpuState, Registers::State::Running);
 

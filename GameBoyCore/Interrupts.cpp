@@ -16,37 +16,37 @@ namespace Interrupts
 {
 
 
-void Interrupts::EnableInterrupt(Types type, uint8_t* memory)
+void Interrupts::EnableInterrupt(Types type, Memory& memory)
 {
-    memory[INTERRUPT_ENABLE_REGISTER] |= (1 << static_cast<uint8_t>(type));
+    memory.Write(INTERRUPT_ENABLE_REGISTER) |= (1 << static_cast<uint8_t>(type));
 }
 
-void Interrupts::DisableInterrupt(Types type, uint8_t* memory)
+void Interrupts::DisableInterrupt(Types type, Memory& memory)
 {
-    memory[INTERRUPT_ENABLE_REGISTER] &= ~(1 << static_cast<uint8_t>(type));
+    memory.Write(INTERRUPT_ENABLE_REGISTER) &= ~(1 << static_cast<uint8_t>(type));
 }
 
-void Interrupts::RequestInterrupt(Types type, uint8_t* memory)
+void Interrupts::RequestInterrupt(Types type, Memory& memory)
 {
-    memory[INTERRUPT_FLAG_REGISTER] |= (1 << static_cast<uint8_t>(type));
+    memory.Write(INTERRUPT_FLAG_REGISTER) |= (1 << static_cast<uint8_t>(type));
 }
 
-void Interrupts::ClearInterruptRequest(Types type, uint8_t* memory)
+void Interrupts::ClearInterruptRequest(Types type, Memory& memory)
 {
-    memory[INTERRUPT_FLAG_REGISTER] &= ~(1 << static_cast<uint8_t>(type));
+    memory.Write(INTERRUPT_FLAG_REGISTER) &= ~(1 << static_cast<uint8_t>(type));
 }
 
-bool Interrupts::ShouldHandleInterrupt(uint8_t* memory)
+bool Interrupts::ShouldHandleInterrupt(Memory& memory)
 {
     return (memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER]) > 0;
 }
 
-bool Interrupts::ShouldHandleInterrupt(Types type, uint8_t* memory)
+bool Interrupts::ShouldHandleInterrupt(Types type, Memory& memory)
 {
     return (memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER]) == (1 << static_cast<uint8_t>(type));
 }
 
-uint16_t Interrupts::GetJumpAddrAndClear(uint8_t* memory)
+uint16_t Interrupts::GetJumpAddrAndClear(Memory& memory)
 {
     uint8_t interrupts = memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER];
 

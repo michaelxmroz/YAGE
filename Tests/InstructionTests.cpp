@@ -2803,7 +2803,9 @@ TEST(Instructions, Control)
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x1);
 	}
 	{
-		uint8_t command[2] = { 0x10, 0x00 };
+		uint8_t* command = new uint8_t[0x10000];
+		memset(command, 0, 0x10000);
+		command[0] = 0x10;
 		cpu.Reset();
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
@@ -2811,5 +2813,7 @@ TEST(Instructions, Control)
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x2);
+
+		delete[] command;
 	}
 }
