@@ -14,6 +14,8 @@ namespace Interrupts
         Joypad = 4
     };
 
+    void Init(Memory& memory);
+
     void EnableInterrupt(Types type, Memory& memory);
 
     void DisableInterrupt(Types type, Memory& memory);

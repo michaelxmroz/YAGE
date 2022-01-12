@@ -4,6 +4,7 @@
 #include "CPU.h"
 #include "Memory.h"
 #include "Clock.h"
+#include "PPU.h"
 
 class VirtualMachine
 {
@@ -21,5 +22,6 @@ private:
 	Memory m_memory;
 	CPU m_cpu;
 	Clock m_clock;
+	PPU m_ppu;
 };
 

@@ -12,7 +12,6 @@ TEST(ClockTest, Divider)
 		uint8_t* command = new uint8_t[0x10000];
 		memset(command, 0, 0x10000);
 		Memory mem(command);
-
 		cpu.Reset();
 		
 		EXPECT_EQ(command[0xFF04], 0x0);
@@ -72,7 +71,7 @@ TEST(ClockTest, Timer)
 		}
 		EXPECT_EQ(command[0xFF05], 0x0);
 		EXPECT_TRUE(Interrupts::ShouldHandleInterrupt(Interrupts::Types::Timer, mem));
-
+		Interrupts::ClearInterruptRequest(Interrupts::Types::Timer, mem);
 		command[0xFF05] = 0xFF;
 		command[0xFF06] = 0xCC;
 		clock.Reset();

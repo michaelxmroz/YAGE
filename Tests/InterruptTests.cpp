@@ -29,7 +29,7 @@ TEST(Interrupts, Vblank)
 		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0041);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -63,7 +63,7 @@ TEST(Interrupts, LCD_STAT)
 		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0048);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0049);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -97,7 +97,7 @@ TEST(Interrupts, Timer)
 		Interrupts::EnableInterrupt(Interrupts::Types::Timer, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::Timer, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0050);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0051);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -131,7 +131,7 @@ TEST(Interrupts, Serial)
 		Interrupts::EnableInterrupt(Interrupts::Types::Serial, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::Serial, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0058);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0059);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -165,7 +165,7 @@ TEST(Interrupts, Joypad)
 		Interrupts::EnableInterrupt(Interrupts::Types::Joypad, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::Joypad, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0060);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0061);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -188,7 +188,7 @@ TEST(Interrupts, Priority)
 		Interrupts::EnableInterrupt(Interrupts::Types::LCD_STAT, mem);
 		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, mem);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0041);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -213,7 +213,8 @@ TEST(Interrupts, EI_delay)
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
 		EXPECT_TRUE(cpu.GetRegisters().IMEF);
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0060);
+		cpu.Step(command);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0061);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		delete[] command;
@@ -243,7 +244,7 @@ TEST(Interrupts, HALT_Continue)
 		Interrupts::EnableInterrupt(Interrupts::Types::VBlank, mem);
 		cpu.Step(command);
 
-		EXPECT_EQ(cpu.GetRegisters().PC, 0x0040);
+		EXPECT_EQ(cpu.GetRegisters().PC, 0x0041);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFC);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);
 		EXPECT_EQ(cpu.GetRegisters().CpuState, Registers::State::Running);
@@ -275,7 +276,6 @@ TEST(Interrupts, HALT_Bug)
 		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().CpuState, Registers::State::Running);
 
-		cpu.Step(command);
 		EXPECT_EQ(cpu.GetRegisters().PC, 0x0001);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0xFFFE);
 		EXPECT_FALSE(cpu.GetRegisters().IMEF);

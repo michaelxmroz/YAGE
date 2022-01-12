@@ -39,6 +39,13 @@ Clock::Clock()
 {
 }
 
+void Clock::Init(Memory& memory)
+{
+	memory.Write(DIVIDER_REGISTER, 0x00);
+	memory.Write(TAC_REGISTER, 0xF8);
+	memory.RegisterCallback(DIVIDER_REGISTER, Clock::ResetDivider);
+}
+
 void Clock::Increment(uint32_t mCycles, Memory& memory)
 {
 	m_dividerCycleAccumulator += mCycles;
@@ -57,12 +64,12 @@ void Clock::Increment(uint32_t mCycles, Memory& memory)
 			m_dividerCycleAccumulator %= timerFrequency;
 			if (memory[TIMA_REGISTER] == 0xFF)
 			{
-				memory.Write(TIMA_REGISTER) = memory[TMA_REGISTER];
+				memory.Write(TIMA_REGISTER, memory[TMA_REGISTER]);
 				Interrupts::RequestInterrupt(Interrupts::Types::Timer, memory);
 			}
 			else
 			{
-				memory.Write(TIMA_REGISTER) += 1;
+				memory.Write(TIMA_REGISTER, memory[TIMA_REGISTER] + 1);
 			}
 		}
 	}
@@ -74,17 +81,7 @@ void Clock::Reset()
 	m_timerCycleAccumulator = 0;
 }
 
-void Clock::ResetDivider(Memory& memory)
+void Clock::ResetDivider(Memory* memory)
 {
-	memory.WriteDirect(DIVIDER_REGISTER, 0);
+	memory->WriteDirect(DIVIDER_REGISTER, 0);
 }
-
-void Clock::CheckForDividerWrite(uint16_t addr, Memory& memory)
-{
-	if (addr == DIVIDER_REGISTER)
-	{
-		ResetDivider(memory);
-	}
-}
-
-

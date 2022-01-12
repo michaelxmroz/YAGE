@@ -533,13 +533,21 @@ CPU::CPU(bool enableInterruptHandling)
 uint32_t CPU::Step(Memory& memory)
 {
 	uint32_t mCycles = 0;
-	bool handleInterrupts = true;
+
+	ProcessInterrupts(memory, mCycles);
+
+	m_delayedInterruptHandling = false;
 
 	if (m_registers.CpuState == Registers::State::Running)
 	{
-		ExecuteInstruction(memory, mCycles, handleInterrupts);
+		ExecuteInstruction(memory, mCycles);
 	}
 
+	return mCycles;
+}
+
+void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
+{
 	if (m_InterruptHandlingEnabled)
 	{
 		bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
@@ -550,12 +558,13 @@ uint32_t CPU::Step(Memory& memory)
 			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::ShouldHandleInterrupt(Interrupts::Types::Joypad, memory)))
 			{
 				m_registers.CpuState = Registers::State::Running;
-				m_haltBug = true;
+
+				m_haltBug = !m_registers.IMEF;
 			}
 		}
 
 		//Handle interrupt
-		if (handleInterrupts && hasInterrupt && m_registers.IMEF)
+		if (!m_delayedInterruptHandling && hasInterrupt && m_registers.IMEF)
 		{
 			m_registers.IMEF = false;
 			uint16_t jumpAddr = Interrupts::GetJumpAddrAndClear(memory);
@@ -565,11 +574,9 @@ uint32_t CPU::Step(Memory& memory)
 			InstructionFunctions::Helpers::Call(jumpAddr, &m_registers, memory);
 		}
 	}
-
-	return mCycles;
 }
 
-void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles, bool& handleInterrupts)
+void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
 	//Fetch
 	uint16_t encodedInstruction = memory[m_registers.PC++];
@@ -595,7 +602,7 @@ void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles, bool& handleInte
 	mCycles += instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
 
 	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
-	handleInterrupts = encodedInstruction != EI_OPCODE;
+	m_delayedInterruptHandling = encodedInstruction == EI_OPCODE;
 }
 
 void CPU::SetProgramCounter(unsigned short addr)
@@ -605,6 +612,7 @@ void CPU::SetProgramCounter(unsigned short addr)
 
 void CPU::Reset()
 {
+	m_delayedInterruptHandling = false;
 	m_haltBug = false;
 	ClearRegisters();
 }

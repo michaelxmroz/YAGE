@@ -4,9 +4,34 @@
 
 #define MEMORY_SIZE 0x10000
 
+#ifdef _DEBUG
+#define TRACK_UNINITIALIZED_MEMORY_READS 1
+#endif // _DEBUG
+
+
+class Memory;
+
+typedef void(*MemoryWriteCallback)(Memory* memory);
+
+struct SpriteAttributes
+{
+	uint8_t m_posY;
+	uint8_t m_posX;
+	uint8_t m_tileIndex;
+	uint8_t m_flags;
+};
+
 class Memory
 {
 public:
+
+	enum class VRamAccess
+	{
+		All = 0,
+		OAMBlocked = 1,
+		VRamOAMBlocked = 2,
+	};
+
 	Memory();
 
 	explicit Memory(uint8_t* rawMemory);
@@ -16,20 +41,28 @@ public:
 	Memory(const Memory& other) = delete;
 	Memory operator= (const Memory& other) = delete;
 
-	const uint8_t& operator[](uint16_t index) const
-	{
-		return m_memory[index];
-	}
+	uint8_t operator[](uint16_t addr) const;
 
-	uint8_t& Write(uint16_t index);
+	void Write(uint16_t addr, uint8_t value);
+	void WriteDirect(uint16_t addr, uint8_t value);
+	uint8_t ReadDirect(uint16_t addr);
 
-	void WriteDirect(uint16_t index, uint8_t value);
+	const SpriteAttributes& ReadOAMEntry(uint8_t index) const;
 
 	void ClearMemory();
 
 	void MapROM(std::vector<char>* m_romBlob);
 
+	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback);
+	void DeregisterCallback(uint16_t addr);
+
+	void SetVRamAccess(VRamAccess access);
+
 private:
+
+	void Init();
+
+	static void DoDMA(Memory* memory);
 
 	/*
   Memory Map
@@ -49,7 +82,13 @@ private:
 */
 
 	uint8_t* m_memory;
+	MemoryWriteCallback* m_writeCallbacks;
 
+	VRamAccess m_vRamAccess;
 	bool m_externalMemory;
+
+#ifdef TRACK_UNINITIALIZED_MEMORY_READS
+	uint8_t* m_initializationTracker;
+#endif
 };
 

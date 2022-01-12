@@ -13,8 +13,6 @@ public:
 
 	uint32_t Step(Memory& memory);
 
-	void ExecuteInstruction(Memory& memory, uint32_t& mCycles, bool& handleInterrupts);
-
 	void SetProgramCounter(unsigned short addr);
 
 	void Reset();
@@ -47,12 +45,15 @@ private:
 	};
 
 	void ClearRegisters();
+	void ExecuteInstruction(Memory& memory, uint32_t& mCycles);
+	void ProcessInterrupts(Memory& memory, uint32_t& mCycles);
 
 	Registers m_registers;
 
 	const Instruction m_instructions[INSTRUCTION_SET_SIZE];
 
 	bool m_haltBug;
+	bool m_delayedInterruptHandling;
 	const bool m_InterruptHandlingEnabled;
 };
 

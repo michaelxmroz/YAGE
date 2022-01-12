@@ -24,6 +24,10 @@ bool VirtualMachine::Start()
 	m_cpu.Reset();
 	m_cpu.SetProgramCounter(ROM_ENTRY_POINT);
 
+	Interrupts::Init(m_memory);
+	m_clock.Init(m_memory);
+	m_ppu.Init(m_memory);
+
 	// Run
 	while (true)
 	{
@@ -31,8 +35,9 @@ bool VirtualMachine::Start()
 
 		m_clock.Increment(cyclesPassed, m_memory);
 
+		m_ppu.Render(cyclesPassed, m_memory);
+
 		//TODO process I/O
-		//TODO process PPU
 		//TODO process APU
 		//TODO render
 		//TODO audio

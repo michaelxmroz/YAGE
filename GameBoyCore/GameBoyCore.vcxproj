@@ -155,6 +155,7 @@
     <ClCompile Include="Interrupts.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="PPU.cpp" />
     <ClCompile Include="Registers.cpp" />
     <ClCompile Include="VirtualMachine.cpp" />
   </ItemGroup>
@@ -166,6 +167,7 @@
     <ClInclude Include="Interrupts.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="PPU.h" />
     <ClInclude Include="Registers.h" />
     <ClInclude Include="VirtualMachine.h" />
   </ItemGroup>
