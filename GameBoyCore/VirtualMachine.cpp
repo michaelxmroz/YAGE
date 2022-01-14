@@ -5,8 +5,15 @@
 VirtualMachine::VirtualMachine()
 	: m_memory()
 	, m_cpu()
-
+	, m_totalCycles(0)
+	, m_renderCallback(nullptr)
+	, m_joypad()
 {
+}
+
+void VirtualMachine::SetRenderCallback(RenderFunc callback)
+{
+	m_renderCallback = callback;
 }
 
 bool VirtualMachine::Load(std::shared_ptr<std::vector<char>> romBlob)
@@ -26,7 +33,8 @@ bool VirtualMachine::Start()
 
 	Interrupts::Init(m_memory);
 	m_clock.Init(m_memory);
-	m_ppu.Init(m_memory);
+	m_ppu.Init(m_memory, m_renderCallback);
+	m_joypad.Init(m_memory);
 
 	// Run
 	while (true)
@@ -37,10 +45,11 @@ bool VirtualMachine::Start()
 
 		m_ppu.Render(cyclesPassed, m_memory);
 
-		//TODO process I/O
+		m_joypad.Update(m_memory);
 		//TODO process APU
 		//TODO render
 		//TODO audio
+		m_totalCycles += cyclesPassed;
 	}
 
 	return true;

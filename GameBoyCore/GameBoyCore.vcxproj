@@ -47,7 +47,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -153,8 +153,10 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="InstructionFunctions.cpp" />
     <ClCompile Include="Interrupts.cpp" />
+    <ClCompile Include="Joypad.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="PixelFIFO.cpp" />
     <ClCompile Include="PPU.cpp" />
     <ClCompile Include="Registers.cpp" />
     <ClCompile Include="VirtualMachine.cpp" />
@@ -165,8 +167,10 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="InstructionFunctions.h" />
     <ClInclude Include="Interrupts.h" />
+    <ClInclude Include="Joypad.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="PixelFIFO.h" />
     <ClInclude Include="PPU.h" />
     <ClInclude Include="Registers.h" />
     <ClInclude Include="VirtualMachine.h" />

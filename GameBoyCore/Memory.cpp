@@ -89,6 +89,14 @@ void Memory::ClearMemory()
 	WriteDirect(DMA_REGISTER, 0xFF);
 }
 
+void Memory::ClearVRAM()
+{
+	memset(m_memory + VRAM_START, 0, VRAM_END - VRAM_START);
+#ifdef TRACK_UNINITIALIZED_MEMORY_READS
+	memset(m_initializationTracker + VRAM_START, 1, VRAM_END - VRAM_START);
+#endif
+}
+
 void Memory::MapROM(std::vector<char>* m_romBlob)
 {
 	memcpy(m_memory, &((*m_romBlob)[0]), m_romBlob->size());
@@ -153,7 +161,7 @@ uint8_t Memory::operator[](uint16_t addr) const
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	if (m_initializationTracker[addr] == 0 && !m_externalMemory)
 	{
-		LOG_ERROR(string_format("Uninitialized memory read at location %x", addr));
+		LOG_ERROR(string_format("Uninitialized memory read at location %x", addr).c_str());
 	}
 #endif
 

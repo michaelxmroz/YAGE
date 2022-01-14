@@ -1,61 +1,75 @@
 #pragma once
 #include "Memory.h"
+#include "PixelFIFO.h"
 
 #define MAX_SPRITES_PER_LINE 10
+
+#define SCREEN_WIDTH 160
+#define SCREEN_HEIGHT 144
+#define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
+
+typedef void (*RenderFunc)(const void* image);
 
 class PPU
 {
 public:
 	PPU();
 
-	void Init(Memory& memory);
+	~PPU();
 
-	enum class ControlFlags
-	{
-		BgEnable = 0,
-		ObjEnable = 1,
-		ObjSize = 2,
-		BgTileMapArea = 3,
-		BgTileDataArea = 4,
-		WindowEnable = 5,
-		WindowTileMapArea = 6,
-		LCDEnable = 7
-	};
+	PPU(const PPU& other) = delete;
+	PPU operator= (const PPU& other) = delete;
 
-	enum class StatFlags
-	{
-		Mode = 0,
-		LCYEqLC = 2,
-		Mode0Interrupt = 3,
-		Mode1Interrupt = 4,
-		Mode2Interrupt = 5,
-		LCYEqLCInterrupt = 6
-	};
+	void Init(Memory& memory, RenderFunc callback);
 
 	void Render(uint32_t mCycles, Memory& memory);
 
+	void DrawPixels(Memory& memory, uint32_t& processedCycles);
+
 private:
 
-	enum class SpriteFlags
+	class PixelFetcher
 	{
-		PaletteNr = 4,
-		XFlip = 5,
-		YFlip = 6,
-		BgOverObj = 7,
+	public:
+		void Reset();
+		void Step(uint8_t x, uint8_t y, PixelFIFO& fifo, Memory& memory);
+	private:
+		enum class FetcherState
+		{
+			GetTile,
+			ReadTileLow,
+			ReadTileHigh,
+			Sleep
+		};
+
+		FetcherState m_state;
+		uint8_t m_x;
+		uint8_t m_y;
+		uint16_t m_tileAddr;
+		uint8_t m_tileDataLow;
+		uint8_t m_tileDataHigh;
 	};
 
 	void CheckForNewScanline(uint32_t totalCycles, Memory& memory);
+	void ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& processedCycles);
+	void RenderNextPixel(Memory& memory);
 
-	bool IsControlFlagSet(ControlFlags flag, Memory& memory) const;
-	bool IsStatFlagSet(StatFlags flag, Memory& memory) const;
-	void SetStatFlag(StatFlags flag, Memory& memory) const;
-	void ResetStatFlag(StatFlags flag, Memory& memory) const;
-	void SetModeFlag(uint8_t mode, Memory& memory) const;
-	bool IsSpriteFlagSet(SpriteFlags flag, uint8_t flags) const;
+	void UpdateRenderListener();
 
 	uint32_t m_totalCycles;
 	uint8_t m_lineY;
+	uint8_t m_lineX;
 	uint8_t m_lineSpriteCount;
 	SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
+
+	PixelFIFO m_spriteFIFO;
+	PixelFIFO m_backgroundFIFO;
+
+	PixelFetcher m_backgroundFetcher;
+
+	void* m_renderedFrame;
+	RenderFunc m_renderCallback;
+
+	uint32_t m_frameCount;
 };
 

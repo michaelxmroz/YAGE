@@ -6,6 +6,12 @@
 #include "Logging.h"
 #include "FileParser.h"
 #include "VirtualMachine.h"
+#include "ScreenshotUtility.h"
+
+void RenderCallbackScreenshot(const void* image)
+{
+    ScreenshotUtility::CreateScreenshot("../screen.png", image, SCREEN_WIDTH, SCREEN_HEIGHT);
+}
 
 int main(int argc, char* argv[])
 {
@@ -31,6 +37,8 @@ int main(int argc, char* argv[])
         LOG_ERROR("Could not load ROM");
         return -1;
     }
+
+    vm.SetRenderCallback(RenderCallbackScreenshot);
 
     if (!vm.Start())
     {

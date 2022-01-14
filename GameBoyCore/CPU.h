@@ -18,7 +18,7 @@ public:
 	void Reset();
 
 	// For tests
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 	uint32_t Step(uint8_t* memory)
 	{
@@ -30,7 +30,7 @@ public:
 	{
 		return m_registers;
 	}
-#endif // _DEBUG
+//#endif // _DEBUG
 
 private:
 

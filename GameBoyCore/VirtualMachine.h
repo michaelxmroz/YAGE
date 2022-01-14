@@ -5,11 +5,14 @@
 #include "Memory.h"
 #include "Clock.h"
 #include "PPU.h"
+#include "Joypad.h"
 
 class VirtualMachine
 {
 public:
 	VirtualMachine();
+
+	void SetRenderCallback(RenderFunc callback);
 
 	bool Load(std::shared_ptr<std::vector<char>> romBlob);
 
@@ -23,5 +26,10 @@ private:
 	CPU m_cpu;
 	Clock m_clock;
 	PPU m_ppu;
+	Joypad m_joypad;
+
+	RenderFunc m_renderCallback;
+
+	uint64_t m_totalCycles;
 };
 

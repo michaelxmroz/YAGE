@@ -12,6 +12,7 @@ CPU::CPU(bool enableInterruptHandling)
 	: m_registers()
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
+	, m_delayedInterruptHandling(false)
 	, m_instructions
 {
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
@@ -183,13 +184,13 @@ CPU::CPU(bool enableInterruptHandling)
 	, { "AND A (HL)", 1, 2, &InstructionFunctions::AND_A_mHL }
 	, { "AND A A", 1, 1, &InstructionFunctions::AND_A_A }
 	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_B }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_C }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_D }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_E }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_H }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_L }
-	, { "XOR A B", 1, 2, &InstructionFunctions::XOR_A_mHL }
-	, { "XOR A B", 1, 1, &InstructionFunctions::XOR_A_A }
+	, { "XOR A C", 1, 1, &InstructionFunctions::XOR_A_C }
+	, { "XOR A D", 1, 1, &InstructionFunctions::XOR_A_D }
+	, { "XOR A E", 1, 1, &InstructionFunctions::XOR_A_E }
+	, { "XOR A H", 1, 1, &InstructionFunctions::XOR_A_H }
+	, { "XOR A L", 1, 1, &InstructionFunctions::XOR_A_L }
+	, { "XOR A (HL)", 1, 2, &InstructionFunctions::XOR_A_mHL }
+	, { "XOR A A", 1, 1, &InstructionFunctions::XOR_A_A }
 	, { "OR A B", 1, 1, &InstructionFunctions::OR_A_B }
 	, { "OR A C", 1, 1, &InstructionFunctions::OR_A_C }
 	, { "OR A D", 1, 1, &InstructionFunctions::OR_A_D }
