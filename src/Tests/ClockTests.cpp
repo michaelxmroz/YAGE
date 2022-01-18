@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "gtest/gtest.h"
 #include "Memory.h"
 #include "CPU.h"
 #include "Clock.h"

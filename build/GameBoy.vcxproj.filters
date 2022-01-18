@@ -15,39 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GameBoy.cpp">
+    <ClCompile Include="$(BaseItemPath)\CommandLineArguments.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandLineArguments.cpp">
+    <ClCompile Include="$(BaseItemPath)\FileParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileParser.cpp">
+    <ClCompile Include="$(BaseItemPath)\GameBoy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="miniz.c">
+    <ClCompile Include="$(BaseItemPath)\miniz.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScreenshotUtility.cpp">
+    <ClCompile Include="$(BaseItemPath)\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
+    <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CommandLineArguments.h">
+    <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileParser.h">
+    <ClInclude Include="$(BaseItemPath)\FileParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="miniz.h">
+    <ClInclude Include="$(BaseItemPath)\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenshotUtility.h">
+    <ClInclude Include="$(BaseItemPath)\miniz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
+    <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

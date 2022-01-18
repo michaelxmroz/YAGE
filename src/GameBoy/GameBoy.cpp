@@ -3,9 +3,9 @@
 
 #include <iostream>
 #include "CommandLineArguments.h"
-#include "Logging.h"
+#include "../GameBoyCore/Source/Logging.h"
+#include "../GameBoyCore/Source/VirtualMachine.h"
 #include "FileParser.h"
-#include "VirtualMachine.h"
 #include "ScreenshotUtility.h"
 
 void RenderCallbackScreenshot(const void* image)

@@ -21,84 +21,84 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Helpers.cpp">
+    <ClCompile Include="$(BaseItemPath)\Clock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\CPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\Helpers.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Logging.cpp">
+    <ClCompile Include="$(BaseItemPath)\InstructionFunctions.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="VirtualMachine.cpp">
+    <ClCompile Include="$(BaseItemPath)\Interrupts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Registers.cpp">
+    <ClCompile Include="$(BaseItemPath)\Joypad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPU.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InstructionFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Interrupts.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Clock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PPU.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Joypad.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PixelFIFO.cpp">
+    <ClCompile Include="$(BaseItemPath)\Logging.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="PixelFetcher.cpp">
+    <ClCompile Include="$(BaseItemPath)\Memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\PixelFetcher.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\PixelFIFO.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\PPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\Registers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Helpers.h">
+    <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\CPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Interrupts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Joypad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\PPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Registers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Helpers.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Logging.h">
+    <ClInclude Include="$(BaseItemPath)\InstructionFunctions.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="VirtualMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Registers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InstructionFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Interrupts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Clock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PPU.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Joypad.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PixelFIFO.h">
+    <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="PixelFetcher.h">
+    <ClInclude Include="$(BaseItemPath)\PixelFetcher.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\PixelFIFO.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
