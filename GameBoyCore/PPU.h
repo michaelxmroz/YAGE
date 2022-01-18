@@ -1,6 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include "PixelFIFO.h"
+#include "PixelFetcher.h"
 
 #define MAX_SPRITES_PER_LINE 10
 
@@ -20,56 +21,62 @@ public:
 	PPU(const PPU& other) = delete;
 	PPU operator= (const PPU& other) = delete;
 
-	void Init(Memory& memory, RenderFunc callback);
-
+	void Init(Memory& memory);
+	void SetRenderCallback(RenderFunc callback);
 	void Render(uint32_t mCycles, Memory& memory);
-
-	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 
 private:
 
-	class PixelFetcher
+	enum class PPUState
 	{
-	public:
-		void Reset();
-		void Step(uint8_t x, uint8_t y, PixelFIFO& fifo, Memory& memory);
-	private:
-		enum class FetcherState
-		{
-			GetTile,
-			ReadTileLow,
-			ReadTileHigh,
-			Sleep
-		};
-
-		FetcherState m_state;
-		uint8_t m_x;
-		uint8_t m_y;
-		uint16_t m_tileAddr;
-		uint8_t m_tileDataLow;
-		uint8_t m_tileDataHigh;
+		HBlank = 0,
+		VBlank = 1,
+		OAMScan = 2,
+		Drawing = 3
 	};
 
-	void CheckForNewScanline(uint32_t totalCycles, Memory& memory);
+	enum class WindowState
+	{
+		NoWindow = 0,
+		InScanline = 1,
+		Draw = 2
+	};
+
 	void ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& processedCycles);
 	void RenderNextPixel(Memory& memory);
 
+	void TransitionToVBlank(Memory& memory);
+	void TransitionToHBlank(Memory& memory);
+	void TransitionToDraw(Memory& memory);
+	void TransitionToOAMScan(Memory& memory);
+
+	void DisableScreen(Memory& memory);
+	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void UpdateRenderListener();
+
+	bool GetCurrentSprite(SpriteAttributes& spriteOut, uint8_t offset);
 
 	uint32_t m_totalCycles;
 	uint8_t m_lineY;
 	uint8_t m_lineX;
 	uint8_t m_lineSpriteCount;
 	SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
+	int8_t m_currentSprite;
+	uint8_t m_spritePrefetchLine;
 
 	PixelFIFO m_spriteFIFO;
 	PixelFIFO m_backgroundFIFO;
 
 	PixelFetcher m_backgroundFetcher;
+	PixelFetcher m_spriteFetcher;
+
+	WindowState m_windowState;
 
 	void* m_renderedFrame;
 	RenderFunc m_renderCallback;
 
 	uint32_t m_frameCount;
+
+	PPUState m_state;
 };
 

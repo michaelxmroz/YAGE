@@ -57,6 +57,9 @@
     <ClCompile Include="PixelFIFO.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="PixelFetcher.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helpers.h">
@@ -93,6 +96,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PixelFIFO.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelFetcher.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>

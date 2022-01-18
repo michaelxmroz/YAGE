@@ -148,12 +148,14 @@
     <ClCompile Include="CommandLineArguments.cpp" />
     <ClCompile Include="FileParser.cpp" />
     <ClCompile Include="GameBoy.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="miniz.c" />
     <ClCompile Include="ScreenshotUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h" />
     <ClInclude Include="FileParser.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="ScreenshotUtility.h" />
   </ItemGroup>

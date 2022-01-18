@@ -21,6 +21,19 @@ struct SpriteAttributes
 	uint8_t m_flags;
 };
 
+
+enum class LCDControlFlags
+{
+	BgEnable = 0,
+	ObjEnable = 1,
+	ObjSize = 2,
+	BgTileMapArea = 3,
+	BgTileDataArea = 4,
+	WindowEnable = 5,
+	WindowTileMapArea = 6,
+	LCDEnable = 7
+};
+
 class Memory
 {
 public:

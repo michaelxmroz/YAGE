@@ -13,6 +13,7 @@ public:
 	VirtualMachine();
 
 	void SetRenderCallback(RenderFunc callback);
+	void SetInputCallback(JoypadFunc callback);
 
 	bool Load(std::shared_ptr<std::vector<char>> romBlob);
 
@@ -27,8 +28,6 @@ private:
 	Clock m_clock;
 	PPU m_ppu;
 	Joypad m_joypad;
-
-	RenderFunc m_renderCallback;
 
 	uint64_t m_totalCycles;
 };

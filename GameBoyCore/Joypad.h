@@ -17,13 +17,23 @@ enum class Buttons
 	Start = 8
 };
 
+struct InputState
+{
+	uint8_t m_dPad;
+	uint8_t m_buttons;
+};
+
+typedef InputState (*JoypadFunc)();
+
 class Joypad
 {
 public:
+	Joypad();
 	void Init(Memory& memory);
+	void SetInputFunction(JoypadFunc func);
 	void Update(Memory& memory);
 private:
-	uint8_t m_dPad;
-	uint8_t m_Buttons;
+	InputState m_state;
+	JoypadFunc m_queryInput;
 };
 
