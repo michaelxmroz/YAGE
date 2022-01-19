@@ -3,15 +3,10 @@
 
 #include <iostream>
 #include "CommandLineArguments.h"
-#include "../GameBoyCore/Source/Logging.h"
-#include "../GameBoyCore/Source/VirtualMachine.h"
+#include "Emulator.h"
 #include "FileParser.h"
 #include "ScreenshotUtility.h"
-
-void RenderCallbackScreenshot(const void* image)
-{
-    ScreenshotUtility::CreateScreenshot("../screen.png", image, SCREEN_WIDTH, SCREEN_HEIGHT);
-}
+#include "Logging.h"
 
 int main(int argc, char* argv[])
 {
@@ -31,20 +26,23 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    VirtualMachine vm;
-    if (!vm.Load(romBlob))
+    Emulator* emu = Emulator::Create();
+
+    emu->SetLoggerCallback(&LogMessage);
+    emu->Load(&((*romBlob)[0]), static_cast<uint32_t>(romBlob.get()->size()));
+
+    EmulatorInputs::InputState inputState;
+    uint32_t frameCount = 0;
+    const void* frameBuffer = nullptr;
+    while (frameCount < 1000)
     {
-        LOG_ERROR("Could not load ROM");
-        return -1;
+        emu->Step(inputState);
+        frameBuffer = emu->GetFrameBuffer();
+        frameCount++;
     }
 
-    vm.SetRenderCallback(RenderCallbackScreenshot);
+    ScreenshotUtility::CreateScreenshot("../screen.png", frameBuffer, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
 
-    if (!vm.Start())
-    {
-        LOG_ERROR("Error while running the virtual machine");
-        return -1;
-    }
-
+    Emulator::Delete(emu);
     return 0;
 }

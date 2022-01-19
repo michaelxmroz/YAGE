@@ -97,11 +97,11 @@ void Memory::ClearVRAM()
 #endif
 }
 
-void Memory::MapROM(std::vector<char>* m_romBlob)
+void Memory::MapROM(const char* rom, uint32_t size)
 {
-	memcpy(m_memory, &((*m_romBlob)[0]), m_romBlob->size());
+	memcpy(m_memory, rom, size);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker, 1, m_romBlob->size());
+	memset(m_initializationTracker, 1, size);
 #endif
 }
 

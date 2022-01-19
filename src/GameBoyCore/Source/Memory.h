@@ -66,7 +66,7 @@ public:
 
 	void ClearVRAM();
 
-	void MapROM(std::vector<char>* m_romBlob);
+	void MapROM(const char* rom, uint32_t size);
 
 	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback);
 	void DeregisterCallback(uint16_t addr);

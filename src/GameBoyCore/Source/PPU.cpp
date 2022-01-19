@@ -1,4 +1,5 @@
 #include "PPU.h"
+#include "VirtualMachine.h"
 #include "Interrupts.h"
 #include <algorithm>
 #include "Logging.h"
@@ -123,8 +124,12 @@ PPU::PPU()
 	, m_spriteFetcher(true)
 	, m_lineSprites()
 	, m_lineX(0)
+	, m_windowState(WindowState::NoWindow)
+	, m_state(PPUState::OAMScan)
+	, m_spritePrefetchLine(0)
+	, m_currentSprite(0)
 {
-	m_renderedFrame = new RGB[SCREEN_SIZE];
+	m_renderedFrame = new RGB[EmulatorConstants::SCREEN_SIZE];
 }
 
 PPU::~PPU()
@@ -140,20 +145,15 @@ void PPU::Init(Memory& memory)
 	memory.Write(SCY_REGISTER, 0x00);
 	memory.Write(SCX_REGISTER, 0x00);
 	memory.Write(BGP_REGISTER, 0xFC);
-	memset(m_renderedFrame, 0, sizeof(RGB) * SCREEN_SIZE);
+	memset(m_renderedFrame, 0, sizeof(RGB) * EmulatorConstants::SCREEN_SIZE);
 
 	memory.ClearVRAM();
 
 	TransitionToOAMScan(memory);
 }
 
-void PPU::SetRenderCallback(RenderFunc callback)
-{
-	m_renderCallback = callback;
-}
-
 //TODO handle stat blocking for interrupts
-void PPU::Render(uint32_t mCycles, Memory& memory)
+bool PPU::Render(uint32_t mCycles, Memory& memory)
 {
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
@@ -161,7 +161,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		{
 			DisableScreen(memory);
 		}
-		return;
+		return false;
 	}
 
 	uint32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
@@ -185,7 +185,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				DrawPixels(memory, processedCycles);
 
-				if (m_lineX == SCREEN_WIDTH)
+				if (m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
 					TransitionToHBlank(memory);
 				}
@@ -195,7 +195,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				if (PPUHelpers::IsNewScanline(totalCycles, m_lineY, memory))
 				{
-					if (m_lineY == SCREEN_HEIGHT)
+					if (m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
 						TransitionToVBlank(memory);
 					}
@@ -220,6 +220,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						m_totalCycles = totalCycles;
 						m_frameCount++;
 						TransitionToOAMScan(memory);
+						return true;
 					}
 				}
 				else
@@ -235,6 +236,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	memory.Write(LY_REGISTER, m_lineY);
 	m_totalCycles += processedCycles;
+	return false;
+}
+
+const void* PPU::GetFrameBuffer() const
+{
+	return m_renderedFrame;
 }
 
 void PPU::TransitionToVBlank(Memory& memory)
@@ -297,7 +304,7 @@ void PPU::DisableScreen(Memory& memory)
 	m_totalCycles = 0;
 	m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
-	memset(m_renderedFrame, 1, sizeof(RGB) * SCREEN_SIZE);
+	memset(m_renderedFrame, 1, sizeof(RGB) * EmulatorConstants::SCREEN_SIZE);
 	TransitionToOAMScan(memory);
 	UpdateRenderListener();
 }
@@ -392,7 +399,7 @@ void PPU::RenderNextPixel(Memory& memory)
 		}
 	}
 
-	uint32_t renderIndex = m_lineX + m_lineY * SCREEN_WIDTH;
+	uint32_t renderIndex = m_lineX + m_lineY * EmulatorConstants::SCREEN_WIDTH;
 	reinterpret_cast<RGB*>(m_renderedFrame)[renderIndex] = pixelColor;
 	m_lineX++;
 }

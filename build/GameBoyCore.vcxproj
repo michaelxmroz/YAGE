@@ -17,7 +17,7 @@
     <RootNamespace>GameBoy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>GameBoyCore</ProjectName>
-    <BaseItemPath>..\src\GameBoyCore\Source</BaseItemPath>
+    <BaseItemPath>$(SolutionDir)\..\src\GameBoyCore\Source</BaseItemPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -47,7 +47,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-	<OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)\..\obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -101,6 +101,7 @@
     <ClCompile Include="$(BaseItemPath)\PPU.cpp" />
     <ClCompile Include="$(BaseItemPath)\Registers.cpp" />
     <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp" />
+    <ClCompile Include="..\src\GameBoyCore\Source\Emulator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\Clock.h" />
@@ -116,6 +117,7 @@
     <ClInclude Include="$(BaseItemPath)\PPU.h" />
     <ClInclude Include="$(BaseItemPath)\Registers.h" />
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h" />
+    <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

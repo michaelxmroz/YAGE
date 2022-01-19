@@ -5,10 +5,6 @@
 
 #define MAX_SPRITES_PER_LINE 10
 
-#define SCREEN_WIDTH 160
-#define SCREEN_HEIGHT 144
-#define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
-
 typedef void (*RenderFunc)(const void* image);
 
 class PPU
@@ -22,8 +18,8 @@ public:
 	PPU operator= (const PPU& other) = delete;
 
 	void Init(Memory& memory);
-	void SetRenderCallback(RenderFunc callback);
-	void Render(uint32_t mCycles, Memory& memory);
+	bool Render(uint32_t mCycles, Memory& memory);
+	const void* GetFrameBuffer() const;
 
 private:
 

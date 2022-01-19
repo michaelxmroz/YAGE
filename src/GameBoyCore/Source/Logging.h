@@ -1,9 +1,10 @@
 #pragma once
 #include "Helpers.h"
+#include "../Include/Emulator.h"
 
 namespace Logger_Helpers
 {
-	void OutputToVisualStudioConsole(const char* message);
+	static Emulator::LoggerCallback loggerCallback = nullptr;
 }
 
 //#define _LOG_INSTRUCTIONS 1
@@ -11,7 +12,7 @@ namespace Logger_Helpers
 #ifdef _LOG_INSTRUCTIONS
 #define LOG_INSTRUCTION(...) \
 { \
- Logger_Helpers::OutputToVisualStudioConsole(string_format("%s: %s %x %x\n","OP",__VA_ARGS__).c_str()); \
+ Logger_Helpers::loggerCallback(string_format("%s: %s %x %x\n","OP",__VA_ARGS__).c_str(), 0); \
 }
 
 #else
@@ -23,15 +24,15 @@ namespace Logger_Helpers
 
 #define LOG_INFO(message) \
 { \
- Logger_Helpers::OutputToVisualStudioConsole(string_format("%s: %s\n","INFO",message).c_str()); \
+ Logger_Helpers::loggerCallback(string_format("%s: %s\n","INFO",message).c_str(), 0); \
 }
 
 #define LOG_WARNING(message) \
 { \
-Logger_Helpers::OutputToVisualStudioConsole(string_format("%s: %s\n","WARNING",message).c_str()); \
+Logger_Helpers::loggerCallback(string_format("%s: %s\n","WARNING",message).c_str(), 1); \
 }
 
 #define LOG_ERROR(message) \
 { \
-Logger_Helpers::OutputToVisualStudioConsole(string_format("%s: %s\n","ERROR",message).c_str()); \
+Logger_Helpers::loggerCallback(string_format("%s: %s\n","ERROR",message).c_str(), 2); \
 }

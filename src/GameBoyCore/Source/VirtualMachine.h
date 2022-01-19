@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include "../Include/Emulator.h"
 #include "Registers.h"
 #include "CPU.h"
 #include "Memory.h"
@@ -7,22 +7,17 @@
 #include "PPU.h"
 #include "Joypad.h"
 
-class VirtualMachine
+class VirtualMachine : public Emulator
 {
 public:
 	VirtualMachine();
+	virtual ~VirtualMachine() override;
 
-	void SetRenderCallback(RenderFunc callback);
-	void SetInputCallback(JoypadFunc callback);
-
-	bool Load(std::shared_ptr<std::vector<char>> romBlob);
-
-	bool Start();
-
+	virtual void Load(const char* rom, uint32_t size) override;
+	virtual void Step(EmulatorInputs::InputState) override;
+	virtual const void* GetFrameBuffer() override;
+	virtual void SetLoggerCallback(LoggerCallback callback) override;
 private:
-
-	std::shared_ptr<std::vector<char>> m_romBlob;
-
 	Memory m_memory;
 	CPU m_cpu;
 	Clock m_clock;

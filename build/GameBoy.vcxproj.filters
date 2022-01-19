@@ -33,6 +33,9 @@
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoy\Logging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\Logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
