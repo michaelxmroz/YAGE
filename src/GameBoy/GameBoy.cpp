@@ -7,6 +7,7 @@
 #include "FileParser.h"
 #include "ScreenshotUtility.h"
 #include "Logging.h"
+#include "Input.h"
 
 int main(int argc, char* argv[])
 {
@@ -31,11 +32,13 @@ int main(int argc, char* argv[])
     emu->SetLoggerCallback(&LogMessage);
     emu->Load(&((*romBlob)[0]), static_cast<uint32_t>(romBlob.get()->size()));
 
-    EmulatorInputs::InputState inputState;
+    InputHandler inputHandler;
     uint32_t frameCount = 0;
     const void* frameBuffer = nullptr;
     while (frameCount < 1000)
     {
+        EmulatorInputs::InputState inputState;
+        inputHandler.GetInputState(inputState);
         emu->Step(inputState);
         frameBuffer = emu->GetFrameBuffer();
         frameCount++;

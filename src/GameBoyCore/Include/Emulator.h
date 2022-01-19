@@ -26,6 +26,15 @@ namespace EmulatorInputs
 		}
 		uint8_t m_dPad;
 		uint8_t m_buttons;
+
+		void SetButtonDown(DPad pad)
+		{
+			m_dPad &= (~static_cast<uint8_t>(pad));
+		}
+		void SetButtonDown(Buttons button)
+		{
+			m_buttons &= (~static_cast<uint8_t>(button));
+		}
 	};
 }
 
