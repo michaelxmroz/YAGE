@@ -1,6 +1,7 @@
 #include "ScreenshotUtility.h"
 #include "miniz.h"
 #include <fstream>
+#include "FileParser.h"
 
 bool ScreenshotUtility::CreateScreenshot(const char* path, const void* data, uint32_t width, uint32_t height)
 {
@@ -10,13 +11,7 @@ bool ScreenshotUtility::CreateScreenshot(const char* path, const void* data, uin
         return false;
     else
     {
-        std::ofstream file;
-        file.open(path, std::ios::out | std::ios::binary | std::ios::trunc);
-        if (file.is_open())
-        {
-            file.write(reinterpret_cast<const char*>(pPNG_data), png_data_size);
-            file.close();
-        }
+        FileParser::Write(path, pPNG_data, png_data_size);
     }
 
     mz_free(pPNG_data);

@@ -22,15 +22,14 @@ int main(int argc, char* argv[])
     }
 
     std::shared_ptr<std::vector<char>> romBlob = std::make_shared<std::vector<char>>();
-    if (!FileParser::Parse(filePath, *romBlob))
+    if (!FileParser::Read(filePath, *romBlob))
     {
         LOG_ERROR("Could not read file at provided path");
         return -1;
     }
 
     {
-        Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
-
+        Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
 
         Emulator* emu = Emulator::Create();
 

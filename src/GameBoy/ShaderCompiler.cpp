@@ -2,6 +2,10 @@
 #include <shaderc/shaderc.hpp>
 #include <vector>
 #include "Logging.h"
+#include "FileParser.h"
+
+#define SHADER_CACHE_DIR "shadercache"
+#define SHADER_CACHE_SUFFIX "cache"
 
 namespace ShaderCompiler
 {
@@ -13,7 +17,7 @@ namespace ShaderCompiler
             "FRAGMENT_SHADER"
         };
 
-        shaderc_shader_kind GetShaderKindFromType(ShaderCompiler::Types type)
+        shaderc_shader_kind GetShaderKindFromType(Types type)
         {
             switch (type)
             {
@@ -33,6 +37,42 @@ namespace ShaderCompiler
                 return PREPROCESSOR_DEFINES[static_cast<uint32_t>(type)];
             }
             return nullptr;
+        }
+
+        bool ReadShaderCache(const std::string& vsCacheName, const std::string& fsCacheName, CombinedShaderBinary& shaders)
+        {
+            std::vector<char> vsCache;
+            if (FileParser::Read(vsCacheName, vsCache))
+            {
+                std::vector<char> fsCache;
+                if (!FileParser::Read(fsCacheName, fsCache))
+                {
+                    LOG_ERROR("Only found partial shader cache files, aborting");
+                    abort();
+                }
+
+                shaders.m_vs.resize(vsCache.size() / sizeof(uint32_t));
+                memcpy(shaders.m_vs.data(), vsCache.data(), vsCache.size());
+
+                shaders.m_fs.resize(fsCache.size() / sizeof(uint32_t));
+                memcpy(shaders.m_fs.data(), fsCache.data(), fsCache.size());
+
+                return true;
+            }
+            return false;
+        }
+
+        void WriteShaderCache(const std::string& vsCacheName, const std::string& fsCacheName, CombinedShaderBinary& shaders)
+        {
+            FileParser::CreateDirectory(SHADER_CACHE_DIR);
+            if (!FileParser::Write(vsCacheName, shaders.m_vs.data(), shaders.m_vs.size() * sizeof(uint32_t)))
+            {
+                LOG_ERROR("Failed to write shader cache file");
+            }
+            if (!FileParser::Write(fsCacheName, shaders.m_fs.data(), shaders.m_fs.size() * sizeof(uint32_t)))
+            {
+                LOG_ERROR("Failed to write shader cache file");
+            }
         }
     }
 
@@ -60,8 +100,38 @@ namespace ShaderCompiler
             LOG_ERROR(module.GetErrorMessage().c_str());
             return std::vector<uint32_t>();
         }
-
+        
         return { module.cbegin(), module.cend() };
+    }
+
+    
+
+    CombinedShaderBinary GetCompiledShaders(const char* name)
+    {
+        CombinedShaderBinary shaders;
+        std::string strippedName = FileParser::StripFileEnding(name);
+        std::string fmt("%s/%s_%s.%s");
+        std::string vsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), ShaderCompilerInternal::PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Vertex)], SHADER_CACHE_SUFFIX);
+        std::string fsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), ShaderCompilerInternal::PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Fragment)], SHADER_CACHE_SUFFIX);
+
+        if (ShaderCompilerInternal::ReadShaderCache(vsCacheName, fsCacheName, shaders))
+        {
+            return shaders;
+        }
+
+        std::vector<char> shaderBlob;
+        if (!FileParser::Read(name, shaderBlob))
+        {
+            LOG_ERROR("Failed to parse shader file");
+            abort();
+        }
+
+        shaders.m_vs = ShaderCompiler::Compile(name, shaderBlob, ShaderCompiler::Types::Vertex);
+        shaders.m_fs = ShaderCompiler::Compile(name, shaderBlob, ShaderCompiler::Types::Fragment);
+
+        ShaderCompilerInternal::WriteShaderCache(vsCacheName, fsCacheName, shaders);
+
+        return shaders;
     }
 
 }

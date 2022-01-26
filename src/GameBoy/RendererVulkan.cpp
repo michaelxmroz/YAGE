@@ -22,7 +22,7 @@
 	} while (0)
 
 #else
-#define VK_TEST(x) { x; }
+#define VK_CHECK(x) { x; }
 #endif
 
 namespace RendererVulkanInternal
@@ -437,7 +437,7 @@ namespace RendererVulkanInternal
 	}
 }
 
-RendererVulkan::RendererVulkan(uint32_t width, uint32_t height)
+RendererVulkan::RendererVulkan(uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale)
 	: m_instance(VK_NULL_HANDLE)
 	, m_physicalDevice(VK_NULL_HANDLE)
 	, m_logicalDevice(VK_NULL_HANDLE)
@@ -446,8 +446,10 @@ RendererVulkan::RendererVulkan(uint32_t width, uint32_t height)
 #if VALIDATION_LAYERS
 	, m_debugMessenger(VK_NULL_HANDLE)
 #endif
-	, m_width(width)
-	, m_height(height)
+	, m_sourceWidth(sourceWidth)
+	, m_sourceHeight(sourceHeight)
+	, m_scaledWidth(sourceWidth * scale)
+	, m_scaledHeight(sourceHeight * scale)
 	, m_mainShaderName("main.glsl")
 	, m_fullscreenQuadVertices {{{-1,-1,0},{0,0}}, {{1,1,0},{1,1}}, {{-1,1,0},{0,1}}, {{1,-1,0},{1,0}} }
 	, m_fullscreenQuadIndices {0, 1, 2, 0, 3, 1}
@@ -647,7 +649,7 @@ void RendererVulkan::CreateSwapChain()
 
 	VkSurfaceFormatKHR surfaceFormat = RendererVulkanInternal::ChooseSwapSurfaceFormat(swapChainSupport.formats);
 	VkPresentModeKHR presentMode = RendererVulkanInternal::ChooseSwapPresentMode(swapChainSupport.presentModes);
-	VkExtent2D extent = RendererVulkanInternal::ChooseSwapExtent(swapChainSupport.capabilities, m_width, m_height);
+	VkExtent2D extent = RendererVulkanInternal::ChooseSwapExtent(swapChainSupport.capabilities, m_scaledWidth, m_scaledHeight);
 
 	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
@@ -759,18 +761,10 @@ void RendererVulkan::CreateRenderPass()
 
 void RendererVulkan::CreateGraphicsPipeline()
 {
-	std::vector<char> shaderBlob;
-	if (!FileParser::Parse(m_mainShaderName, shaderBlob))
-	{
-		LOG_ERROR("Failed to parse shader file");
-		abort();
-	}
+	ShaderCompiler::CombinedShaderBinary shaders = ShaderCompiler::GetCompiledShaders(m_mainShaderName);
 
-	std::vector<uint32_t> vs = ShaderCompiler::Compile(m_mainShaderName, shaderBlob, ShaderCompiler::Types::Vertex);
-	std::vector<uint32_t> fs = ShaderCompiler::Compile(m_mainShaderName, shaderBlob, ShaderCompiler::Types::Fragment);
-
-	VkShaderModule vertShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, vs);
-	VkShaderModule fragShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, fs);
+	VkShaderModule vertShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, shaders.m_vs);
+	VkShaderModule fragShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, shaders.m_fs);
 
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
 	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -801,14 +795,14 @@ void RendererVulkan::CreateGraphicsPipeline()
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)m_width;
-	viewport.height = (float)m_height;
+	viewport.width = (float)m_scaledWidth;
+	viewport.height = (float)m_scaledHeight;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
-	scissor.extent = VkExtent2D{ m_width, m_height };
+	scissor.extent = VkExtent2D{ m_scaledWidth, m_scaledHeight };
 
 	VkPipelineViewportStateCreateInfo viewportState { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 	viewportState.viewportCount = 1;
@@ -882,8 +876,8 @@ void RendererVulkan::CreateFramebuffers()
 		framebufferInfo.renderPass = m_renderPass;
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width = m_width;
-		framebufferInfo.height = m_height;
+		framebufferInfo.width = m_scaledWidth;
+		framebufferInfo.height = m_scaledHeight;
 		framebufferInfo.layers = 1;
 
 		VK_CHECK(vkCreateFramebuffer(m_logicalDevice, &framebufferInfo, nullptr, &m_swapChainFramebuffers[i]));
@@ -919,14 +913,14 @@ void RendererVulkan::CreateCommandBuffers()
 		VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo));
 
 		RendererVulkanInternal::TransitionImageLayout(m_commandBuffers[i], m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		RendererVulkanInternal::CopyBufferToImage(m_commandBuffers[i], m_imageUploadBuffer, m_textureImage, m_width, m_height);
+		RendererVulkanInternal::CopyBufferToImage(m_commandBuffers[i], m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
 		RendererVulkanInternal::TransitionImageLayout(m_commandBuffers[i], m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		renderPassInfo.renderPass = m_renderPass;
 		renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = VkExtent2D{ m_width, m_height };
+		renderPassInfo.renderArea.extent = VkExtent2D{ m_scaledWidth, m_scaledHeight };
 		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
@@ -1016,7 +1010,7 @@ void RendererVulkan::CreateVertexBuffer()
 
 void RendererVulkan::CreateTextureImage()
 {
-	VkDeviceSize imageSize = m_width * m_height * 4;
+	VkDeviceSize imageSize = m_sourceWidth * m_sourceHeight * 4;
 	RendererVulkanInternal::CreateBuffer(m_logicalDevice, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_imageUploadBuffer, m_imageUploadBufferMemory);
 
 	void* data;
@@ -1026,8 +1020,8 @@ void RendererVulkan::CreateTextureImage()
 
 	VkImageCreateInfo imageInfo { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = static_cast<uint32_t>(m_width);
-	imageInfo.extent.height = static_cast<uint32_t>(m_height);
+	imageInfo.extent.width = static_cast<uint32_t>(m_sourceWidth);
+	imageInfo.extent.height = static_cast<uint32_t>(m_sourceHeight);
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
@@ -1055,7 +1049,7 @@ void RendererVulkan::CreateTextureImage()
 	RendererVulkanInternal::TransitionImageLayout(cb1, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	EndRecording(cb1);
 	VkCommandBuffer cb2 = BeginRecording();
-	RendererVulkanInternal::CopyBufferToImage(cb2, m_imageUploadBuffer, m_textureImage, m_width, m_height);
+	RendererVulkanInternal::CopyBufferToImage(cb2, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
 	EndRecording(cb2);
 	VkCommandBuffer cb3 = BeginRecording();
 	RendererVulkanInternal::TransitionImageLayout(cb3, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -1156,7 +1150,7 @@ void RendererVulkan::CreateIndexBuffer()
 
 void RendererVulkan::Init()
 {
-	m_backend.InitWindow(m_width, m_height);
+	m_backend.InitWindow(m_scaledWidth, m_scaledHeight);
     CreateInstance();
 #if VALIDATION_LAYERS
 	RendererVulkanInternal::InitValidationCallback(m_instance, m_debugMessenger);
@@ -1190,7 +1184,7 @@ void RendererVulkan::Draw(const void* renderedImage)
 	vkAcquireNextImageKHR(m_logicalDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
 	
-	uint32_t imageSize = m_width * m_height * 4;
+	uint32_t imageSize = m_sourceWidth * m_sourceHeight * 4;
 	void* data;
 	vkMapMemory(m_logicalDevice, m_imageUploadBufferMemory, 0, imageSize, 0, &data);
 	memcpy(data, renderedImage, imageSize);

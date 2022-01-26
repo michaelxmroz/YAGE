@@ -21,7 +21,7 @@ typedef BackendWin32 Backend;
 class RendererVulkan
 {
 public:
-	RendererVulkan(uint32_t width, uint32_t height);
+	RendererVulkan(uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale);
 	~RendererVulkan();
 
 	RendererVulkan(const RendererVulkan& other) = delete;
@@ -103,8 +103,10 @@ private:
 	VkDebugUtilsMessengerEXT m_debugMessenger;
 #endif
 
-	uint32_t m_width;
-	uint32_t m_height;
+	uint32_t m_sourceWidth;
+	uint32_t m_sourceHeight;
+	uint32_t m_scaledWidth;
+	uint32_t m_scaledHeight;
 };
 
 typedef RendererVulkan Renderer;
