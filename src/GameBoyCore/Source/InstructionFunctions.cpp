@@ -619,7 +619,7 @@ uint32_t InstructionFunctions::STOP(const char* mnemonic, Registers* registers, 
 {
 	registers->PC++;
 	registers->CpuState = Registers::State::Stop;
-	Clock::ResetDivider(&memory);
+	Clock::ResetDivider(&memory, 0x00, 0, 0);
 	LOG_INSTRUCTION(mnemonic);
 	return 0;
 }

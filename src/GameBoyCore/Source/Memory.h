@@ -11,7 +11,7 @@
 
 class Memory;
 
-typedef void(*MemoryWriteCallback)(Memory* memory);
+typedef void(*MemoryWriteCallback)(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 
 struct SpriteAttributes
 {
@@ -77,7 +77,7 @@ private:
 
 	void Init();
 
-	static void DoDMA(Memory* memory);
+	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 
 	/*
   Memory Map

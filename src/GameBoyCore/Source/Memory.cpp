@@ -48,11 +48,12 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		}
 	}
 
+	uint8_t prevValue = m_memory[addr];
 	m_memory[addr] = value;
 
 	if (m_writeCallbacks[addr] != nullptr)
 	{
-		m_writeCallbacks[addr](this);
+		m_writeCallbacks[addr](this, addr, prevValue, value);
 	}
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
@@ -134,7 +135,7 @@ void Memory::Init()
 #endif
 }
 
-void Memory::DoDMA(Memory* memory)
+void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
 {
 	uint16_t source = static_cast<uint16_t>((*memory)[DMA_REGISTER]) << 8;
 	memcpy(memory->m_memory + OAM_START, memory->m_memory + source, OAM_SIZE);

@@ -8,6 +8,7 @@
 #include "ScreenshotUtility.h"
 #include "Logging.h"
 #include "Input.h"
+#include "RendererVulkan.h"
 
 int main(int argc, char* argv[])
 {
@@ -27,25 +28,35 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    Emulator* emu = Emulator::Create();
-
-    emu->SetLoggerCallback(&LogMessage);
-    emu->Load(&((*romBlob)[0]), static_cast<uint32_t>(romBlob.get()->size()));
-
-    InputHandler inputHandler;
-    uint32_t frameCount = 0;
-    const void* frameBuffer = nullptr;
-    while (frameCount < 1000)
     {
-        EmulatorInputs::InputState inputState;
-        inputHandler.GetInputState(inputState);
-        emu->Step(inputState);
-        frameBuffer = emu->GetFrameBuffer();
-        frameCount++;
+        Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
+
+
+        Emulator* emu = Emulator::Create();
+
+        emu->SetLoggerCallback(&LogMessage);
+        emu->Load(&((*romBlob)[0]), static_cast<uint32_t>(romBlob.get()->size()));
+
+        InputHandler inputHandler;
+        uint32_t frameCount = 0;
+        const void* frameBuffer = nullptr;
+        while (!renderer.RequestExit())
+        {
+            EmulatorInputs::InputState inputState;
+            inputHandler.GetInputState(inputState);
+            emu->Step(inputState);
+            frameBuffer = emu->GetFrameBuffer();
+
+            renderer.Draw(frameBuffer);
+
+            frameCount++;
+        }
+
+        renderer.WaitForIdle();
+
+        //ScreenshotUtility::CreateScreenshot("../screen.png", frameBuffer, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
+
+        Emulator::Delete(emu);
     }
-
-    ScreenshotUtility::CreateScreenshot("../screen.png", frameBuffer, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
-
-    Emulator::Delete(emu);
     return 0;
 }

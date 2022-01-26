@@ -25,24 +25,25 @@
 #define SPRITE_SINGLE_SIZE 8
 #define SPRITE_DOUBLE_SIZE 16
 
-struct RGB
+struct RGBA
 {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
+	uint8_t a;
 	 
-	bool operator==(const RGB& other)
+	bool operator==(const RGBA& other)
 	{
-		return r == other.r && g == other.g && b == other.b;
+		return r == other.r && g == other.g && b == other.b && a == other.a;
 	}
 };
 
-const RGB SCREEN_COLORS[4]
+const RGBA SCREEN_COLORS[4]
 {
-	{0xFF, 0xFF, 0xFF},
-	{0xAA, 0xAA, 0xAA},
-	{0x55, 0x55, 0x55},
-	{0x00, 0x00, 0x00}
+	{0xFF, 0xFF, 0xFF, 0xFF},
+	{0xAA, 0xAA, 0xAA, 0xFF},
+	{0x55, 0x55, 0x55, 0xFF},
+	{0x00, 0x00, 0x00, 0xFF}
 };
 
 enum class StatFlags
@@ -57,7 +58,7 @@ enum class StatFlags
 
 namespace PPUHelpers
 {
-	RGB ResolvePixelColor(uint8_t colorIndex, uint16_t paletteAddr, Memory& memory)
+	RGBA ResolvePixelColor(uint8_t colorIndex, uint16_t paletteAddr, Memory& memory)
 	{
 		colorIndex = (memory[paletteAddr] >> (colorIndex * 2)) & 0x3;
 		return SCREEN_COLORS[colorIndex];
@@ -129,7 +130,7 @@ PPU::PPU()
 	, m_spritePrefetchLine(0)
 	, m_currentSprite(0)
 {
-	m_renderedFrame = new RGB[EmulatorConstants::SCREEN_SIZE];
+	m_renderedFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
 }
 
 PPU::~PPU()
@@ -145,7 +146,7 @@ void PPU::Init(Memory& memory)
 	memory.Write(SCY_REGISTER, 0x00);
 	memory.Write(SCX_REGISTER, 0x00);
 	memory.Write(BGP_REGISTER, 0xFC);
-	memset(m_renderedFrame, 0, sizeof(RGB) * EmulatorConstants::SCREEN_SIZE);
+	memset(m_renderedFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 
 	memory.ClearVRAM();
 
@@ -304,7 +305,7 @@ void PPU::DisableScreen(Memory& memory)
 	m_totalCycles = 0;
 	m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
-	memset(m_renderedFrame, 1, sizeof(RGB) * EmulatorConstants::SCREEN_SIZE);
+	memset(m_renderedFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	TransitionToOAMScan(memory);
 	UpdateRenderListener();
 }
@@ -381,7 +382,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 void PPU::RenderNextPixel(Memory& memory)
 {
 	Pixel bgPixel = m_backgroundFIFO.Pop();
-	RGB pixelColor = PPUHelpers::ResolvePixelColor(bgPixel.m_color, BGP_REGISTER, memory);
+	RGBA pixelColor = PPUHelpers::ResolvePixelColor(bgPixel.m_color, BGP_REGISTER, memory);
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory))
 	{
 		pixelColor = SCREEN_COLORS[0];
@@ -390,7 +391,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	if (m_spriteFIFO.Size() > 0)
 	{
 		Pixel spritePixel = m_spriteFIFO.Pop();
-		RGB spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
+		RGBA spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
 
 		if (PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
 			(spritePixel.m_color != 0 && (!spritePixel.m_backgroundPriority || pixelColor == SCREEN_COLORS[0])))
@@ -400,7 +401,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	}
 
 	uint32_t renderIndex = m_lineX + m_lineY * EmulatorConstants::SCREEN_WIDTH;
-	reinterpret_cast<RGB*>(m_renderedFrame)[renderIndex] = pixelColor;
+	reinterpret_cast<RGBA*>(m_renderedFrame)[renderIndex] = pixelColor;
 	m_lineX++;
 }
 

@@ -81,7 +81,7 @@ void Clock::Reset()
 	m_timerCycleAccumulator = 0;
 }
 
-void Clock::ResetDivider(Memory* memory)
+void Clock::ResetDivider(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
 {
 	memory->WriteDirect(DIVIDER_REGISTER, 0);
 }
