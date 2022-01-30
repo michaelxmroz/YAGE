@@ -77,6 +77,7 @@ public:
 private:
 
 	void Init();
+	void MBCControl(uint16_t addr, uint8_t value);
 
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
@@ -98,13 +99,15 @@ private:
   FFFF        Interrupt Enable Register
 */
 
-	uint8_t* m_memory;
+	uint8_t* m_mappedMemory;
+	uint8_t* m_romMemory;
 	uint8_t* m_bootrom;
 	MemoryWriteCallback* m_writeCallbacks;
 
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
+	uint8_t m_selectedROMBankSlot1;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	uint8_t* m_initializationTracker;
