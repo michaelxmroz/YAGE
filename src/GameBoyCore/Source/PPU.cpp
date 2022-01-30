@@ -86,7 +86,7 @@ namespace PPUHelpers
 
 	void SetModeFlag(uint8_t mode, Memory& memory)
 	{
-		memory.Write(STAT_REGISTER, memory[STAT_REGISTER] | mode);
+		memory.Write(STAT_REGISTER, (memory[STAT_REGISTER] & 0xFC) | mode);
 	}
 
 	bool IsNewScanline(uint32_t totalCycles, uint8_t& currentLine, Memory& memory)
@@ -146,6 +146,8 @@ void PPU::Init(Memory& memory)
 	memory.Write(SCY_REGISTER, 0x00);
 	memory.Write(SCX_REGISTER, 0x00);
 	memory.Write(BGP_REGISTER, 0xFC);
+	memory.Write(OBJ0_REGISTER, 0x00);
+	memory.Write(OBJ1_REGISTER, 0x00);
 	memset(m_renderedFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 
 	memory.ClearVRAM();

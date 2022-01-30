@@ -13,8 +13,11 @@ CPU::CPU(bool enableInterruptHandling)
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
-	, m_instructions
-{
+#if _DEBUG
+	, m_stopOnInstruction(0x0)
+	, m_stopOnInstructionEnabled(false)
+#endif
+	, m_instructions {
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
 	, { "LD (BC) A", 1, 2, &InstructionFunctions::LD_mBC_A }
@@ -531,8 +534,26 @@ CPU::CPU(bool enableInterruptHandling)
 {
 }
 
+#if _DEBUG
+void CPU::StopOnInstruction(uint8_t instr)
+{
+	m_stopOnInstruction = instr;
+	m_stopOnInstructionEnabled = true;
+}
+
+bool CPU::HasReachedInstruction(Memory& memory)
+{
+	return memory[m_registers.PC] == m_stopOnInstruction;
+}
+#endif
+
 uint32_t CPU::Step(Memory& memory)
 {
+	if (m_registers.PC == 0x21E5)
+	{
+		//break
+		int i = 0;
+	}
 	uint32_t mCycles = 0;
 
 	ProcessInterrupts(memory, mCycles);
@@ -541,6 +562,18 @@ uint32_t CPU::Step(Memory& memory)
 
 	if (m_registers.CpuState == Registers::State::Running)
 	{
+#if _DEBUG
+		if (m_stopOnInstructionEnabled)
+		{
+			uint8_t encodedInstruction = memory[m_registers.PC];
+			if (encodedInstruction == m_stopOnInstruction)
+			{
+				m_registers.CpuState = Registers::State::Stop;
+				return 0;
+			}
+		}
+#endif
+
 		ExecuteInstruction(memory, mCycles);
 	}
 

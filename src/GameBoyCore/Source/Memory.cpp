@@ -2,6 +2,11 @@
 #include "Clock.h"
 #include "Logging.h"
 
+#define ROM_END 0x7FFF
+#define ECHO_RAM_BEGIN 0xE000
+#define ECHO_RAM_END 0xE000
+#define UNUSABLE_BEGIN 0xFEA0
+#define UNUSABLE_END 0xFEFF
 #define DMA_REGISTER 0xFF46
 #define OAM_START 0xFE00
 #define OAM_END 0xFE9F
@@ -46,6 +51,21 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		{
 			return;
 		}
+	}
+
+	if (addr <= ROM_END)
+	{
+		LOG_ERROR(string_format("Trying to write ROM addr %x", addr).c_str());
+		return;
+	}
+	else if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
+	{
+		LOG_INFO(string_format("Trying to write echo RAM addr %x", addr).c_str());
+	}
+	else if (addr >= UNUSABLE_BEGIN && addr <= UNUSABLE_END)
+	{
+		LOG_WARNING(string_format("Trying to write unusable addr %x", addr).c_str());
+		return;
 	}
 
 	uint8_t prevValue = m_memory[addr];

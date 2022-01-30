@@ -11,6 +11,10 @@ class CPU
 public:
 	CPU(bool enableInterruptHandling = true);
 
+#if _DEBUG
+	void StopOnInstruction(uint8_t instr);
+	bool HasReachedInstruction(Memory& memory);
+#endif
 	uint32_t Step(Memory& memory);
 
 	void SetProgramCounter(unsigned short addr);
@@ -55,5 +59,9 @@ private:
 	bool m_haltBug;
 	bool m_delayedInterruptHandling;
 	const bool m_InterruptHandlingEnabled;
+#if _DEBUG
+	uint8_t m_stopOnInstruction;
+	bool m_stopOnInstructionEnabled;
+#endif
 };
 

@@ -4,7 +4,7 @@
 
 namespace Logger_Helpers
 {
-	static Emulator::LoggerCallback loggerCallback = nullptr;
+	extern Emulator::LoggerCallback loggerCallback;
 }
 
 //#define _LOG_INSTRUCTIONS 1
@@ -24,15 +24,15 @@ namespace Logger_Helpers
 
 #define LOG_INFO(message) \
 { \
- Logger_Helpers::loggerCallback(string_format("%s: %s\n","INFO",message).c_str(), 0); \
+ Logger_Helpers::loggerCallback(message, 0); \
 }
 
 #define LOG_WARNING(message) \
 { \
-Logger_Helpers::loggerCallback(string_format("%s: %s\n","WARNING",message).c_str(), 1); \
+Logger_Helpers::loggerCallback(message, 1); \
 }
 
 #define LOG_ERROR(message) \
 { \
-Logger_Helpers::loggerCallback(string_format("%s: %s\n","ERROR",message).c_str(), 2); \
+Logger_Helpers::loggerCallback(message, 2); \
 }

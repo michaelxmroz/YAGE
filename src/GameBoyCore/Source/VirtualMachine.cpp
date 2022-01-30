@@ -26,12 +26,13 @@ void VirtualMachine::Load(const char* rom, uint32_t size)
 	m_clock.Init(m_memory);
 	m_ppu.Init(m_memory);
 	m_joypad.Init(m_memory);
+	m_serial.Init(m_memory);
 }
 
 void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 {
 	bool frameRendered = false;
-	while (!frameRendered)
+	while (!frameRendered && m_cpu.GetRegisters().CpuState == Registers::State::Running)
 	{
 		m_joypad.Update(inputState, m_memory);
 		uint32_t cyclesPassed = m_cpu.Step(m_memory);
@@ -52,3 +53,19 @@ void VirtualMachine::SetLoggerCallback(LoggerCallback callback)
 {
 	Logger_Helpers::loggerCallback = callback;
 }
+
+#if _DEBUG
+void VirtualMachine::StopOnInstruction(uint8_t instr)
+{
+	m_cpu.StopOnInstruction(instr);
+}
+
+bool VirtualMachine::HasReachedInstruction()
+{
+	return m_cpu.HasReachedInstruction(m_memory);
+}
+Registers& VirtualMachine::GetRegisters()
+{
+	return m_cpu.GetRegisters();
+}
+#endif
