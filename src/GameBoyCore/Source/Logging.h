@@ -12,6 +12,7 @@ namespace Logger_Helpers
 #ifdef _LOG_INSTRUCTIONS
 #define LOG_INSTRUCTION(...) \
 { \
+if(Logger_Helpers::loggerCallback != nullptr) \
  Logger_Helpers::loggerCallback(string_format("%s: %s %x %x\n","OP",__VA_ARGS__).c_str(), 0); \
 }
 
@@ -24,15 +25,18 @@ namespace Logger_Helpers
 
 #define LOG_INFO(message) \
 { \
+if(Logger_Helpers::loggerCallback != nullptr) \
  Logger_Helpers::loggerCallback(message, 0); \
 }
 
 #define LOG_WARNING(message) \
 { \
+if(Logger_Helpers::loggerCallback != nullptr) \
 Logger_Helpers::loggerCallback(message, 1); \
 }
 
 #define LOG_ERROR(message) \
 { \
+if(Logger_Helpers::loggerCallback != nullptr) \
 Logger_Helpers::loggerCallback(message, 2); \
 }

@@ -549,7 +549,7 @@ bool CPU::HasReachedInstruction(Memory& memory)
 
 uint32_t CPU::Step(Memory& memory)
 {
-	if (m_registers.PC == 0x21E5)
+	if (m_registers.PC == 0x00fe)
 	{
 		//break
 		int i = 0;

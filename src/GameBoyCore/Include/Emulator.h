@@ -57,6 +57,7 @@ public:
 
 	virtual void SetLoggerCallback(LoggerCallback callback) = 0;
 	virtual void Load(const char* rom, uint32_t size) = 0;
+	virtual void Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) = 0;
 	virtual void Step(EmulatorInputs::InputState) = 0;
 	virtual const void* GetFrameBuffer() = 0;
 protected:

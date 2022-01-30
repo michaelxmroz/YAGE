@@ -21,11 +21,21 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::shared_ptr<std::vector<char>> romBlob = std::make_shared<std::vector<char>>();
-    if (!FileParser::Read(filePath, *romBlob))
+    std::vector<char> romBlob;
+    if (!FileParser::Read(filePath, romBlob))
     {
         LOG_ERROR("Could not read file at provided path");
         return -1;
+    }
+
+    std::string bootromPath = commandLine.GetArgument("-bootrom");
+    std::vector<char> bootromBlob;
+    if (!bootromPath.empty())
+    {
+        if (!FileParser::Read(bootromPath, bootromBlob))
+        {
+            LOG_ERROR("Could not read bootrom at provided path");
+        }
     }
 
     {
@@ -34,7 +44,14 @@ int main(int argc, char* argv[])
         Emulator* emu = Emulator::Create();
 
         emu->SetLoggerCallback(&LogMessage);
-        emu->Load(&((*romBlob)[0]), static_cast<uint32_t>(romBlob.get()->size()));
+        if (bootromBlob.size() > 0)
+        {
+            emu->Load(romBlob.data(), static_cast<uint32_t>(romBlob.size()), bootromBlob.data(), static_cast<uint32_t>(bootromBlob.size()));
+        }
+        else
+        {
+            emu->Load(romBlob.data(), static_cast<uint32_t>(romBlob.size()));
+        }
 
         InputHandler inputHandler;
         uint32_t frameCount = 0;

@@ -14,11 +14,13 @@
 #define VRAM_START 0x8000
 #define VRAM_END 0x9FFF 
 
+#define BOOTROM_BANK 0xFF50
+#define BOOTROM_SIZE 0x100
+
 Memory::Memory()
 {
 	m_memory = new uint8_t[MEMORY_SIZE];
 	m_externalMemory = false;
-
 	Init();
 }
 
@@ -26,7 +28,6 @@ Memory::Memory(uint8_t* rawMemory)
 {
 	m_memory = rawMemory;
 	m_externalMemory = true;
-
 	Init();
 }
 
@@ -36,6 +37,11 @@ Memory::~Memory()
 	{
 		delete[] m_memory;
 	}
+	if (m_bootrom != nullptr)
+	{
+		delete[] m_bootrom;
+	}
+
 	delete[] m_writeCallbacks;
 }
 
@@ -126,6 +132,13 @@ void Memory::MapROM(const char* rom, uint32_t size)
 #endif
 }
 
+void Memory::MapBootrom(const char* rom, uint32_t size)
+{
+	m_bootrom = new uint8_t[BOOTROM_SIZE];
+	memcpy(m_bootrom, rom, size);
+	m_isBootromMapped = true;
+}
+
 void Memory::RegisterCallback(uint16_t addr, MemoryWriteCallback callback)
 {
 	m_writeCallbacks[addr] = callback;
@@ -143,9 +156,13 @@ void Memory::SetVRamAccess(VRamAccess access)
 
 void Memory::Init()
 {
+	m_isBootromMapped = false;
+	m_bootrom = nullptr;
+
 	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
 	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
 	RegisterCallback(DMA_REGISTER, DoDMA);
+	RegisterCallback(BOOTROM_BANK, UnmapBootrom);
 
 	m_vRamAccess = VRamAccess::All;
 
@@ -163,6 +180,11 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
 #endif
+}
+
+void Memory::UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
+{
+	memory->m_isBootromMapped = false;
 }
 
 uint8_t Memory::operator[](uint16_t addr) const
@@ -186,5 +208,9 @@ uint8_t Memory::operator[](uint16_t addr) const
 	}
 #endif
 
+	if (m_isBootromMapped && addr < BOOTROM_SIZE)
+	{
+		return m_bootrom[addr];
+	}
 	return m_memory[addr];
 }

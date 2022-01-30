@@ -15,6 +15,8 @@ public:
 	virtual ~VirtualMachine() override;
 
 	virtual void Load(const char* rom, uint32_t size) override;
+	virtual void Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) override;
+
 	virtual void Step(EmulatorInputs::InputState) override;
 	virtual const void* GetFrameBuffer() override;
 	virtual void SetLoggerCallback(LoggerCallback callback) override;

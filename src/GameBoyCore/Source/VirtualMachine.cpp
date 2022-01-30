@@ -29,6 +29,14 @@ void VirtualMachine::Load(const char* rom, uint32_t size)
 	m_serial.Init(m_memory);
 }
 
+void VirtualMachine::Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize)
+{
+	Load(rom, size);
+	m_memory.MapBootrom(bootrom, bootromSize);
+	m_cpu.SetProgramCounter(0x00);
+	m_memory.Write(0xFF40, 0x00);
+}
+
 void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 {
 	bool frameRendered = false;

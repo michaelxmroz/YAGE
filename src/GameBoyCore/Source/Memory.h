@@ -67,6 +67,7 @@ public:
 	void ClearVRAM();
 
 	void MapROM(const char* rom, uint32_t size);
+	void MapBootrom(const char* rom, uint32_t size);
 
 	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback);
 	void DeregisterCallback(uint16_t addr);
@@ -78,6 +79,7 @@ private:
 	void Init();
 
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
+	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 
 	/*
   Memory Map
@@ -97,9 +99,11 @@ private:
 */
 
 	uint8_t* m_memory;
+	uint8_t* m_bootrom;
 	MemoryWriteCallback* m_writeCallbacks;
 
 	VRamAccess m_vRamAccess;
+	bool m_isBootromMapped;
 	bool m_externalMemory;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
