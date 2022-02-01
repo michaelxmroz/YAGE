@@ -40,7 +40,7 @@ void VirtualMachine::Load(const char* rom, uint32_t size, const char* bootrom, u
 void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 {
 	bool frameRendered = false;
-	while (!frameRendered && m_cpu.GetRegisters().CpuState == Registers::State::Running)
+	while (!frameRendered)
 	{
 		m_joypad.Update(inputState, m_memory);
 		uint32_t cyclesPassed = m_cpu.Step(m_memory);

@@ -549,11 +549,6 @@ bool CPU::HasReachedInstruction(Memory& memory)
 
 uint32_t CPU::Step(Memory& memory)
 {
-	if (m_registers.PC == 0x00fe)
-	{
-		//break
-		int i = 0;
-	}
 	uint32_t mCycles = 0;
 
 	ProcessInterrupts(memory, mCycles);
@@ -612,6 +607,11 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 
 void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
+	if (m_registers.PC == 0x042C)
+	{
+		//break
+		int i = 0;
+	}
 	//Fetch
 	uint16_t encodedInstruction = memory[m_registers.PC++];
 

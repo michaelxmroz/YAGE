@@ -108,7 +108,7 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 	break;
 	case FetcherState::Sleep:
 	{
-		if (fifo.Size() <= 8)
+		if (fifo.Size() <= 8 || m_spriteMode)
 		{
 			PushPixels(fifo, x);
 			return true;
@@ -124,9 +124,25 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 {
 	if (m_spriteMode)
 	{
+		bool isOddPosition = m_spriteAttributes->m_posX != currentX + TILE_SIZE;
+
 		uint8_t start = fifo.Size();
-		uint8_t offscreenX = static_cast<uint8_t>(std::max(0, 8 - static_cast<int16_t>(m_spriteAttributes->m_posX)));
+		uint8_t offscreenX = static_cast<uint8_t>(std::max(0, TILE_SIZE - static_cast<int16_t>(m_spriteAttributes->m_posX)));
 		start = std::max(start, offscreenX);
+
+		if (isOddPosition && start == 0)
+		{
+			Pixel pixel{
+			0x00,
+			false,
+			false
+			};
+			fifo.Push(pixel);
+		}
+		else if (isOddPosition)
+		{
+			start--;
+		}
 
 		for (uint8_t i = start; i < TILE_SIZE; ++i)
 		{
@@ -188,7 +204,7 @@ void PixelFetcher::GetBackgroundTile(Memory& memory, const uint8_t& y)
 	if (!isUnsignedAddressing && tileIndex > 127)
 	{
 		m_tileAddr = TILE_DATA_BLOCK_2;
-		tileIndex -= 127;
+		tileIndex -= 128;
 	}
 	m_tileAddr += tileIndex * TILE_BYTE_SIZE;
 	m_tileAddr += fineScrollY * 2;

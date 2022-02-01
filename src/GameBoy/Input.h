@@ -4,5 +4,12 @@
 class InputHandler
 {
 public:
-	void GetInputState(EmulatorInputs::InputState& state);
+	InputHandler();
+
+	void Update(EmulatorInputs::InputState& state);
+	bool IsPaused();
+private:
+	void UpdateEmulatorInputs(EmulatorInputs::InputState& state);
+
+	bool m_isPaused;
 };

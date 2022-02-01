@@ -59,9 +59,13 @@ int main(int argc, char* argv[])
         while (!renderer.RequestExit())
         {
             EmulatorInputs::InputState inputState;
-            inputHandler.GetInputState(inputState);
-            emu->Step(inputState);
-            frameBuffer = emu->GetFrameBuffer();
+            inputHandler.Update(inputState);
+
+            if (!inputHandler.IsPaused())
+            {
+                emu->Step(inputState);
+                frameBuffer = emu->GetFrameBuffer();
+            }
 
             renderer.Draw(frameBuffer);
 

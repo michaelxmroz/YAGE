@@ -50,14 +50,14 @@ private:
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void UpdateRenderListener();
 
-	bool GetCurrentSprite(SpriteAttributes& spriteOut, uint8_t offset);
+	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
 	uint32_t m_totalCycles;
 	uint8_t m_lineY;
 	uint8_t m_lineX;
 	uint8_t m_lineSpriteCount;
 	SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
-	int8_t m_currentSprite;
+	uint16_t m_lineSpriteMask;
 	uint8_t m_spritePrefetchLine;
 
 	PixelFIFO m_spriteFIFO;

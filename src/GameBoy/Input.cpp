@@ -2,7 +2,21 @@
 #include <Windows.h>
 #include <WinUser.h>
 
-void InputHandler::GetInputState(EmulatorInputs::InputState& state)
+InputHandler::InputHandler() : m_isPaused(false)
+{
+}
+
+void InputHandler::Update(EmulatorInputs::InputState& state)
+{
+	UpdateEmulatorInputs(state);
+
+	if (GetKeyState('P') & 0x8000)
+	{
+		m_isPaused = !m_isPaused;
+	}
+}
+
+void InputHandler::UpdateEmulatorInputs(EmulatorInputs::InputState& state)
 {
 	if (GetKeyState('W') & 0x8000)
 	{
@@ -37,4 +51,9 @@ void InputHandler::GetInputState(EmulatorInputs::InputState& state)
 	{
 		state.SetButtonDown(EmulatorInputs::Buttons::Select);
 	}
+}
+
+bool InputHandler::IsPaused()
+{
+	return m_isPaused;
 }

@@ -95,7 +95,6 @@ namespace PPUHelpers
 		if (currentLine != newLineY)
 		{
 			currentLine = newLineY % MAX_LINES_Y;
-
 			if (currentLine == memory[LYC_REGISTER])
 			{
 				if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
@@ -128,7 +127,7 @@ PPU::PPU()
 	, m_windowState(WindowState::NoWindow)
 	, m_state(PPUState::OAMScan)
 	, m_spritePrefetchLine(0)
-	, m_currentSprite(0)
+	, m_lineSpriteMask(0)
 {
 	m_renderedFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
 }
@@ -198,6 +197,11 @@ bool PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				if (PPUHelpers::IsNewScanline(totalCycles, m_lineY, memory))
 				{
+					if (m_totalCycles % 2 != 0)
+					{
+						m_totalCycles--;
+					}
+
 					if (m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
 						TransitionToVBlank(memory);
@@ -219,7 +223,7 @@ bool PPU::Render(uint32_t mCycles, Memory& memory)
 				{
 					if (m_lineY == 0)
 					{
-						totalCycles -= CYCLES_PER_FRAME;
+						totalCycles = 0;
 						m_totalCycles = totalCycles;
 						m_frameCount++;
 						TransitionToOAMScan(memory);
@@ -288,7 +292,7 @@ void PPU::TransitionToDraw(Memory& memory)
 void PPU::TransitionToOAMScan(Memory& memory)
 {
 	m_lineSpriteCount = 0;
-	m_currentSprite = -1;
+	m_lineSpriteMask = 0;
 	m_spritePrefetchLine = 0;
 	m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && m_lineY >= memory[WY_REGISTER] ? WindowState::InScanline : WindowState::NoWindow;
 
@@ -324,19 +328,19 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		m_windowState = WindowState::Draw;
 	}
 	
-	SpriteAttributes currentSprite;
+	uint8_t currentSpriteIndex;
 
 	if (m_lineX == 0)
 	{
 		while (m_spritePrefetchLine < SPRITE_SINGLE_SIZE)
 		{
-			if (GetCurrentSprite(currentSprite, SPRITE_SINGLE_SIZE - m_spritePrefetchLine))
+			if (GetCurrentSprite(currentSpriteIndex, SPRITE_SINGLE_SIZE - m_spritePrefetchLine))
 			{
-				m_spriteFetcher.SetSpriteAttributes(&currentSprite);
+				m_spriteFetcher.SetSpriteAttributes(&m_lineSprites[currentSpriteIndex]);
 				bool fetchFinished = m_spriteFetcher.Step(m_lineX, m_lineY, m_spriteFIFO, processedCycles, memory);
 				if (fetchFinished)
 				{
-					m_currentSprite++;
+					m_lineSpriteMask |= (1 << currentSpriteIndex);
 				}
 				return;
 			}
@@ -344,13 +348,13 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		}
 	}
 
-	if (GetCurrentSprite(currentSprite, 8))
+	if (GetCurrentSprite(currentSpriteIndex, 8))
 	{
-		m_spriteFetcher.SetSpriteAttributes(&currentSprite);
+		m_spriteFetcher.SetSpriteAttributes(&m_lineSprites[currentSpriteIndex]);
 		bool fetchFinished = m_spriteFetcher.Step(m_lineX, m_lineY, m_spriteFIFO, processedCycles, memory);
 		if (fetchFinished)
 		{
-			m_currentSprite++;
+			m_lineSpriteMask |= (1 << currentSpriteIndex);
 		}
 		return;
 	}
@@ -413,9 +417,11 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& proc
 
 	SpriteAttributes attr = memory.ReadOAMEntry(oamEntry);
 	bool doubleSize = PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjSize, memory);
-	uint8_t doubleSizeAdjustment = doubleSize ? SPRITE_DOUBLE_SIZE : SPRITE_SINGLE_SIZE;
+	uint8_t doubleSizeAdjustment = doubleSize ? 0 : SPRITE_SINGLE_SIZE;
 
-	if (m_lineSpriteCount < MAX_SPRITES_PER_LINE && m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY && m_lineY + SPRITE_DOUBLE_SIZE < attr.m_posY + doubleSizeAdjustment)
+	bool isInLine = m_lineY + doubleSizeAdjustment < attr.m_posY && m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY;
+
+	if (m_lineSpriteCount < MAX_SPRITES_PER_LINE && isInLine)
 	{
 		m_lineSprites[m_lineSpriteCount] = attr;
 		m_lineSpriteCount++;
@@ -431,13 +437,15 @@ void PPU::UpdateRenderListener()
 	}
 }
 
-bool PPU::GetCurrentSprite(SpriteAttributes& spriteOut, uint8_t offset)
+bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 {
 	for (uint8_t i = 0; i < m_lineSpriteCount; ++i)
 	{
-		if (m_lineSprites[i].m_posX == m_lineX + offset && i > m_currentSprite)
+		int16_t posDifference = m_lineSprites[i].m_posX - (m_lineX + offset);
+		bool isAvailable = (m_lineSpriteMask & (1 << i)) == 0;
+		if (isAvailable && (posDifference == 0 || posDifference == 1))
 		{
-			spriteOut = m_lineSprites[i];
+			spriteIndex = i;
 			return true;
 		}
 	}
