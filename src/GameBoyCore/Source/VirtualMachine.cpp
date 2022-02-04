@@ -62,6 +62,16 @@ void VirtualMachine::SetLoggerCallback(LoggerCallback callback)
 	Logger_Helpers::loggerCallback = callback;
 }
 
+void VirtualMachine::LoadPersistentMemory(const char* ram, uint32_t size)
+{
+	m_memory.MapRAM(ram, size);
+}
+
+void VirtualMachine::SetPersistentMemoryCallback(PersistentMemoryCallback callback)
+{
+	m_memory.RegisterExternalRamDisableCallback(callback);
+}
+
 #if _DEBUG
 void VirtualMachine::StopOnInstruction(uint8_t instr)
 {

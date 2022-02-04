@@ -51,6 +51,7 @@ class Emulator
 public:
 
 	typedef void (*LoggerCallback)(const char* message, uint8_t severity);
+	typedef void (*PersistentMemoryCallback)(const void* data, uint32_t size);
 
 	static Emulator* Create();
 	static void Delete(Emulator* emulator);
@@ -58,6 +59,9 @@ public:
 	virtual void SetLoggerCallback(LoggerCallback callback) = 0;
 	virtual void Load(const char* rom, uint32_t size) = 0;
 	virtual void Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) = 0;
+	virtual void LoadPersistentMemory(const char* ram, uint32_t size) = 0;
+	virtual void SetPersistentMemoryCallback(PersistentMemoryCallback callback) = 0;
+
 	virtual void Step(EmulatorInputs::InputState) = 0;
 	virtual const void* GetFrameBuffer() = 0;
 protected:

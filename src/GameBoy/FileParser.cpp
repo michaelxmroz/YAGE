@@ -6,13 +6,11 @@ namespace fs = std::filesystem;
 
 std::string FileParser::StripFileEnding(const char* name)
 {
-	std::string str(name);
-	std::size_t found = str.find('.');
-	if (found == std::string::npos)
-	{
-		return "";
-	}
-	return str.substr(0, found);
+	fs::path parsedPath(name);
+	fs::path strippedPath(parsedPath.parent_path());
+	strippedPath += '/';
+	strippedPath += parsedPath.stem();
+	return strippedPath.string();
 }
 
 bool FileParser::Read(std::string path, std::vector<char>& parsedBlob)

@@ -17,6 +17,9 @@ public:
 	virtual void Load(const char* rom, uint32_t size) override;
 	virtual void Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) override;
 
+	virtual void LoadPersistentMemory(const char* ram, uint32_t size) override;
+	virtual void SetPersistentMemoryCallback(PersistentMemoryCallback callback) override;
+
 	virtual void Step(EmulatorInputs::InputState) override;
 	virtual const void* GetFrameBuffer() override;
 	virtual void SetLoggerCallback(LoggerCallback callback) override;
@@ -35,5 +38,7 @@ private:
 	Serial m_serial;
 
 	uint64_t m_totalCycles;
+
+
 };
 
