@@ -74,8 +74,13 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 			uint8_t yOffset = y + 16 - m_spriteAttributes->m_posY;
 			if (IsSpriteFlagSet(SpriteFlags::YFlip, m_spriteAttributes->m_flags))
 			{
-				//TODO fix for double size sprites
-				yOffset = TILE_SIZE - yOffset;
+				bool doubleSize = IsControlFlagSet(LCDControlFlags::ObjSize, memory);
+				uint8_t tileSize = TILE_SIZE;
+				if (doubleSize)
+				{
+					tileSize *= 2;
+				}
+				yOffset = tileSize - 1 - yOffset;
 			}
 			m_tileAddr = m_spriteAttributes->m_tileIndex * TILE_BYTE_SIZE + yOffset * 2;
 			m_tileAddr += block;

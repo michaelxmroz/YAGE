@@ -40,10 +40,10 @@ struct RGBA
 
 const RGBA SCREEN_COLORS[4]
 {
-	{0xFF, 0xFF, 0xFF, 0xFF},
-	{0xAA, 0xAA, 0xAA, 0xFF},
-	{0x55, 0x55, 0x55, 0xFF},
-	{0x00, 0x00, 0x00, 0xFF}
+	{0xE0, 0xF8, 0xD8, 0xFF},
+	{0x88, 0xC0, 0x70, 0xFF},
+	{0x34, 0x68, 0x56, 0xFF},
+	{0x08, 0x18, 0x20, 0xFF}
 };
 
 enum class StatFlags
@@ -320,7 +320,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
 	processedCycles += 2;
 
-	if (m_windowState == WindowState::InScanline && m_lineX == memory[WX_REGISTER] - 7) //TODO this will run into the same odd x pos issue
+	if (m_windowState == WindowState::InScanline && m_lineX + 7 >= memory[WX_REGISTER])
 	{
 		m_backgroundFetcher.Reset();
 		m_backgroundFIFO.Clear();
@@ -366,6 +366,12 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	if (m_lineX == 0)
 	{
 		uint8_t fineScroll = memory[SCX_REGISTER] & 0x7;
+
+		if (m_windowState == WindowState::Draw)
+		{
+			fineScroll =  0x7 - memory[WX_REGISTER] & 0x7;
+		}
+
 		if (fineScroll > 0 && m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
 		{
 			for (uint8_t i = 0; i < fineScroll; ++i)
