@@ -128,7 +128,7 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 
 		uint8_t start = fifo.Size();
 		uint8_t offscreenX = static_cast<uint8_t>(std::max(0, TILE_SIZE - static_cast<int16_t>(m_spriteAttributes->m_posX)));
-		start = std::max(start, offscreenX);
+		start = offscreenX;
 
 		if (isOddPosition && start == 0)
 		{
@@ -139,22 +139,32 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 			};
 			fifo.Push(pixel);
 		}
-		else if (isOddPosition)
-		{
-			start--;
-		}
 
 		for (uint8_t i = start; i < TILE_SIZE; ++i)
-		{
+		{	
 			bool flip = IsSpriteFlagSet(SpriteFlags::XFlip, m_spriteAttributes->m_flags);
-			uint8_t index = flip ? TILE_SIZE - i : i;
+			uint8_t index = flip ? TILE_SIZE - 1 - i : i;
 			uint8_t color = GetColorForTilePixel(index, m_tileDataLow, m_tileDataHigh);
 			Pixel pixel{
 				color,
 				IsSpriteFlagSet(SpriteFlags::PaletteNr, m_spriteAttributes->m_flags),
 				IsSpriteFlagSet(SpriteFlags::BgOverObj, m_spriteAttributes->m_flags)
 			};
-			fifo.Push(pixel);
+			Pixel oldPixel;
+			uint8_t fifoIndex = isOddPosition ? i + 1 : i;
+			fifoIndex = std::max(0,fifoIndex - start);
+			if (fifo.Size() > fifoIndex)
+			{
+				oldPixel = fifo.Get(fifoIndex);
+				if (oldPixel.m_color == 0x00)
+				{
+					fifo.Replace(fifoIndex, pixel);
+				}
+			}
+			else
+			{
+				fifo.Push(pixel);
+			}
 		}
 	}
 	else
@@ -192,7 +202,9 @@ void PixelFetcher::GetBackgroundTile(Memory& memory, const uint8_t& y)
 	}
 	else
 	{
-		tilePosY = ((y - memory[WY_REGISTER]) & 0xFF) / TILE_SIZE;
+		uint8_t tileCoordY = (y - memory[WY_REGISTER]) & 0xFF;
+		tilePosY = tileCoordY / TILE_SIZE;
+		fineScrollY = tileCoordY % TILE_SIZE;
 	}
 
 	uint16_t index = tileMapAddr + tilePosX + tilePosY * TILE_MAP_DIMENSIONS;

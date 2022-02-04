@@ -320,7 +320,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
 	processedCycles += 2;
 
-	if (m_windowState == WindowState::InScanline && m_lineX == memory[WX_REGISTER] - 7)
+	if (m_windowState == WindowState::InScanline && m_lineX == memory[WX_REGISTER] - 7) //TODO this will run into the same odd x pos issue
 	{
 		m_backgroundFetcher.Reset();
 		m_backgroundFIFO.Clear();
@@ -377,7 +377,6 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		}
 	}
 
-	//TODO sprites
 	if (m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE )
 	{
 		RenderNextPixel(memory);
@@ -389,7 +388,8 @@ void PPU::RenderNextPixel(Memory& memory)
 {
 	Pixel bgPixel = m_backgroundFIFO.Pop();
 	RGBA pixelColor = PPUHelpers::ResolvePixelColor(bgPixel.m_color, BGP_REGISTER, memory);
-	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory))
+
+	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory) && m_windowState != WindowState::Draw)
 	{
 		pixelColor = SCREEN_COLORS[0];
 	}

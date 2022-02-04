@@ -31,13 +31,23 @@ public:
 		return element;
 	}
 
+	const T& Get(uint32_t index) const
+	{
+		return m_fifo[(m_index + index) % CAPACITY];
+	}
+
+	const T& Replace(uint32_t index, const T& newElement)
+	{
+		return m_fifo[(m_index + index) % CAPACITY] = newElement;
+	}
+
 	void Clear()
 	{
 		m_size = 0;
 		m_index = 0;
 	}
 
-	uint32_t Size()
+	uint32_t Size() const
 	{
 		return m_size;
 	}
