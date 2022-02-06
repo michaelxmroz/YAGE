@@ -102,6 +102,7 @@
     <ClCompile Include="$(BaseItemPath)\Registers.cpp" />
     <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\Emulator.cpp" />
+    <ClCompile Include="..\src\GameBoyCore\Source\MBC.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\Serial.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +120,7 @@
     <ClInclude Include="$(BaseItemPath)\Registers.h" />
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h" />
     <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h" />
+    <ClInclude Include="..\src\GameBoyCore\Source\MBC.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Serial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

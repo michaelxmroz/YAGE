@@ -2,10 +2,9 @@
 #include "Clock.h"
 #include "Logging.h"
 
-#define ROM_END 0x7FFF
-#define ROM_BANK_SIZE 0x4000
-#define RAM_BANK_SIZE 0x2000
-#define EXTERNAL_RAM_BEGIN 0xA000
+
+
+
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000
 #define UNUSABLE_BEGIN 0xFEA0
@@ -20,17 +19,9 @@
 #define BOOTROM_BANK 0xFF50
 #define BOOTROM_SIZE 0x100
 
-#define MBC_ROM_BANKING_REGISTER 0x2000
-#define MBC_SECONDARY_BANK_REGISTER 0x4000
-#define MBC_ROM_BANK_MODE_SELECT_REGISTER 0x6000
-#define MBC_LARGE_ROM 32
-
+#define HEADER_CARTRIDGE_TYPE 0x147
 #define HEADER_ROM_SIZE 0x148
 #define HEADER_RAM_SIZE 0x149
-
-#define EXTERNAL_RAM_ENABLE_VALUE 0x0A
-
-
 
 Memory::Memory()
 {
@@ -51,6 +42,7 @@ Memory::~Memory()
 	if (!m_externalMemory)
 	{
 		delete[] m_mappedMemory;
+		delete m_mbc;
 	}
 	if (m_bootrom != nullptr)
 	{
@@ -87,12 +79,18 @@ void Memory::Write(uint16_t addr, uint8_t value)
 
 		if (addr <= ROM_END)
 		{
-			MBCControl(addr, value);
+			if (m_mbc->WriteRegister(addr, value))
+			{
+				if (m_onExternalRamDisable != nullptr)
+				{
+					m_onExternalRamDisable(m_externalRamMemory, m_mbc->GetRAMSize());
+				}
+			}
 			return;
 		}
-		else if (addr >= EXTERNAL_RAM_BEGIN && addr < EXTERNAL_RAM_BEGIN + RAM_BANK_SIZE && m_isExternalRAMEnabled)
+		else if (addr >= EXTERNAL_RAM_BEGIN && addr < EXTERNAL_RAM_BEGIN + RAM_BANK_SIZE)
 		{
-			m_externalRamMemory[addr - EXTERNAL_RAM_BEGIN] = value;
+			m_externalRamMemory[m_mbc->GetRAMAddr(addr)] = value;
 		}
 		else if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
 		{
@@ -159,12 +157,14 @@ void Memory::MapROM(const char* rom, uint32_t size)
 {
 	m_romMemory = new uint8_t[size];
 	memcpy(m_romMemory, rom, size);
-	SetRamRomSizes();
 
-	if (m_ramBankCount > 0)
+	m_mbc = new MemoryBankController(m_romMemory[HEADER_CARTRIDGE_TYPE], m_romMemory[HEADER_ROM_SIZE], m_romMemory[HEADER_RAM_SIZE]);
+
+	uint16_t ramSize = m_mbc->GetRAMSize();
+	if (ramSize > 0)
 	{
-		m_externalRamMemory = new uint8_t[m_ramBankCount * RAM_BANK_SIZE];
-		memset(m_externalRamMemory, 0, m_ramBankCount * RAM_BANK_SIZE);
+		m_externalRamMemory = new uint8_t[ramSize];
+		memset(m_externalRamMemory, 0, ramSize);
 	}
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
@@ -175,7 +175,7 @@ void Memory::MapROM(const char* rom, uint32_t size)
 
 void Memory::MapRAM(const char* ram, uint32_t size)
 {
-	uint8_t expectedRAMSize = m_ramBankCount * RAM_BANK_SIZE;
+	uint8_t expectedRAMSize = m_mbc->GetRAMSize();
 	if (size != expectedRAMSize)
 	{
 		LOG_ERROR("Mismatching external RAM sizes");
@@ -217,12 +217,8 @@ void Memory::Init()
 	m_externalRamMemory = nullptr;
 	m_isBootromMapped = false;
 	m_bootrom = nullptr;
-
-	m_primaryBankRegister = 1;	
-	m_secondaryBankRegister = 0;
-	m_isAdvancedBankingMode = false;
-	m_isExternalRAMEnabled = false;
 	m_onExternalRamDisable = nullptr;
+	m_mbc = nullptr;
 
 	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
 	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
@@ -235,60 +231,6 @@ void Memory::Init()
 	m_initializationTracker = new uint8_t[MEMORY_SIZE];
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
 #endif
-}
-
-void Memory::MBCControl(uint16_t addr, uint8_t value)
-{
-	if (addr >= MBC_ROM_BANK_MODE_SELECT_REGISTER)
-	{
-		m_isAdvancedBankingMode = value > 0;
-	}
-	else if (addr >= MBC_SECONDARY_BANK_REGISTER)
-	{
-		m_secondaryBankRegister = value & 0x03;
-	}
-	else if (addr >= MBC_ROM_BANKING_REGISTER)
-	{
-		m_primaryBankRegister = std::max(1, value & 0x1F);
-	}
-	else
-	{
-		m_isExternalRAMEnabled = value == EXTERNAL_RAM_ENABLE_VALUE;
-		if (!m_isExternalRAMEnabled && m_onExternalRamDisable != nullptr)
-		{
-			m_onExternalRamDisable(m_externalRamMemory, m_ramBankCount * RAM_BANK_SIZE);
-		}
-	}
-}
-
-void Memory::SetRamRomSizes()
-{
-	uint8_t headerRomSize = m_romMemory[HEADER_ROM_SIZE];
-	m_romBankCount = static_cast<uint16_t>(pow(2, headerRomSize + 1));
-
-	uint8_t headerRamSize = m_romMemory[HEADER_RAM_SIZE];
-	switch (headerRamSize)
-	{
-	case 0:
-	case 1:
-		m_ramBankCount = 0;
-		break;
-	case 2:
-		m_ramBankCount = 1;
-		break;
-	case 3:
-		m_ramBankCount = 4;
-		break;
-	case 4:
-		m_ramBankCount = 16;
-		break;
-	case 5:
-		m_ramBankCount = 8;
-		break;
-	default:
-		m_ramBankCount = 0;
-		break;
-	}
 }
 
 void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
@@ -347,42 +289,12 @@ uint8_t Memory::operator[](uint16_t addr) const
 
 	if (addr <= ROM_END)
 	{
-		if (addr >= ROM_BANK_SIZE)
-		{
-			uint32_t bankId = m_primaryBankRegister - 1;
-			if (m_romBankCount > MBC_LARGE_ROM && !m_isAdvancedBankingMode)
-			{
-				bankId += (m_secondaryBankRegister << 5);
-			}
-			uint32_t offset = bankId * ROM_BANK_SIZE;
-			uint32_t adjustedAddr = addr + offset;
-			return m_romMemory[adjustedAddr];
-		}
-		else if (m_romBankCount > MBC_LARGE_ROM && m_isAdvancedBankingMode)
-		{
-			uint32_t bankId = (m_secondaryBankRegister << 5);
-			uint32_t offset = bankId * ROM_BANK_SIZE;
-			uint32_t adjustedAddr = addr + offset;
-			return m_romMemory[adjustedAddr];
-		}
-		return m_romMemory[addr];
+		return m_romMemory[m_mbc->GetROMAddr(addr)];
 	}
 
 	if (addr >= EXTERNAL_RAM_BEGIN && addr < EXTERNAL_RAM_BEGIN + RAM_BANK_SIZE)
 	{
-		if (m_ramBankCount == 0 || !m_isExternalRAMEnabled)
-		{
-			LOG_ERROR("Trying to access invalid external ram address");
-			return 0xFF;
-		}
-		uint32_t bankId = 0;
-		if (m_ramBankCount > 1 && m_isAdvancedBankingMode)
-		{
-			bankId = m_secondaryBankRegister;
-		}
-		uint32_t offset = bankId * RAM_BANK_SIZE;
-		uint32_t adjustedAddr = addr - EXTERNAL_RAM_BEGIN + offset;
-		return m_externalRamMemory[adjustedAddr];
+		return m_externalRamMemory[m_mbc->GetRAMAddr(addr)];
 	}
 
 	return m_mappedMemory[addr];

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "../Include/Emulator.h"
+#include "MBC.h"
 
 #define MEMORY_SIZE 0x10000
 
@@ -79,10 +80,7 @@ public:
 	void SetVRamAccess(VRamAccess access);
 
 private:
-
 	void Init();
-	void MBCControl(uint16_t addr, uint8_t value);
-	void SetRamRomSizes();
 
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
@@ -109,19 +107,12 @@ private:
 	uint8_t* m_bootrom;
 	uint8_t* m_externalRamMemory;
 	MemoryWriteCallback* m_writeCallbacks;
+	MemoryBankController* m_mbc;
 	Emulator::PersistentMemoryCallback m_onExternalRamDisable;
 
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
-	uint8_t m_primaryBankRegister;
-	uint8_t m_secondaryBankRegister;
-	bool m_isAdvancedBankingMode;
-	bool m_isExternalRAMEnabled;
-
-	uint16_t m_romBankCount;
-	uint8_t m_ramBankCount;
-
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	uint8_t* m_initializationTracker;

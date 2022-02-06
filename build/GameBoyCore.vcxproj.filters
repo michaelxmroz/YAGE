@@ -69,6 +69,9 @@
     <ClCompile Include="..\src\GameBoyCore\Source\Serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoyCore\Source\MBC.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
@@ -115,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="..\src\GameBoyCore\Source\Serial.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoyCore\Source\MBC.h">
+      <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
