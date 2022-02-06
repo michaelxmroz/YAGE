@@ -3,6 +3,7 @@
 #include "Logging.h"
 
 #define MBC_ROM_BANKING_REGISTER 0x2000
+#define MBC_ROM_BANKING_SECONDARY_REGISTER 0x3000
 #define MBC_SECONDARY_BANK_REGISTER 0x4000
 #define MBC_ROM_BANK_MODE_SELECT_REGISTER 0x6000
 #define MBC_LARGE_ROM 32
@@ -69,6 +70,90 @@ namespace MBC_Internal
 		}
 	}
 
+	namespace MBC3
+	{
+		FORCE_INLINE bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
+		{
+			if (addr >= MBC_ROM_BANK_MODE_SELECT_REGISTER)
+			{
+				//TODO RTC support
+			}
+			else if (addr >= MBC_SECONDARY_BANK_REGISTER)
+			{
+				registers.m_secondaryBankRegister = value & 0x03;
+			}
+			else if (addr >= MBC_ROM_BANKING_REGISTER)
+			{
+				registers.m_primaryBankRegister = std::max(1, value & 0x7F);
+			}
+			else
+			{
+				registers.m_isRAMEnabled = value == EXTERNAL_RAM_ENABLE_VALUE;
+				return !registers.m_isRAMEnabled;
+			}
+			return false;
+		}
+
+
+		FORCE_INLINE uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
+		{
+			if (addr < ROM_BANK_SIZE)
+			{
+				return addr;
+			}
+
+			uint32_t bankId = registers.m_primaryBankRegister;
+			return (addr & (ROM_BANK_SIZE - 1)) + bankId * ROM_BANK_SIZE;
+		}
+
+		FORCE_INLINE uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
+		{
+			uint32_t bankId = registers.m_secondaryBankRegister;
+			uint32_t offset = bankId * RAM_BANK_SIZE;
+			return addr - EXTERNAL_RAM_BEGIN + offset;
+		}
+	}
+
+	namespace MBC5
+	{
+		FORCE_INLINE bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
+		{
+			if (addr >= MBC_SECONDARY_BANK_REGISTER)
+			{
+				registers.m_secondaryBankRegister = value & 0x0F;
+			}
+			else if (addr >= MBC_ROM_BANKING_SECONDARY_REGISTER)
+			{
+				registers.m_tertiaryBankRegister = value & 0x01;
+			}
+			else if (addr >= MBC_ROM_BANKING_REGISTER)
+			{
+				registers.m_primaryBankRegister = value;
+			}
+			else
+			{
+				registers.m_isRAMEnabled = value == EXTERNAL_RAM_ENABLE_VALUE;
+				return !registers.m_isRAMEnabled;
+			}
+			return false;
+		}
+
+		FORCE_INLINE uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
+		{
+			if (addr < ROM_BANK_SIZE)
+			{
+				return addr;
+			}
+			uint32_t bankId = registers.m_primaryBankRegister + (registers.m_tertiaryBankRegister << 9);
+			return (addr & (ROM_BANK_SIZE - 1)) + bankId * ROM_BANK_SIZE;
+		}
+
+		FORCE_INLINE uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
+		{
+			return MBC3::GetRAMAddr(addr, registers);
+		}
+	}
+
 	uint16_t GetRAMBankCountFromHeader(uint8_t headerRamBanks)
 	{
 		switch (headerRamBanks)
@@ -115,8 +200,9 @@ bool MemoryBankController::WriteRegister(uint16_t addr, uint8_t value)
 	case Type::MBC1:
 		return MBC_Internal::MBC1::WriteRegister(addr, value, m_registers);
 	case Type::MBC3:
+		return MBC_Internal::MBC3::WriteRegister(addr, value, m_registers);
 	case Type::MBC5:
-		break;
+		return MBC_Internal::MBC5::WriteRegister(addr, value, m_registers);
 	}
 	
 	return false;
@@ -137,8 +223,9 @@ uint32_t MemoryBankController::GetRAMAddr(uint16_t addr) const
 	case Type::MBC1:
 		return MBC_Internal::MBC1::GetRAMAddr(addr, m_registers);
 	case Type::MBC3:
+		return MBC_Internal::MBC3::GetRAMAddr(addr, m_registers);
 	case Type::MBC5:
-		break;
+		return MBC_Internal::MBC5::GetRAMAddr(addr, m_registers);
 	}
 	
 	return addr;
@@ -153,8 +240,9 @@ uint32_t MemoryBankController::GetROMAddr(uint16_t addr) const
 	case Type::MBC1:
 		return MBC_Internal::MBC1::GetROMAddr(addr, m_registers, m_romBankCount);
 	case Type::MBC3:
+		return MBC_Internal::MBC3::GetROMAddr(addr, m_registers, m_romBankCount);
 	case Type::MBC5:
-		break;
+		return MBC_Internal::MBC5::GetROMAddr(addr, m_registers, m_romBankCount);
 	}
 
 	return addr;
