@@ -14,6 +14,9 @@ void InputHandler::Update(EmulatorInputs::InputState& state)
 	{
 		m_isPaused = !m_isPaused;
 	}
+
+	m_debugSaveState = GetKeyState('1') & 0x8000;
+	m_debugLoadState = GetKeyState('2') & 0x8000;
 }
 
 void InputHandler::UpdateEmulatorInputs(EmulatorInputs::InputState& state)

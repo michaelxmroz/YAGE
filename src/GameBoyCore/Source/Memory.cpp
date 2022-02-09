@@ -2,9 +2,6 @@
 #include "Clock.h"
 #include "Logging.h"
 
-
-
-
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000
 #define UNUSABLE_BEGIN 0xFEA0
@@ -19,18 +16,19 @@
 #define BOOTROM_BANK 0xFF50
 #define BOOTROM_SIZE 0x100
 
-#define HEADER_CARTRIDGE_TYPE 0x147
-#define HEADER_ROM_SIZE 0x148
-#define HEADER_RAM_SIZE 0x149
+#define HEADER_CHECKSUM 0x014D
+#define HEADER_CARTRIDGE_TYPE 0x0147
+#define HEADER_ROM_SIZE 0x0148
+#define HEADER_RAM_SIZE 0x0149
 
-Memory::Memory()
+Memory::Memory(Serializer* serializer) : ISerializable(serializer)
 {
 	m_mappedMemory = new uint8_t[MEMORY_SIZE];
 	m_externalMemory = false;
 	Init();
 }
 
-Memory::Memory(uint8_t* rawMemory)
+Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr)
 {
 	m_mappedMemory = rawMemory;
 	m_externalMemory = true;
@@ -153,12 +151,12 @@ void Memory::ClearVRAM()
 #endif
 }
 
-void Memory::MapROM(const char* rom, uint32_t size)
+void Memory::MapROM(Serializer* serializer, const char* rom, uint32_t size)
 {
 	m_romMemory = new uint8_t[size];
 	memcpy(m_romMemory, rom, size);
 
-	m_mbc = new MemoryBankController(m_romMemory[HEADER_CARTRIDGE_TYPE], m_romMemory[HEADER_ROM_SIZE], m_romMemory[HEADER_RAM_SIZE]);
+	m_mbc = new MemoryBankController(serializer, m_romMemory[HEADER_CARTRIDGE_TYPE], m_romMemory[HEADER_ROM_SIZE], m_romMemory[HEADER_RAM_SIZE]);
 
 	uint16_t ramSize = m_mbc->GetRAMSize();
 	if (ramSize > 0)
@@ -175,7 +173,7 @@ void Memory::MapROM(const char* rom, uint32_t size)
 
 void Memory::MapRAM(const char* ram, uint32_t size)
 {
-	uint8_t expectedRAMSize = m_mbc->GetRAMSize();
+	uint32_t expectedRAMSize = static_cast<uint32_t>(m_mbc->GetRAMSize());
 	if (size != expectedRAMSize)
 	{
 		LOG_ERROR("Mismatching external RAM sizes");
@@ -209,6 +207,11 @@ void Memory::RegisterExternalRamDisableCallback(Emulator::PersistentMemoryCallba
 void Memory::SetVRamAccess(VRamAccess access)
 {
 	m_vRamAccess = access;
+}
+
+uint8_t Memory::GetHeaderChecksum() const
+{
+	return m_romMemory[HEADER_CHECKSUM];
 }
 
 void Memory::Init()
@@ -298,4 +301,41 @@ uint8_t Memory::operator[](uint16_t addr) const
 	}
 
 	return m_mappedMemory[addr];
+}
+
+void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t ramSize = m_mbc->GetRAMSize();
+	uint32_t dataSize = MEMORY_SIZE + ramSize + sizeof(bool);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Memory);
+
+	WriteAndMove(rawData, m_mappedMemory, MEMORY_SIZE);
+
+	if (ramSize > 0)
+	{
+		WriteAndMove(rawData, m_externalRamMemory, ramSize);
+	}
+
+	WriteAndMove(rawData, &m_isBootromMapped, sizeof(bool));
+}
+
+void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Memory);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	ReadAndMove(data, m_mappedMemory, MEMORY_SIZE);
+
+	uint32_t ramSize = m_mbc->GetRAMSize();
+	if (ramSize > 0)
+	{
+		ReadAndMove(data, m_externalRamMemory, ramSize);
+	}
+
+	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
 }

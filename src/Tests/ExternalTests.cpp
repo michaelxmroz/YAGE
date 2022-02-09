@@ -37,7 +37,7 @@ TEST_P(ExternalTestFixture, Main) {
 
     VirtualMachine vm;
 
-    vm.Load(romBlob.data(), static_cast<uint32_t>(romBlob.size()));
+    vm.Load("External Test", romBlob.data(), static_cast<uint32_t>(romBlob.size()));
 
     vm.StopOnInstruction(0x40);
 

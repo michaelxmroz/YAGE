@@ -3,10 +3,12 @@
 #define ROM_ENTRY_POINT 0x0100
 
 VirtualMachine::VirtualMachine()
-	: m_memory()
-	, m_cpu()
+	: m_serializer()
+	, m_memory(&m_serializer)
+	, m_cpu(&m_serializer)
 	, m_totalCycles(0)
 	, m_joypad()
+	, m_clock(&m_serializer)
 {
 }
 
@@ -14,11 +16,13 @@ VirtualMachine::~VirtualMachine()
 {
 }
 
-void VirtualMachine::Load(const char* rom, uint32_t size)
+void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 {
+	m_romName.assign(romName);
+
 	// Setup memory
 	m_memory.ClearMemory();
-	m_memory.MapROM(rom, size);
+	m_memory.MapROM(&m_serializer, rom, size);
 	m_cpu.Reset();
 	m_cpu.SetProgramCounter(ROM_ENTRY_POINT);
 
@@ -29,9 +33,9 @@ void VirtualMachine::Load(const char* rom, uint32_t size)
 	m_serial.Init(m_memory);
 }
 
-void VirtualMachine::Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize)
+void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize)
 {
-	Load(rom, size);
+	Load(romName, rom, size);
 	m_memory.MapBootrom(bootrom, bootromSize);
 	m_cpu.SetProgramCounter(0x00);
 	m_memory.Write(0xFF40, 0x00);
@@ -70,6 +74,15 @@ void VirtualMachine::LoadPersistentMemory(const char* ram, uint32_t size)
 void VirtualMachine::SetPersistentMemoryCallback(PersistentMemoryCallback callback)
 {
 	m_memory.RegisterExternalRamDisableCallback(callback);
+}
+
+std::vector<uint8_t> VirtualMachine::Serialize() const
+{
+	return m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName);
+}
+void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
+{
+	m_serializer.Deserialize(buffer, size, m_memory.GetHeaderChecksum());
 }
 
 #if _DEBUG

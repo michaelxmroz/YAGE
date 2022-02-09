@@ -33,8 +33,14 @@ namespace Helpers
 }
 
 
-Clock::Clock() 
-	: m_dividerCycleAccumulator(0)
+Clock::Clock()
+	: Clock(nullptr)
+{
+}
+
+Clock::Clock(Serializer* serializer)
+	: ISerializable(serializer)
+	, m_dividerCycleAccumulator(0)
 	, m_timerCycleAccumulator(0)
 {
 }
@@ -84,4 +90,27 @@ void Clock::Reset()
 void Clock::ResetDivider(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
 {
 	memory->WriteDirect(DIVIDER_REGISTER, 0);
+}
+
+void Clock::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Clock);
+
+	WriteAndMove(rawData, &m_dividerCycleAccumulator, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_timerCycleAccumulator, sizeof(uint32_t));
+}
+
+void Clock::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Clock);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	ReadAndMove(data, &m_dividerCycleAccumulator, sizeof(uint32_t));
+	ReadAndMove(data, &m_timerCycleAccumulator, sizeof(uint32_t));
 }

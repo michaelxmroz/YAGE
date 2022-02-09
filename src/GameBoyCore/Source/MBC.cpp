@@ -2,6 +2,7 @@
 #include "Helpers.h"
 #include "Logging.h"
 
+
 #define MBC_ROM_BANKING_REGISTER 0x2000
 #define MBC_ROM_BANKING_SECONDARY_REGISTER 0x3000
 #define MBC_SECONDARY_BANK_REGISTER 0x4000
@@ -176,15 +177,17 @@ namespace MBC_Internal
 }
 
 MemoryBankController::MemoryBankController()
-	: m_type(Type::None)
+	: ISerializable(nullptr)
+	, m_type(Type::None)
 	, m_registers()
 	, m_romBankCount(0)
 	, m_ramBankCount(0)
 {
 }
 
-MemoryBankController::MemoryBankController(uint8_t headerType, uint8_t headerRomBanks, uint8_t headerRamBanks)
-	: m_type(GetTypeFromHeaderCode(headerType))
+MemoryBankController::MemoryBankController(Serializer* serializer, uint8_t headerType, uint8_t headerRomBanks, uint8_t headerRamBanks)
+	: ISerializable(serializer)
+	, m_type(GetTypeFromHeaderCode(headerType))
 	, m_registers()
 	, m_romBankCount(static_cast<uint16_t>(pow(2, headerRomBanks + 1)))
 	, m_ramBankCount(MBC_Internal::GetRAMBankCountFromHeader(headerRamBanks))
@@ -279,6 +282,27 @@ MemoryBankController::Type MemoryBankController::GetTypeFromHeaderCode(uint8_t h
 	default:
 		return Type::None;
 	}
+}
+
+void MemoryBankController::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t dataSize = sizeof(Registers);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::MBC);
+
+	WriteAndMove(rawData, &m_registers, sizeof(Registers));
+}
+
+void MemoryBankController::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::MBC);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	ReadAndMove(data, &m_registers, sizeof(Registers));
 }
 
 MemoryBankController::Registers::Registers()

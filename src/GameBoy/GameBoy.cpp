@@ -11,6 +11,7 @@
 #include "RendererVulkan.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
+#define SAVE_STATE_FILE_ENDING "ssf"
 
 static std::string s_persistentMemoryPath;
 
@@ -51,6 +52,8 @@ int main(int argc, char* argv[])
     }
 
     std::string fileWithoutEnding = FileParser::StripFileEnding(filePath.c_str());
+    std::string filename = FileParser::StripPath(filePath.c_str());
+
     s_persistentMemoryPath = string_format("%s.%s", fileWithoutEnding.c_str(), PERSISTENT_MEMORY_FILE_ENDING);
     
     std::vector<char> ramBlob;
@@ -64,11 +67,11 @@ int main(int argc, char* argv[])
         emu->SetLoggerCallback(&LogMessage);
         if (bootromBlob.size() > 0)
         {
-            emu->Load(romBlob.data(), static_cast<uint32_t>(romBlob.size()), bootromBlob.data(), static_cast<uint32_t>(bootromBlob.size()));
+            emu->Load(filename.c_str(), romBlob.data(), static_cast<uint32_t>(romBlob.size()), bootromBlob.data(), static_cast<uint32_t>(bootromBlob.size()));
         }
         else
         {
-            emu->Load(romBlob.data(), static_cast<uint32_t>(romBlob.size()));
+            emu->Load(filename.c_str(), romBlob.data(), static_cast<uint32_t>(romBlob.size()));
         }
 
         if (ramBlob.size() > 0)
@@ -92,6 +95,22 @@ int main(int argc, char* argv[])
             }
 
             renderer.Draw(frameBuffer);
+
+            if (inputHandler.m_debugSaveState)
+            {
+                std::vector<uint8_t> saveState = emu->Serialize();
+                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+            }
+            else if (inputHandler.m_debugLoadState)
+            {
+                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                std::vector<char> saveState;
+                if (FileParser::Read(saveStatePath, saveState))
+                {
+                    emu->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+                }
+            }
 
             frameCount++;
         }

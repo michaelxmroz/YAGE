@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 namespace EmulatorInputs
 {
@@ -57,13 +58,16 @@ public:
 	static void Delete(Emulator* emulator);
 
 	virtual void SetLoggerCallback(LoggerCallback callback) = 0;
-	virtual void Load(const char* rom, uint32_t size) = 0;
-	virtual void Load(const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) = 0;
+	virtual void Load(const char* romName, const char* rom, uint32_t size) = 0;
+	virtual void Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) = 0;
 	virtual void LoadPersistentMemory(const char* ram, uint32_t size) = 0;
 	virtual void SetPersistentMemoryCallback(PersistentMemoryCallback callback) = 0;
 
 	virtual void Step(EmulatorInputs::InputState) = 0;
 	virtual const void* GetFrameBuffer() = 0;
+
+	virtual std::vector<uint8_t> Serialize() const = 0;
+	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
 protected:
 	virtual ~Emulator();
 };

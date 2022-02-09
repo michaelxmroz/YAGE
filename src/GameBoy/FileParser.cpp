@@ -3,6 +3,11 @@
 
 namespace fs = std::filesystem;
 
+std::string FileParser::StripPath(const char* path)
+{
+	fs::path parsedPath(path);
+	return parsedPath.filename().string();
+}
 
 std::string FileParser::StripFileEnding(const char* name)
 {

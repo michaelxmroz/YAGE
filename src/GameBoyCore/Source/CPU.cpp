@@ -8,8 +8,24 @@
 
 #define EI_OPCODE 0xFB
 
+CPU::CPU()
+	: CPU(nullptr, true)
+{
+}
+
 CPU::CPU(bool enableInterruptHandling)
-	: m_registers()
+	: CPU(nullptr, enableInterruptHandling)
+{
+}
+
+CPU::CPU(Serializer* serializer)
+	: CPU(serializer, true)
+{
+}
+
+CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
+	: ISerializable(serializer)
+	, m_registers()
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
@@ -535,6 +551,7 @@ CPU::CPU(bool enableInterruptHandling)
 }
 
 #if _DEBUG
+
 void CPU::StopOnInstruction(uint8_t instr)
 {
 	m_stopOnInstruction = instr;
@@ -605,13 +622,33 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 	}
 }
 
+void CPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t dataSize = sizeof(Registers) + sizeof(bool) + sizeof(bool);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::CPU);
+
+	WriteAndMove(rawData, &m_registers, sizeof(Registers));
+	WriteAndMove(rawData, &m_haltBug, sizeof(bool));
+	WriteAndMove(rawData, &m_delayedInterruptHandling, sizeof(bool));
+}
+
+void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::CPU);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	ReadAndMove(data, &m_registers, sizeof(Registers));
+	ReadAndMove(data, &m_haltBug, sizeof(bool));
+	ReadAndMove(data, &m_delayedInterruptHandling, sizeof(bool));
+}
+
 void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
-	if (m_registers.PC == 0x042C)
-	{
-		//break
-		int i = 0;
-	}
 	//Fetch
 	uint16_t encodedInstruction = memory[m_registers.PC++];
 

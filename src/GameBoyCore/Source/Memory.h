@@ -3,6 +3,7 @@
 #include <vector>
 #include "../Include/Emulator.h"
 #include "MBC.h"
+#include "Serialization.h"
 
 #define MEMORY_SIZE 0x10000
 
@@ -36,7 +37,7 @@ enum class LCDControlFlags
 	LCDEnable = 7
 };
 
-class Memory
+class Memory : ISerializable
 {
 public:
 
@@ -47,7 +48,7 @@ public:
 		VRamOAMBlocked = 2,
 	};
 
-	Memory();
+	explicit Memory(Serializer* serializer);
 
 	explicit Memory(uint8_t* rawMemory);
 
@@ -68,7 +69,7 @@ public:
 
 	void ClearVRAM();
 
-	void MapROM(const char* rom, uint32_t size);
+	void MapROM(Serializer* serializer, const char* rom, uint32_t size);
 	void MapRAM(const char* ram, uint32_t size);
 	void MapBootrom(const char* rom, uint32_t size);
 
@@ -78,6 +79,7 @@ public:
 	void RegisterExternalRamDisableCallback(Emulator::PersistentMemoryCallback callback);
 
 	void SetVRamAccess(VRamAccess access);
+	uint8_t GetHeaderChecksum() const;
 
 private:
 	void Init();
@@ -85,22 +87,25 @@ private:
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
 
-	/*
-  Memory Map
+	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
+	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 
-  0000-3FFF   16KB ROM Bank 00     (in cartridge, fixed at bank 00)
-  4000-7FFF   16KB ROM Bank 01..NN (in cartridge, switchable bank number)
-  8000-9FFF   8KB Video RAM (VRAM) (switchable bank 0-1 in CGB Mode)
-  A000-BFFF   8KB External RAM     (in cartridge, switchable bank, if any)
-  C000-CFFF   4KB Work RAM Bank 0 (WRAM)
-  D000-DFFF   4KB Work RAM Bank 1 (WRAM)  (switchable bank 1-7 in CGB Mode)
-  E000-FDFF   Same as C000-DDFF (ECHO)    (typically not used)
-  FE00-FE9F   Sprite Attribute Table (OAM)
-  FEA0-FEFF   Not Usable
-  FF00-FF7F   I/O Ports
-  FF80-FFFE   High RAM (HRAM)
-  FFFF        Interrupt Enable Register
-*/
+	/*
+	  Memory Map
+
+	  0000-3FFF   16KB ROM Bank 00     (in cartridge, fixed at bank 00)
+	  4000-7FFF   16KB ROM Bank 01..NN (in cartridge, switchable bank number)
+	  8000-9FFF   8KB Video RAM (VRAM) (switchable bank 0-1 in CGB Mode)
+	  A000-BFFF   8KB External RAM     (in cartridge, switchable bank, if any)
+	  C000-CFFF   4KB Work RAM Bank 0 (WRAM)
+	  D000-DFFF   4KB Work RAM Bank 1 (WRAM)  (switchable bank 1-7 in CGB Mode)
+	  E000-FDFF   Same as C000-DDFF (ECHO)    (typically not used)
+	  FE00-FE9F   Sprite Attribute Table (OAM)
+	  FEA0-FEFF   Not Usable
+	  FF00-FF7F   I/O Ports
+	  FF80-FFFE   High RAM (HRAM)
+	  FFFF        Interrupt Enable Register
+	*/
 
 	uint8_t* m_mappedMemory;
 	uint8_t* m_romMemory;

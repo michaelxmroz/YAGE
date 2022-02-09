@@ -5,6 +5,7 @@
 
 namespace FileParser
 {
+	std::string StripPath(const char* path);
 	std::string StripFileEnding(const char* name);
 	bool Read(std::string path, std::vector<char>& parsedBlob);
 	bool Write(std::string path, const void* data, size_t size);
