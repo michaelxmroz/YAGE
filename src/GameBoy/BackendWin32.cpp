@@ -91,6 +91,11 @@ bool BackendWin32::RequestQuit() const
     return !m_window.m_state.m_run;
 }
 
+void BackendWin32::SetWindowTitle(const char* title)
+{
+    SetWindowTextA(m_window.m_state.m_hwnd, title);
+}
+
 void BackendWin32::Window::operator()()
 {
     m_state.m_run = true;

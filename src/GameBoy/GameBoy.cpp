@@ -9,6 +9,7 @@
 #include "Logging.h"
 #include "Input.h"
 #include "RendererVulkan.h"
+#include "Time.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
@@ -81,18 +82,39 @@ int main(int argc, char* argv[])
         emu->SetPersistentMemoryCallback(SavePersistentMemory);
 
         InputHandler inputHandler;
+        Time time;
+
+        float preferredFrameTime = 1000.0f / EmulatorConstants::PREFERRED_REFRESH_RATE;
         uint32_t frameCount = 0;
-        const void* frameBuffer = nullptr;
+        const void* frameBuffer = emu->GetFrameBuffer();
         while (!renderer.RequestExit())
         {
             EmulatorInputs::InputState inputState;
             inputHandler.Update(inputState);
 
-            if (!inputHandler.IsPaused())
+            double requestedUpdateTime = inputHandler.m_turbo ? 0.0 : static_cast<double>(preferredFrameTime);
+
+            time.StartFrame();
+
+            if(time.GetTimeSinceLastStep() >= requestedUpdateTime)
             {
-                emu->Step(inputState);
-                frameBuffer = emu->GetFrameBuffer();
+                if (!inputHandler.m_turbo)
+                {
+                    time.ResetLastStepTime(requestedUpdateTime);
+                }
+                else
+                {
+                    time.ResetLastStepTime();
+                }
+
+                if (!inputHandler.IsPaused())
+                {
+                    emu->Step(inputState);
+                    frameBuffer = emu->GetFrameBuffer();
+                }
             }
+
+            renderer.ShowFPS_Cheap(time.GetDampenedDeltaTime());
 
             renderer.Draw(frameBuffer);
 

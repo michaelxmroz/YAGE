@@ -31,6 +31,8 @@ public:
 	void WaitForIdle();
 	bool RequestExit();
 
+	void ShowFPS_Cheap(double deltaTime);
+
 private:
 	void Init();
 	void CreateInstance();

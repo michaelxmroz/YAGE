@@ -88,7 +88,14 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		}
 		else if (addr >= EXTERNAL_RAM_BEGIN && addr < EXTERNAL_RAM_BEGIN + RAM_BANK_SIZE)
 		{
-			m_externalRamMemory[m_mbc->GetRAMAddr(addr)] = value;
+			if(m_externalRamMemory != nullptr)
+			{
+				m_externalRamMemory[m_mbc->GetRAMAddr(addr)] = value;
+			}
+			else
+			{
+				LOG_WARNING(string_format("Trying to write to non-existent RAM addr %x", addr).c_str());
+			}
 		}
 		else if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
 		{

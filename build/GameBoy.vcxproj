@@ -22,13 +22,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -58,16 +58,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.2.198.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.236.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.2.198.1\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.236.0\Lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.2.198.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.236.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -86,8 +86,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.2.198.1\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combined.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.236.0\Lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -102,6 +102,7 @@
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp" />
     <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp" />
     <ClCompile Include="..\src\GameBoy\ShaderCompiler.cpp" />
+    <ClCompile Include="..\src\GameBoy\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -114,9 +115,13 @@
     <ClInclude Include="..\src\GameBoy\MiniMath.h" />
     <ClInclude Include="..\src\GameBoy\RendererVulkan.h" />
     <ClInclude Include="..\src\GameBoy\ShaderCompiler.h" />
+    <ClInclude Include="..\src\GameBoy\Time.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\GameBoy\main.glsl" />
+    <None Include="..\src\GameBoy\main.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\src\GameBoy\main.glsl">

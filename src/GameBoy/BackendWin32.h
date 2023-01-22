@@ -9,6 +9,8 @@ public:
 	void CleanupWindow();
 	void CreateSurface(VkInstance instance, VkSurfaceKHR& surface);
 	bool RequestQuit() const;
+
+	void SetWindowTitle(const char* title);
 private:
 
 	struct WindowState

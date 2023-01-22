@@ -57,6 +57,9 @@
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoy\Time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h">
@@ -87,6 +90,9 @@
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\src\GameBoy\MiniMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\Time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,6 +11,7 @@ public:
 
 	bool m_debugSaveState;
 	bool m_debugLoadState;
+	bool m_turbo;
 
 private:
 	void UpdateEmulatorInputs(EmulatorInputs::InputState& state);

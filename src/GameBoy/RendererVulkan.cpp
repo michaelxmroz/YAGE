@@ -265,7 +265,8 @@ namespace RendererVulkanInternal
 
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) 
 	{
-		return VK_PRESENT_MODE_FIFO_KHR;
+		//return VK_PRESENT_MODE_FIFO_KHR;
+		return VK_PRESENT_MODE_IMMEDIATE_KHR;
 	}
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
@@ -1228,5 +1229,10 @@ void RendererVulkan::WaitForIdle()
 bool RendererVulkan::RequestExit()
 {
 	return m_backend.RequestQuit();
+}
+
+void RendererVulkan::ShowFPS_Cheap(double deltaTime)
+{
+	m_backend.SetWindowTitle(string_format("Gameboy (%.2f FPS)", 1000.0f / static_cast<float>(deltaTime)).c_str());
 }
 
