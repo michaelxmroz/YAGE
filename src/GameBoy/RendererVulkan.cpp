@@ -265,8 +265,8 @@ namespace RendererVulkanInternal
 
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) 
 	{
-		//return VK_PRESENT_MODE_FIFO_KHR;
-		return VK_PRESENT_MODE_IMMEDIATE_KHR;
+		return VK_PRESENT_MODE_FIFO_KHR;
+		//return VK_PRESENT_MODE_IMMEDIATE_KHR;
 	}
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 

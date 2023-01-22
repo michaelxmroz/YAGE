@@ -35,9 +35,10 @@ void Time::StartFrame()
 
 	m_deltaAccumulator[m_accumulatorPosition] = m_deltaTime;
 
+	m_dampenedDeltaTime = 0;
 	for (uint32_t i = 0; i < DAMPEN_ACCUMULATOR; ++i)
 	{
-		m_dampenedDeltaTime = m_deltaAccumulator[i];
+		m_dampenedDeltaTime += m_deltaAccumulator[i];
 	}
 	m_dampenedDeltaTime /= DAMPEN_ACCUMULATOR;
 

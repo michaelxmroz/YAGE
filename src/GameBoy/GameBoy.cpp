@@ -89,22 +89,23 @@ int main(int argc, char* argv[])
         const void* frameBuffer = emu->GetFrameBuffer();
         while (!renderer.RequestExit())
         {
-            EmulatorInputs::InputState inputState;
-            inputHandler.Update(inputState);
 
-            double requestedUpdateTime = inputHandler.m_turbo ? 0.0 : static_cast<double>(preferredFrameTime);
+            double remainingTime = static_cast<double>(preferredFrameTime);
 
-            time.StartFrame();
-
-            if(time.GetTimeSinceLastStep() >= requestedUpdateTime)
+            while(remainingTime > 0.0)
             {
-                if (!inputHandler.m_turbo)
+                EmulatorInputs::InputState inputState;
+                inputHandler.Update(inputState);
+
+                time.StartFrame();
+
+                if(inputHandler.m_turbo)
                 {
-                    time.ResetLastStepTime(requestedUpdateTime);
+                    remainingTime -= time.GetDeltaTime();
                 }
                 else
                 {
-                    time.ResetLastStepTime();
+                    remainingTime = 0;
                 }
 
                 if (!inputHandler.IsPaused())
@@ -112,29 +113,33 @@ int main(int argc, char* argv[])
                     emu->Step(inputState);
                     frameBuffer = emu->GetFrameBuffer();
                 }
+
+                renderer.ShowFPS_Cheap(time.GetDampenedDeltaTime());
+
+                if (inputHandler.m_debugSaveState)
+                {
+                    std::vector<uint8_t> saveState = emu->Serialize();
+                    std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                    FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+                }
+                else if (inputHandler.m_debugLoadState)
+                {
+                    std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                    std::vector<char> saveState;
+                    if (FileParser::Read(saveStatePath, saveState))
+                    {
+                        emu->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+                    }
+                }
+
+                frameCount++;
             }
 
-            renderer.ShowFPS_Cheap(time.GetDampenedDeltaTime());
+
 
             renderer.Draw(frameBuffer);
 
-            if (inputHandler.m_debugSaveState)
-            {
-                std::vector<uint8_t> saveState = emu->Serialize();
-                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                FileParser::Write(saveStatePath, saveState.data(), saveState.size());
-            }
-            else if (inputHandler.m_debugLoadState)
-            {
-                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                std::vector<char> saveState;
-                if (FileParser::Read(saveStatePath, saveState))
-                {
-                    emu->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
-                }
-            }
 
-            frameCount++;
         }
 
         renderer.WaitForIdle();
