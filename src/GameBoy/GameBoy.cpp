@@ -1,6 +1,3 @@
-// GameBoy.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include "CommandLineArguments.h"
 #include "Emulator.h"
@@ -9,6 +6,7 @@
 #include "Logging.h"
 #include "Input.h"
 #include "RendererVulkan.h"
+#include "Audio.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
@@ -62,6 +60,9 @@ int main(int argc, char* argv[])
     {
         Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
 
+        Audio audio;
+        audio.Init();
+
         Emulator* emu = Emulator::Create();
 
         emu->SetLoggerCallback(&LogMessage);
@@ -79,6 +80,10 @@ int main(int argc, char* argv[])
             emu->LoadPersistentMemory(ramBlob.data(), static_cast<uint32_t>(ramBlob.size()));
         }
         emu->SetPersistentMemoryCallback(SavePersistentMemory);
+
+        emu->SetAudioBuffer(audio.GetAudioBuffer(), audio.GetAudioBufferSize(), audio.GetSampleRate(), audio.GetWritePosition());
+
+        audio.Play();
 
         InputHandler inputHandler;
         uint32_t frameCount = 0;
@@ -116,6 +121,7 @@ int main(int argc, char* argv[])
         }
 
         renderer.WaitForIdle();
+        audio.Terminate();
 
         //ScreenshotUtility::CreateScreenshot("../screen.png", frameBuffer, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
 

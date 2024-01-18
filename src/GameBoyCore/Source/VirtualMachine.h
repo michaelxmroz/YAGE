@@ -7,6 +7,7 @@
 #include "PPU.h"
 #include "Joypad.h"
 #include "Serial.h"
+#include "APU.h"
 
 class VirtualMachine : public Emulator
 {
@@ -19,6 +20,8 @@ public:
 
 	virtual void LoadPersistentMemory(const char* ram, uint32_t size) override;
 	virtual void SetPersistentMemoryCallback(PersistentMemoryCallback callback) override;
+
+	void SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset) override;
 
 	virtual void Step(EmulatorInputs::InputState) override;
 	virtual const void* GetFrameBuffer() override;
@@ -38,6 +41,7 @@ private:
 	CPU m_cpu;
 	Clock m_clock;
 	PPU m_ppu;
+	APU m_apu;
 	Joypad m_joypad;
 	Serial m_serial;
 

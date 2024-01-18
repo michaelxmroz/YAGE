@@ -29,6 +29,7 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 	Interrupts::Init(m_memory);
 	m_clock.Init(m_memory);
 	m_ppu.Init(m_memory);
+	m_apu.Init(m_memory);
 	m_joypad.Init(m_memory);
 	m_serial.Init(m_memory);
 }
@@ -41,6 +42,11 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, c
 	m_memory.Write(0xFF40, 0x00);
 }
 
+void VirtualMachine::SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
+{
+	m_apu.SetExternalAudioBuffer(buffer, size, sampleRate, startOffset);
+}
+
 void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 {
 	bool frameRendered = false;
@@ -51,7 +57,7 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 		m_clock.Increment(cyclesPassed, m_memory);
 		frameRendered = m_ppu.Render(cyclesPassed, m_memory);
 
-		//TODO process APU
+		m_apu.Update(m_memory,cyclesPassed);
 		m_totalCycles += cyclesPassed;
 	}
 }

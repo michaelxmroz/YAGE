@@ -63,6 +63,8 @@ public:
 	virtual void LoadPersistentMemory(const char* ram, uint32_t size) = 0;
 	virtual void SetPersistentMemoryCallback(PersistentMemoryCallback callback) = 0;
 
+	virtual void SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset) = 0;
+
 	virtual void Step(EmulatorInputs::InputState) = 0;
 	virtual const void* GetFrameBuffer() = 0;
 

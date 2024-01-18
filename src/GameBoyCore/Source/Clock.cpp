@@ -2,7 +2,6 @@
 #include "Helpers.h"
 #include "Interrupts.h"
 
-#define CPU_FREQUENCY 4194304
 #define DIVIDER_MCYCLES 64
 #define FREQUENCY_TO_MCYCLES 4
 
