@@ -10,7 +10,7 @@ public:
 	void Init(Memory& memory);
 	void SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset);
 
-	void Update(Memory& memory, const uint32_t& cyclesPassed);
+	uint32_t Update(Memory& memory, const uint32_t& cyclesPassed);
 private:
 
 	struct ExternalAudioBuffer
@@ -20,6 +20,7 @@ private:
 		uint32_t sampleRate;
 		uint32_t* currentPosition;
 		float resampleRate;
+		float samplesToGenerate;
 	};
 
 	struct Channel
@@ -41,5 +42,9 @@ private:
 
 	Channel m_channels[CHANNEL_COUNT];
 	ExternalAudioBuffer m_externalAudioBuffer;
+
+	float sine[200];
+	int left_phase;
+	int right_phase;
 };
 

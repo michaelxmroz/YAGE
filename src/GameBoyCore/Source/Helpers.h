@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #define CPU_FREQUENCY 4194304
+#define CYCLES_PER_FRAME 17556
 
 #define FORCE_INLINE inline
 

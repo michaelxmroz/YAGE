@@ -1,5 +1,6 @@
 #include "AudioPortaudio.h"
 #include <stdio.h>
+#include <iostream>
 
 #define NUM_SECONDS 4
 #define SAMPLE_RATE 48000
@@ -130,10 +131,13 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
         *left = 0;
         *right = 0;
 
-        if (data->m_playbackPosition > data->m_writePosition && data->m_playbackPosition < (data->GetAudioBufferSize() - static_cast<uint32_t>((static_cast<float>(SAMPLE_RATE) / 1000.0f) * PLAYBACK_OFFSET_MS)))
+        if (data->m_playbackPosition == data->m_writePosition + 2)
         {
             fprintf(stderr, "Playback running ahead of audio generation\n");
         }
+        uint32_t buffSize = data->GetAudioBufferSize();
+        //std::cout << "Dist: " << (data->m_writePosition + buffSize - data->m_playbackPosition) % buffSize<< std::endl;
+
 #endif
         if (data->m_playbackPosition >= data->GetAudioBufferSize())
         {

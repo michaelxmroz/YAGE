@@ -7,9 +7,12 @@
 #include "Input.h"
 #include "RendererVulkan.h"
 #include "Audio.h"
+#include "Clock.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
+
+//#define DEFAULT_FRAME_DURATION 16.666666f
 
 static std::string s_persistentMemoryPath;
 
@@ -60,6 +63,9 @@ int main(int argc, char* argv[])
     {
         Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
 
+        //TODO is it better to try to match the GB rate, or should we always go for 60 FPS?
+        const float preferredFrameTime = 1000.0f / EmulatorConstants::PREFERRED_REFRESH_RATE;
+
         Audio audio;
         audio.Init();
 
@@ -88,8 +94,12 @@ int main(int argc, char* argv[])
         InputHandler inputHandler;
         uint32_t frameCount = 0;
         const void* frameBuffer = nullptr;
+
+        Clock clock;
+
         while (!renderer.RequestExit())
         {
+            clock.Start();
             EmulatorInputs::InputState inputState;
             inputHandler.Update(inputState);
 
@@ -117,7 +127,24 @@ int main(int argc, char* argv[])
                 }
             }
 
+            uint32_t samplesGenerated = emu->GetNumberOfGeneratedSamples();
+            float playDurationSec = static_cast<float>(samplesGenerated) / audio.GetSampleRate();
+            float playDurationMs = playDurationSec * 1000.0f;
+
+            std::cout << "Frame end. samples generated:" << samplesGenerated << " " << std::endl;
+
             frameCount++;
+
+            clock.Stop();
+            float frameTime = clock.GetElapsedMs();
+            float waitTime = playDurationMs - frameTime; // audio rate sync
+            //float waitTime = preferredFrameTime - frameTime; //video rate sync
+            if (waitTime > 0)
+            {
+                clock.Sleep(waitTime);
+            }
+
+
         }
 
         renderer.WaitForIdle();

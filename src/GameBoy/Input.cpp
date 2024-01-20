@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <WinUser.h>
 
+//TODO separate into platform layer
+
 InputHandler::InputHandler() : m_isPaused(false)
 {
 }

@@ -265,7 +265,7 @@ namespace RendererVulkanInternal
 
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) 
 	{
-		return VK_PRESENT_MODE_FIFO_KHR;
+		return VK_PRESENT_MODE_IMMEDIATE_KHR;
 	}
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
@@ -1182,13 +1182,15 @@ void RendererVulkan::Draw(const void* renderedImage)
 {
 	uint32_t imageIndex;
 	vkAcquireNextImageKHR(m_logicalDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-
 	
-	uint32_t imageSize = m_sourceWidth * m_sourceHeight * 4;
-	void* data;
-	vkMapMemory(m_logicalDevice, m_imageUploadBufferMemory, 0, imageSize, 0, &data);
-	memcpy(data, renderedImage, imageSize);
-	vkUnmapMemory(m_logicalDevice, m_imageUploadBufferMemory);
+	if (renderedImage != nullptr)
+	{
+		uint32_t imageSize = m_sourceWidth * m_sourceHeight * 4;
+		void* data;
+		vkMapMemory(m_logicalDevice, m_imageUploadBufferMemory, 0, imageSize, 0, &data);
+		memcpy(data, renderedImage, imageSize);
+		vkUnmapMemory(m_logicalDevice, m_imageUploadBufferMemory);
+	}
 	
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 

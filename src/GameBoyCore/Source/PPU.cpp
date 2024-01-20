@@ -128,6 +128,7 @@ PPU::PPU()
 	, m_state(PPUState::OAMScan)
 	, m_spritePrefetchLine(0)
 	, m_lineSpriteMask(0)
+	, m_cycleDebt(0)
 {
 	m_renderedFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
 }
@@ -166,10 +167,12 @@ bool PPU::Render(uint32_t mCycles, Memory& memory)
 		return false;
 	}
 
-	uint32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
+	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
+	targetCycles += m_cycleDebt;
 	uint32_t processedCycles = 0;
 	uint32_t totalCycles = m_totalCycles;
-	do
+
+	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
 		switch (m_state)
 		{
@@ -223,6 +226,8 @@ bool PPU::Render(uint32_t mCycles, Memory& memory)
 				{
 					if (m_lineY == 0)
 					{
+						m_cycleDebt = 0;
+
 						totalCycles = 0;
 						m_totalCycles = totalCycles;
 						m_frameCount++;
@@ -239,7 +244,10 @@ bool PPU::Render(uint32_t mCycles, Memory& memory)
 		}
 
 		totalCycles = m_totalCycles + processedCycles;
-	} while (processedCycles < targetCycles);
+
+	}
+
+	m_cycleDebt =  targetCycles - processedCycles;
 
 	memory.Write(LY_REGISTER, m_lineY);
 	m_totalCycles += processedCycles;
@@ -309,6 +317,7 @@ void PPU::DisableScreen(Memory& memory)
 {
 	memory.Write(LY_REGISTER, 0);
 	m_totalCycles = 0;
+	m_cycleDebt = 0;
 	m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset(m_renderedFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);

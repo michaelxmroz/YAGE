@@ -87,7 +87,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.268.0\Lib;$(SolutionDir)\..\externalLibs\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combined.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combined.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -105,6 +105,8 @@
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp" />
     <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp" />
     <ClCompile Include="..\src\GameBoy\ShaderCompiler.cpp" />
+    <ClCompile Include="..\src\GameBoy\Clock.cpp" />
+    <ClCompile Include="..\src\GameBoy\TimerWin32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -120,6 +122,8 @@
     <ClInclude Include="..\src\GameBoy\MiniMath.h" />
     <ClInclude Include="..\src\GameBoy\RendererVulkan.h" />
     <ClInclude Include="..\src\GameBoy\ShaderCompiler.h" />
+    <ClInclude Include="..\src\GameBoy\Clock.h" />
+    <ClInclude Include="..\src\GameBoy\TimerWin32.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\GameBoy\main.glsl" />

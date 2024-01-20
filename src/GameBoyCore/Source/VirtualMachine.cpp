@@ -9,6 +9,7 @@ VirtualMachine::VirtualMachine()
 	, m_totalCycles(0)
 	, m_joypad()
 	, m_clock(&m_serializer)
+	, m_frameRendered(false)
 {
 }
 
@@ -49,22 +50,28 @@ void VirtualMachine::SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampl
 
 void VirtualMachine::Step(EmulatorInputs::InputState inputState)
 {
-	bool frameRendered = false;
-	while (!frameRendered)
+	m_totalCycles = 0;
+	m_samplesGenerated = 0;
+	m_frameRendered = false;
+	while (!m_frameRendered /* && m_totalCycles < CYCLES_PER_FRAME*/)
 	{
 		m_joypad.Update(inputState, m_memory);
 		uint32_t cyclesPassed = m_cpu.Step(m_memory);
 		m_clock.Increment(cyclesPassed, m_memory);
-		frameRendered = m_ppu.Render(cyclesPassed, m_memory);
-
-		m_apu.Update(m_memory,cyclesPassed);
+		m_frameRendered = m_ppu.Render(cyclesPassed, m_memory);
+		m_samplesGenerated += m_apu.Update(m_memory,cyclesPassed);
 		m_totalCycles += cyclesPassed;
 	}
 }
 
 const void* VirtualMachine::GetFrameBuffer()
 {
-	return m_ppu.GetFrameBuffer();
+	return m_frameRendered ? m_ppu.GetFrameBuffer() : nullptr;
+}
+
+uint32_t VirtualMachine::GetNumberOfGeneratedSamples()
+{
+	return m_samplesGenerated;
 }
 
 void VirtualMachine::SetLoggerCallback(LoggerCallback callback)

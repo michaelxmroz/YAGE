@@ -25,6 +25,8 @@ public:
 
 	virtual void Step(EmulatorInputs::InputState) override;
 	virtual const void* GetFrameBuffer() override;
+	uint32_t GetNumberOfGeneratedSamples() override;
+
 	virtual void SetLoggerCallback(LoggerCallback callback) override;
 
 	virtual std::vector<uint8_t> Serialize() const override;
@@ -47,5 +49,8 @@ private:
 
 	std::string m_romName;
 	uint64_t m_totalCycles;
+	uint32_t m_samplesGenerated;
+	bool m_frameRendered;
+
 };
 

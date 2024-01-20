@@ -53,6 +53,7 @@ private:
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
 	uint32_t m_totalCycles;
+	int32_t m_cycleDebt;
 	uint8_t m_lineY;
 	uint8_t m_lineX;
 	uint8_t m_lineSpriteCount;

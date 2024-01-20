@@ -18,6 +18,8 @@ private:
 	uint32_t m_playbackPosition;
 	PaStream* m_stream;
 
+
+
 	void ErrorHandler(PaError err);
 
     static int paCallback(const void* inputBuffer, void* outputBuffer,

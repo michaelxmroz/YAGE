@@ -566,7 +566,7 @@ bool CPU::HasReachedInstruction(Memory& memory)
 
 uint32_t CPU::Step(Memory& memory)
 {
-	uint32_t mCycles = 0;
+	uint32_t mCycles = 1; //always do at least 1 cycle for sync purposes with the other subsystems, even when in halt states
 
 	ProcessInterrupts(memory, mCycles);
 

@@ -59,17 +59,60 @@ namespace APU_Internal
 	}
 }
 
+#ifndef M_PI
+#define M_PI  (3.14159265)
+#endif
+
+#define TABLE_SIZE   (200)
+
 APU::APU()
 {
+	for (int i = 0; i < TABLE_SIZE; i++)
+	{
+		sine[i] = (float)sin(((double)i / (double)TABLE_SIZE) * M_PI * 2.);
+	}
+
+	left_phase = 0;
+	right_phase = 0;
+
 	m_externalAudioBuffer.buffer = nullptr;
 	m_externalAudioBuffer.size = 0;
 	m_externalAudioBuffer.sampleRate = 0;
 	m_externalAudioBuffer.currentPosition = 0;
+	m_externalAudioBuffer.resampleRate = 0.0f;
+	m_externalAudioBuffer.samplesToGenerate = 0.0f;
 }
 
 void APU::Init(Memory& memory)
 {
 	memory.RegisterCallback(SOUND_ON_OFF_REGISTER, APU_Internal::CheckForReset);
+
+	memory.Write(CHANNEL_CONTROL_REGISTER, 0x77);
+	memory.Write(SOUND_OUTPUT_TERMINAL_REGISTER, 0xF3);
+	memory.Write(SOUND_ON_OFF_REGISTER, 0xF1);
+
+	memory.Write(CHANNEL1_SWEEP_REGISTER, 0x80);
+	memory.Write(CHANNEL1_LENGTH_DUTY_REGISTER, 0xBF);
+	memory.Write(CHANNEL1_ENVELOPE_REGISTER, 0xF3);
+	memory.Write(CHANNEL1_FREQUENCY_LOW_REGISTER, 0xFF);
+	memory.Write(CHANNEL1_FREQUENCY_HIGH_REGISTER, 0xBF);
+
+	memory.Write(CHANNEL2_LENGTH_DUTY_REGISTER, 0x3F);
+	memory.Write(CHANNEL2_ENVELOPE_REGISTER, 0x00);
+	memory.Write(CHANNEL2_FREQUENCY_LOW_REGISTER, 0xFF);
+	memory.Write(CHANNEL2_FREQUENCY_HIGH_REGISTER, 0xBF);
+
+	memory.Write(CHANNEL3_ON_OFF_REGISTER, 0x7F);
+	memory.Write(CHANNEL3_LENGTH_REGISTER, 0xFF);
+	memory.Write(CHANNEL3_OUTPUT_LEVEL_REGISTER, 0x9F);
+	memory.Write(CHANNEL3_FREQUENCY_LOW_REGISTER, 0xFF);
+	memory.Write(CHANNEL3_FREQUENCY_HIGH_REGISTER, 0xBF);
+
+	memory.Write(CHANNEL4_LENGTH_REGISTER, 0xFF);
+	memory.Write(CHANNEL4_ENVELOPE_REGISTER, 0x00);
+	memory.Write(CHANNEL4_POLY_COUNTER_REGISTER, 0x00);
+	memory.Write(CHANNEL4_CONSEC_COUNTER_REGISTER, 0xBF);
+
 }
 
 void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
@@ -80,19 +123,49 @@ void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRa
 	m_externalAudioBuffer.currentPosition = startOffset;
 
 	m_externalAudioBuffer.resampleRate = static_cast<float>(m_externalAudioBuffer.sampleRate) / CPU_FREQUENCY;
-	
+	//m_externalAudioBuffer.resampleRate = 0.0114f;
 }
 
-void APU::Update(Memory& memory, const uint32_t& cyclesPassed)
+uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 {
+	uint32_t cyclesToStep = cyclesPassed * MCYCLES_TO_CYCLES;
+
+	uint32_t samplesgenerated = 0;
+	m_externalAudioBuffer.samplesToGenerate += (static_cast<float>(cyclesToStep) * m_externalAudioBuffer.resampleRate);
+	while (m_externalAudioBuffer.samplesToGenerate >= 1.0f)
+	{
+		float* left = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
+		float* right = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
+
+		//*left += 0.01f;
+		//*right += 0.03f;
+
+		*left = sine[left_phase];
+		*right = sine[right_phase];
+
+		left_phase += 1;
+		if (left_phase >= TABLE_SIZE) left_phase -= TABLE_SIZE;
+		right_phase += 3; /* higher pitch so we can distinguish left and right. */
+		if (right_phase >= TABLE_SIZE) right_phase -= TABLE_SIZE;
+
+		//if (*left >= 1.0f) *left -= 2.0f;
+		//if (*right >= 1.0f) *right -= 2.0f;
+
+		if (*m_externalAudioBuffer.currentPosition >= m_externalAudioBuffer.size)
+		{
+			*m_externalAudioBuffer.currentPosition = 0;
+		}
+
+		m_externalAudioBuffer.samplesToGenerate--;
+		samplesgenerated++;
+	}
+
 	if ((memory[SOUND_ON_OFF_REGISTER] & 0x80) == 0)
 	{
-		return;
+		return samplesgenerated;
 	}
 
 	uint8_t frameSequencerStep = (memory[DIVIDER_REGISTER] / 32) % 8;
-
-	uint32_t cyclesToStep = cyclesPassed * 4;
 
 	float mixedAmplitudeLeft = 0.0f;
 	float mixedAmplitudeRight = 0.0f;
@@ -106,29 +179,10 @@ void APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 		float amplitude = CalculateWaveAmplitude(memory, m_channels[1], CHANNEL2_LENGTH_DUTY_REGISTER);
 		Pan(memory, m_channels[1], amplitude, 1, SOUND_OUTPUT_TERMINAL_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
 	}
-
-	uint32_t samplesToGenerate = cyclesPassed * MCYCLES_TO_CYCLES * static_cast<uint32_t>(ceil(m_externalAudioBuffer.resampleRate));
-	while (samplesToGenerate > 0)
-	{
-		float* left = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
-		float* right = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
-		
-		*left += 0.01f;
-		*right += 0.03f;
-
-		if (*left >= 1.0f) *left -= 2.0f;
-		if (*right >= 1.0f) *right -= 2.0f;
-
-		if (*m_externalAudioBuffer.currentPosition >= m_externalAudioBuffer.size)
-		{
-			*m_externalAudioBuffer.currentPosition = 0;
-		}
-
-		samplesToGenerate--;
-	}
 	
 	//TODO channels 1,3,4
 
+	return samplesgenerated;
 }
 
 bool APU::CheckForTrigger(Memory& memory, Channel& channel, const uint16_t& triggerRegister)
