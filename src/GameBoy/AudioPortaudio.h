@@ -12,13 +12,16 @@ public:
 	uint32_t GetAudioBufferSize();
 	uint32_t GetSampleRate();
 	uint32_t* GetWritePosition();
+
+	uint32_t GetFramesConsumed();
+	void ResetFramesConsumed();
 private:
 	float* m_buffer;
 	uint32_t m_writePosition;
 	uint32_t m_playbackPosition;
 	PaStream* m_stream;
 
-
+	uint32_t m_framesConsumed;
 
 	void ErrorHandler(PaError err);
 

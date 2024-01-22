@@ -23,7 +23,7 @@ public:
 
 	void SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset) override;
 
-	virtual void Step(EmulatorInputs::InputState) override;
+	virtual void Step(EmulatorInputs::InputState, double deltaMs) override;
 	virtual const void* GetFrameBuffer() override;
 	uint32_t GetNumberOfGeneratedSamples() override;
 
@@ -51,6 +51,7 @@ private:
 	uint64_t m_totalCycles;
 	uint32_t m_samplesGenerated;
 	bool m_frameRendered;
+	double m_stepDuration;
 
 };
 

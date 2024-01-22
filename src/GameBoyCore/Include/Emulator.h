@@ -44,7 +44,7 @@ namespace EmulatorConstants
 	const uint32_t SCREEN_WIDTH = 160;
 	const uint32_t SCREEN_HEIGHT = 144;
 	const uint32_t SCREEN_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT;
-	const float PREFERRED_REFRESH_RATE = 59.73f;
+	const double PREFERRED_REFRESH_RATE = 59.73;
 }
 
 class Emulator
@@ -65,7 +65,7 @@ public:
 
 	virtual void SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset) = 0;
 
-	virtual void Step(EmulatorInputs::InputState) = 0;
+	virtual void Step(EmulatorInputs::InputState, double deltaMs) = 0;
 	virtual const void* GetFrameBuffer() = 0;
 	virtual uint32_t GetNumberOfGeneratedSamples() = 0;
 

@@ -35,3 +35,13 @@ uint32_t* Audio::GetWritePosition()
 {
 	return m_backend.GetWritePosition();
 }
+
+uint32_t Audio::GetFramesConsumed()
+{
+	return m_backend.GetFramesConsumed();
+}
+
+void Audio::ResetFramesConsumed()
+{
+	return m_backend.ResetFramesConsumed();
+}

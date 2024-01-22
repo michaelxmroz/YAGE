@@ -27,6 +27,9 @@ public:
 	uint32_t GetAudioBufferSize();
 	uint32_t GetSampleRate();
 	uint32_t* GetWritePosition();
+
+	uint32_t GetFramesConsumed();
+	void ResetFramesConsumed();
 private:
 	AudioBackend m_backend;
 };

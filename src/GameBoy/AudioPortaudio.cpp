@@ -5,7 +5,7 @@
 #define NUM_SECONDS 4
 #define SAMPLE_RATE 48000
 #define BUFFER_SIZE_SECONDS 1
-#define PLAYBACK_OFFSET_MS 15
+#define PLAYBACK_OFFSET_MS 0
 
 #define AUDIO_DEBUG 1
 
@@ -69,6 +69,7 @@ void AudioPortaudio::Terminate()
 
 void AudioPortaudio::Play()
 {
+    m_framesConsumed = 0;
     PaError err = Pa_StartStream(m_stream);
     if (err != paNoError)
     {
@@ -96,6 +97,16 @@ uint32_t* AudioPortaudio::GetWritePosition()
     return &m_writePosition;
 }
 
+uint32_t AudioPortaudio::GetFramesConsumed()
+{
+    return m_framesConsumed;
+}
+
+void AudioPortaudio::ResetFramesConsumed()
+{
+    m_framesConsumed = 0;
+}
+
 void AudioPortaudio::ErrorHandler(PaError err)
 {
     //TODO use logger
@@ -115,8 +126,11 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
 
     for (i = 0; i < framesPerBuffer; i++)
     {
+        data->m_framesConsumed++;
+
         if (data->m_playbackPosition == data->m_writePosition)
         {
+           // fprintf(stderr, "Playback running ahead of audio generation\n");
             *out++ = 0;
             *out++ = 0;
             continue;
@@ -128,6 +142,7 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
         *out++ = *right;
 
 #if AUDIO_DEBUG
+       
         *left = 0;
         *right = 0;
 

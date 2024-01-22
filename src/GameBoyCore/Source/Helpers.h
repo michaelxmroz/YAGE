@@ -6,6 +6,7 @@
 
 #define CPU_FREQUENCY 4194304
 #define CYCLES_PER_FRAME 17556
+#define MCYCLES_TO_CYCLES 4
 
 #define FORCE_INLINE inline
 

@@ -1,21 +1,27 @@
 #include "Clock.h"
 
+inline Clock::Clock() :
+	m_backend()
+{
+
+}
+
 void Clock::Start()
 {
 	m_backend.Start();
 }
 
-void Clock::Stop()
+int64_t Clock::Query()
 {
-	m_backend.Stop();
+	return m_backend.Query();
 }
-
+/*
 float Clock::GetElapsedMs()
 {
 	return m_backend.GetElapsedMs();
 }
-
-void Clock::Sleep(float ms)
+*/
+void Clock::Limit(int64_t microSeconds)
 {
-	m_backend.Sleep(ms);
+	m_backend.Limit(microSeconds);
 }

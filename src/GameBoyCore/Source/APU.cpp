@@ -32,8 +32,6 @@
 
 #define DIVIDER_REGISTER 0xFF04
 
-#define MCYCLES_TO_CYCLES 4
-
 const uint8_t DUTY_WAVEFORMS[4]
 {
 	0b00000001,

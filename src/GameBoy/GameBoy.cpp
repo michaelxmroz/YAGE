@@ -12,7 +12,7 @@
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
 
-//#define DEFAULT_FRAME_DURATION 16.666666f
+#define DEFAULT_FRAME_DURATION 16667
 
 static std::string s_persistentMemoryPath;
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
         Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
 
         //TODO is it better to try to match the GB rate, or should we always go for 60 FPS?
-        const float preferredFrameTime = 1000.0f / EmulatorConstants::PREFERRED_REFRESH_RATE;
+        const double preferredFrameTime = 1000.0 / EmulatorConstants::PREFERRED_REFRESH_RATE;
 
         Audio audio;
         audio.Init();
@@ -89,23 +89,38 @@ int main(int argc, char* argv[])
 
         emu->SetAudioBuffer(audio.GetAudioBuffer(), audio.GetAudioBufferSize(), audio.GetSampleRate(), audio.GetWritePosition());
 
-        audio.Play();
-
         InputHandler inputHandler;
         uint32_t frameCount = 0;
         const void* frameBuffer = nullptr;
 
         Clock clock;
 
+        //float avgSamplesConsumed = 0;
+        //float avgSamplesGenerated = 0;
+
+        clock.Start();
+
+        int64_t previousFrameUs = clock.Query();
+
         while (!renderer.RequestExit())
         {
-            clock.Start();
+            int64_t currentFrameUs = clock.Query();
+            int64_t deltaUs = currentFrameUs - previousFrameUs;
+            previousFrameUs = currentFrameUs;
+            double deltaMs = deltaUs / 1000.0;
+
+            if (frameCount == 0)
+            {
+                //On the first frame we just fake the delta time
+                deltaMs = preferredFrameTime;
+            }
+
             EmulatorInputs::InputState inputState;
             inputHandler.Update(inputState);
 
             if (!inputHandler.IsPaused())
             {
-                emu->Step(inputState);
+                emu->Step(inputState, deltaMs);
                 frameBuffer = emu->GetFrameBuffer();
             }
 
@@ -127,24 +142,36 @@ int main(int argc, char* argv[])
                 }
             }
 
-            uint32_t samplesGenerated = emu->GetNumberOfGeneratedSamples();
-            float playDurationSec = static_cast<float>(samplesGenerated) / audio.GetSampleRate();
-            float playDurationMs = playDurationSec * 1000.0f;
+            //uint32_t samplesGenerated = emu->GetNumberOfGeneratedSamples();
+            //double playDurationSec = static_cast<float>(samplesGenerated) / audio.GetSampleRate();
+           // double playDurationMs = playDurationSec * 1000.0;
+            //uint32_t samplesConsumed = audio.GetFramesConsumed();
+            //audio.ResetFramesConsumed();
 
-            std::cout << "Frame end. samples generated:" << samplesGenerated << " " << std::endl;
-
-            frameCount++;
-
-            clock.Stop();
-            float frameTime = clock.GetElapsedMs();
-            float waitTime = playDurationMs - frameTime; // audio rate sync
-            //float waitTime = preferredFrameTime - frameTime; //video rate sync
-            if (waitTime > 0)
+            if (frameCount == 0)
             {
-                clock.Sleep(waitTime);
+                //Start playing audio after buffer has been filled for the first frame
+                audio.Play();
+                //samplesConsumed = samplesGenerated;
             }
 
 
+            //avgSamplesConsumed = (samplesConsumed + frameCount * avgSamplesConsumed) / (frameCount + 1);
+            //avgSamplesGenerated = (samplesGenerated + frameCount * avgSamplesGenerated) / (frameCount + 1);
+            //std::cout << "Frame end. samples gen/consumed diff: " << avgSamplesGenerated - avgSamplesConsumed  << std::endl;
+            
+            frameCount++;
+
+            //clock.Query();
+            //float frameTime = clock.GetElapsedMs();
+            //float waitTime = playDurationMs - frameTime; // audio rate sync
+            //double waitTime = preferredFrameTime - deltaMs; //video rate sync
+            //if (waitTime > 0)
+            //{
+            //    clock.Limit(waitTime);
+            //}
+            //std::cout << "True Frame time: " << deltaMs << std::endl;
+            clock.Limit(preferredFrameTime * 1000);
         }
 
         renderer.WaitForIdle();

@@ -18,7 +18,8 @@ public:
 	PPU operator= (const PPU& other) = delete;
 
 	void Init(Memory& memory);
-	bool Render(uint32_t mCycles, Memory& memory);
+	void Render(uint32_t mCycles, Memory& memory);
+	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
 
 private:
@@ -69,7 +70,8 @@ private:
 
 	WindowState m_windowState;
 
-	void* m_renderedFrame;
+	void* m_activeFrame;
+	void* m_backBuffer;
 	RenderFunc m_renderCallback;
 
 	uint32_t m_frameCount;

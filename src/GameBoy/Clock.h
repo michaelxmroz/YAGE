@@ -10,10 +10,11 @@ typedef TimerWin32 TimerBackend;
 class Clock
 {
 public:
+	Clock();
 	void Start();
-	void Stop();
-	float GetElapsedMs();
-	void Sleep(float ms);
+	int64_t Query();
+	//float GetElapsedMs();
+	void Limit(int64_t microSeconds);
 private:
 	TimerBackend m_backend;
 };
