@@ -138,6 +138,11 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
         float* left = data->m_buffer + data->m_playbackPosition++;
         float* right = data->m_buffer + data->m_playbackPosition++;
 
+        //scale down audio volume
+        *left *= 0.5f;
+        *right *= 0.5f;
+
+
         *out++ = *left;
         *out++ = *right;
 

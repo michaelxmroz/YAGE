@@ -26,7 +26,7 @@
 #define CHANNEL4_MASTER_CONTROL_ON_OFF_BIT 0x04
 #define CHANNEL4_LENGTH_REGISTER 0xFF20
 #define CHANNEL4_ENVELOPE_REGISTER 0xFF21
-#define CHANNEL4_POLY_COUNTER_REGISTER 0xFF22
+#define CHANNEL4_FREQUENCY_CLOCK_REGISTER 0xFF22
 #define CHANNEL4_CONTROL_REGISTER 0xFF23
 
 #define MASTER_VOLUME_REGISTER 0xFF24
@@ -76,6 +76,7 @@ namespace APU_Internal
 
 	void ResetAudioRegisters(Memory& memory)
 	{
+		memory.Write(AUDIO_MASTER_CONTROL_REGISTER, 0xF1);
 		memory.Write(MASTER_VOLUME_REGISTER, 0x77);
 		memory.Write(SOUND_PANNING_REGISTER, 0xF3);
 
@@ -98,7 +99,7 @@ namespace APU_Internal
 
 		memory.Write(CHANNEL4_LENGTH_REGISTER, 0xFF);
 		memory.Write(CHANNEL4_ENVELOPE_REGISTER, 0x00);
-		memory.Write(CHANNEL4_POLY_COUNTER_REGISTER, 0x00);
+		memory.Write(CHANNEL4_FREQUENCY_CLOCK_REGISTER, 0x00);
 		memory.Write(CHANNEL4_CONTROL_REGISTER, 0xBF);
 	}
 
@@ -179,6 +180,17 @@ namespace APU_Internal
 		uint8_t highRegisterOther = memory[frequencyHighRegister] & ~FREQUENCY_HIGH_BITS;
 		memory.Write(frequencyHighRegister, highRegisterOther | ((frequency >> 8) & FREQUENCY_HIGH_BITS));
 	}
+
+	uint32_t GetNoiseFrequencyTimer(uint8_t frequencyRegister)
+	{
+		const uint8_t CLOCK_SHIFT_BITS = 0xF0;
+		const uint8_t CLOCK_SHIFT_OFFSET = 4;
+		const uint8_t CLOCK_DIVIDER_BITS = 0x07;
+
+		uint32_t clockDivider = frequencyRegister & CLOCK_DIVIDER_BITS;
+		uint32_t clockShift = (frequencyRegister & CLOCK_SHIFT_BITS) >> CLOCK_SHIFT_OFFSET;
+		return (clockDivider > 0 ? (clockDivider << 4) : 8) << clockShift;
+	}
 }
 
 #ifndef M_PI
@@ -189,10 +201,10 @@ namespace APU_Internal
 
 APU::APU() :
 	m_channels{
-		Channel(64, 4, 7,  CHANNEL1_MASTER_CONTROL_ON_OFF_BIT, CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, CHANNEL1_LENGTH_DUTY_REGISTER, CHANNEL1_ENVELOPE_REGISTER),
-		Channel(64, 4, 7,  CHANNEL2_MASTER_CONTROL_ON_OFF_BIT, CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, CHANNEL2_LENGTH_DUTY_REGISTER, CHANNEL2_ENVELOPE_REGISTER),
-		Channel(256, 2, 31, CHANNEL3_MASTER_CONTROL_ON_OFF_BIT, CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, CHANNEL3_LENGTH_REGISTER, CHANNEL3_VOLUME_REGISTER),
-		Channel(64, 4, 7, CHANNEL4_MASTER_CONTROL_ON_OFF_BIT, CHANNEL4_CONTROL_REGISTER, CHANNEL4_LENGTH_REGISTER, CHANNEL4_ENVELOPE_REGISTER)
+		Channel(0, 64, 4, 7,  CHANNEL1_MASTER_CONTROL_ON_OFF_BIT, CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, CHANNEL1_LENGTH_DUTY_REGISTER, CHANNEL1_ENVELOPE_REGISTER),
+		Channel(1, 64, 4, 7,  CHANNEL2_MASTER_CONTROL_ON_OFF_BIT, CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, CHANNEL2_LENGTH_DUTY_REGISTER, CHANNEL2_ENVELOPE_REGISTER),
+		Channel(2, 256, 2, 31, CHANNEL3_MASTER_CONTROL_ON_OFF_BIT, CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, CHANNEL3_LENGTH_REGISTER, CHANNEL3_VOLUME_REGISTER),
+		Channel(3, 64, 4, 7, CHANNEL4_MASTER_CONTROL_ON_OFF_BIT, CHANNEL4_CONTROL_REGISTER, CHANNEL4_LENGTH_REGISTER, CHANNEL4_ENVELOPE_REGISTER)
 }
 {
 	for (int i = 0; i < TABLE_SIZE; i++)
@@ -256,35 +268,6 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 
 	m_externalAudioBuffer.samplesToGenerate += (static_cast<double>(cyclesToStep) * m_externalAudioBuffer.resampleRate);
 	uint32_t samplesgenerated = static_cast<uint32_t>(m_externalAudioBuffer.samplesToGenerate);
-	/*
-	while (m_externalAudioBuffer.samplesToGenerate >= 1.0f)
-	{
-		float* left = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
-		float* right = m_externalAudioBuffer.buffer + (*m_externalAudioBuffer.currentPosition)++;
-
-		//*left += 0.01f;
-		//*right += 0.03f;
-
-		*left = sine[left_phase];
-		*right = sine[right_phase];
-
-		left_phase += 1;
-		if (left_phase >= TABLE_SIZE) left_phase -= TABLE_SIZE;
-		right_phase += 3;
-		if (right_phase >= TABLE_SIZE) right_phase -= TABLE_SIZE;
-
-		//if (*left >= 1.0f) *left -= 2.0f;
-		//if (*right >= 1.0f) *right -= 2.0f;
-
-		if (*m_externalAudioBuffer.currentPosition >= m_externalAudioBuffer.size)
-		{
-			*m_externalAudioBuffer.currentPosition = 0;
-		}
-
-		m_externalAudioBuffer.samplesToGenerate--;
-		samplesgenerated++;
-	}
-*/
 
 	if ((memory[AUDIO_MASTER_CONTROL_REGISTER] & APU_ON_OFF_BIT) == 0)
 	{
@@ -316,8 +299,7 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 		{
 			UpdateEnvelope(memory, *activeChannel, frameSequencerStep, CHANNEL1_ENVELOPE_REGISTER, isTriggered);
 			float amplitude = CalculatePulseAmplitude(memory, *activeChannel, CHANNEL1_LENGTH_DUTY_REGISTER);
-
-			APU_Internal::Pan(memory, amplitude, 0, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
+			APU_Internal::Pan(memory, amplitude, activeChannel->m_channelId, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
 			channelsActive++;
 
 		}
@@ -333,7 +315,7 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 		{
 			UpdateEnvelope(memory, *activeChannel, frameSequencerStep, CHANNEL2_ENVELOPE_REGISTER, isTriggered);
 			float amplitude = CalculatePulseAmplitude(memory, *activeChannel, CHANNEL2_LENGTH_DUTY_REGISTER);
-			APU_Internal::Pan(memory, amplitude, 1, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
+			APU_Internal::Pan(memory, amplitude, activeChannel->m_channelId, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
 			channelsActive++;
 		}
 	}
@@ -346,8 +328,23 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 		UpdateLength(memory, *activeChannel, frameSequencerStep, CHANNEL3_LENGTH_REGISTER, CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, SOUND_LENGTH_CHANNEL3_BITS, isTriggered);
 		if ((*activeChannel).m_enabled)
 		{
-			float amplitude = CalculateAmplitude(memory, *activeChannel);
-			APU_Internal::Pan(memory, amplitude, 2, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
+			float amplitude = CalculateWaveAmplitude(memory, *activeChannel);
+			APU_Internal::Pan(memory, amplitude, activeChannel->m_channelId, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
+			channelsActive++;
+		}
+	}
+
+	activeChannel = m_channels + 3;
+	isTriggered = CheckForTrigger(memory, *activeChannel);
+	if ((*activeChannel).m_enabled)
+	{	
+		UpdateNoiseFrequency(memory, *activeChannel, cyclesToStep, isTriggered);
+		UpdateLength(memory, *activeChannel, frameSequencerStep, CHANNEL4_LENGTH_REGISTER, CHANNEL4_CONTROL_REGISTER, SOUND_LENGTH_TIMER_BITS, isTriggered);
+		if ((*activeChannel).m_enabled)
+		{
+			UpdateEnvelope(memory, *activeChannel, frameSequencerStep, CHANNEL4_ENVELOPE_REGISTER, isTriggered);
+			float amplitude = CalculateNoiseAmplitude(memory, *activeChannel);
+			APU_Internal::Pan(memory, amplitude, activeChannel->m_channelId, SOUND_PANNING_REGISTER, mixedAmplitudeLeft, mixedAmplitudeRight);
 			channelsActive++;
 		}
 	}
@@ -479,6 +476,61 @@ void APU::UpdateWaveFrequency(Memory& memory, Channel& channel, const uint16_t& 
 	}
 }
 
+void APU::UpdateNoiseFrequency(Memory& memory, Channel& channel, const uint32_t& cyclesToStep, bool isTriggered)
+{
+	const uint8_t LFSR_WIDTH_BITS = 0x08;
+	const uint8_t LFSR_WIDTH_OFFSET = 3;
+
+	if (isTriggered)
+	{
+		channel.m_lfsr = 0;
+		channel.m_frequencyTimer = APU_Internal::GetNoiseFrequencyTimer(memory[CHANNEL4_FREQUENCY_CLOCK_REGISTER]);
+	}
+
+	uint32_t remainingSteps = cyclesToStep;
+	while (remainingSteps > 0)
+	{
+		if (remainingSteps > channel.m_frequencyTimer)
+		{
+			remainingSteps -= channel.m_frequencyTimer;
+			channel.m_frequencyTimer = 0;
+		}
+		else
+		{
+			channel.m_frequencyTimer -= remainingSteps;
+			remainingSteps = 0;
+		}
+
+		if (channel.m_frequencyTimer == 0)
+		{
+			channel.m_frequencyTimer = APU_Internal::GetNoiseFrequencyTimer(memory[CHANNEL4_FREQUENCY_CLOCK_REGISTER]);
+
+			uint16_t shiftRegister = channel.m_lfsr;
+			uint16_t bit1 = shiftRegister & 0x1;
+			uint16_t bit2 = (shiftRegister >> 1) & 0x1;
+			uint16_t nXorResult = ~(bit1 ^ bit2);
+
+			bool shortWidth = (memory[CHANNEL4_FREQUENCY_CLOCK_REGISTER] & LFSR_WIDTH_BITS) >> LFSR_WIDTH_OFFSET;
+
+			if (shortWidth)
+			{
+				uint16_t shiftMask = shiftRegister & 0x7F7F;
+				shiftRegister = nXorResult << 15 | shiftMask;
+				shiftRegister = nXorResult << 7 | shiftRegister;
+			}
+			else
+			{
+				uint16_t shiftMask = shiftRegister & 0x7FFF;
+				shiftRegister = nXorResult << 15 | shiftMask;
+			}
+
+			shiftRegister >>= 1;
+
+			channel.m_lfsr = shiftRegister;
+		}
+	}
+}
+
 void APU::UpdateEnvelope(Memory& memory, Channel& channel, uint8_t frameSequencerStep, const uint16_t& envelopeRegister, bool isTriggered)
 {
 	const uint8_t SWEEP_PACE_BITS = 0x07;
@@ -493,13 +545,11 @@ void APU::UpdateEnvelope(Memory& memory, Channel& channel, uint8_t frameSequence
 		channel.m_periodTimer = sweepPace;
 		uint8_t volume = (memory[envelopeRegister] & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
 		channel.m_currentVolume = volume;
-		channel.DEBUG_envelopeTick = 0;
 	}
 
 	//only update envelope every 8 ticks
 	if (frameSequencerStep == ENVELOPE_FRAME_SEQUENCER_STEP)
 	{
-		channel.DEBUG_envelopeTick++;
 		uint8_t registerValue = memory[envelopeRegister];
 		uint8_t period = registerValue & SWEEP_PACE_BITS;
 		if (period == 0)
@@ -557,12 +607,18 @@ float APU::CalculatePulseAmplitude(const Memory& memory,const Channel& channel, 
 	return APU_Internal::DAC(waveOut * channel.m_currentVolume);
 }
 
-float APU::CalculateAmplitude(const Memory& memory,const Channel& activeChannel)
+float APU::CalculateWaveAmplitude(const Memory& memory,const Channel& channel)
 {
 	uint8_t encodedVolume = memory[CHANNEL3_VOLUME_REGISTER] >> 5;
 	uint8_t volume = (encodedVolume + 3) % 4;
 	if (volume == 3) volume++;
-	return APU_Internal::DAC(activeChannel.m_sampleBuffer >> volume);
+	return APU_Internal::DAC(channel.m_sampleBuffer >> volume);
+}
+
+float APU::CalculateNoiseAmplitude(const Memory& memory, const Channel& channel)
+{
+	uint32_t isActive = channel.m_lfsr & 0x1;
+	return APU_Internal::DAC(channel.m_currentVolume * isActive);
 }
 
 void APU::SetChannelActive(Memory& memory, Channel& channel, bool active)
