@@ -46,7 +46,7 @@ TEST_P(ExternalTestFixture, Main) {
     while (!stopReached)
     {
         EmulatorInputs::InputState inputState;
-        vm.Step(inputState);
+        vm.Step(inputState, 16.67);
         stopReached = vm.HasReachedInstruction();
         frameCount++;
     }

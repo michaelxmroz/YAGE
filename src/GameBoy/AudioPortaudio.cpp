@@ -5,7 +5,7 @@
 #define NUM_SECONDS 4
 #define SAMPLE_RATE 48000
 #define BUFFER_SIZE_SECONDS 1
-#define PLAYBACK_OFFSET_MS 0
+#define PLAYBACK_OFFSET_MS 30
 
 #define AUDIO_DEBUG 1
 
@@ -130,7 +130,7 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
 
         if (data->m_playbackPosition == data->m_writePosition)
         {
-           // fprintf(stderr, "Playback running ahead of audio generation\n");
+            fprintf(stderr, "Playback running ahead of audio generation\n");
             *out++ = 0;
             *out++ = 0;
             continue;

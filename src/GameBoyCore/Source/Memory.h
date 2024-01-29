@@ -14,7 +14,7 @@
 
 class Memory;
 
-typedef void(*MemoryWriteCallback)(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
+typedef void(*MemoryWriteCallback)(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 
 struct SpriteAttributes
 {
@@ -73,7 +73,7 @@ public:
 	void MapRAM(const char* ram, uint32_t size);
 	void MapBootrom(const char* rom, uint32_t size);
 
-	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback);
+	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback, void* userData);
 	void DeregisterCallback(uint16_t addr);
 
 	void RegisterExternalRamDisableCallback(Emulator::PersistentMemoryCallback callback);
@@ -84,8 +84,8 @@ public:
 private:
 	void Init();
 
-	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
-	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue);
+	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
+	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
@@ -112,6 +112,7 @@ private:
 	uint8_t* m_bootrom;
 	uint8_t* m_externalRamMemory;
 	MemoryWriteCallback* m_writeCallbacks;
+	uint64_t* m_callbackUserData;
 	MemoryBankController* m_mbc;
 	Emulator::PersistentMemoryCallback m_onExternalRamDisable;
 

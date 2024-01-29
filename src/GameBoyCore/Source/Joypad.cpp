@@ -15,7 +15,7 @@ Joypad::Joypad()
 void Joypad::Init(Memory& memory)
 {
 	memory.Write(P1_REGISTER, 0xCF);
-	memory.RegisterCallback(P1_REGISTER, Joypad::ToggleGroup);
+	memory.RegisterCallback(P1_REGISTER, Joypad::ToggleGroup, nullptr);
 }
 
 void Joypad::Update(EmulatorInputs::InputState state, Memory& memory)
@@ -31,7 +31,7 @@ void Joypad::Update(EmulatorInputs::InputState state, Memory& memory)
 	}
 }
 
-void Joypad::ToggleGroup(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
+void Joypad::ToggleGroup(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	/*
 	uint8_t adjustedVal = prevValue ^ newValue;

@@ -106,7 +106,7 @@ void Memory::Write(uint16_t addr, uint8_t value)
 
 	if (m_writeCallbacks[addr] != nullptr)
 	{
-		m_writeCallbacks[addr](this, addr, prevValue, value);
+		m_writeCallbacks[addr](this, addr, prevValue, value, reinterpret_cast<void*>(m_callbackUserData[addr]));
 	}
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
@@ -138,6 +138,8 @@ void Memory::ClearMemory()
 	memset(m_mappedMemory, 0, MEMORY_SIZE);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	//skip initialization checks for APU wave ram
+	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 
 	WriteDirect(DMA_REGISTER, 0xFF);
@@ -189,14 +191,16 @@ void Memory::MapBootrom(const char* rom, uint32_t size)
 	m_isBootromMapped = true;
 }
 
-void Memory::RegisterCallback(uint16_t addr, MemoryWriteCallback callback)
+void Memory::RegisterCallback(uint16_t addr, MemoryWriteCallback callback, void* userData)
 {
 	m_writeCallbacks[addr] = callback;
+	m_callbackUserData[addr] = reinterpret_cast<uint64_t>(userData);
 }
 
 void Memory::DeregisterCallback(uint16_t addr)
 {
 	m_writeCallbacks[addr] = nullptr;
+	m_callbackUserData[addr] = 0;
 }
 
 void Memory::RegisterExternalRamDisableCallback(Emulator::PersistentMemoryCallback callback)
@@ -225,18 +229,24 @@ void Memory::Init()
 
 	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
 	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
-	RegisterCallback(DMA_REGISTER, DoDMA);
-	RegisterCallback(BOOTROM_BANK, UnmapBootrom);
+
+	m_callbackUserData = new uint64_t[MEMORY_SIZE];
+	memset(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
+
+	RegisterCallback(DMA_REGISTER, DoDMA, nullptr);
+	RegisterCallback(BOOTROM_BANK, UnmapBootrom, nullptr);
 
 	m_vRamAccess = VRamAccess::All;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker = new uint8_t[MEMORY_SIZE];
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	//skip initialization checks for APU wave ram
+	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 }
 
-void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
+void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	uint16_t source = static_cast<uint16_t>((*memory)[DMA_REGISTER]) << 8;
 	//TODO DMA from external ram?
@@ -254,7 +264,7 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 #endif
 }
 
-void Memory::UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
+void Memory::UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	memory->m_isBootromMapped = false;
 }

@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
             //{
             //    clock.Limit(waitTime);
             //}
-            //std::cout << "True Frame time: " << deltaMs << std::endl;
+            std::cout << "True Frame time: " << deltaMs << std::endl;
             clock.Limit(preferredFrameTime * 1000);
         }
 
