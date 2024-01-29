@@ -2,7 +2,6 @@
 #include "Helpers.h"
 #include "Interrupts.h"
 
-#define CPU_FREQUENCY 4194304
 #define DIVIDER_MCYCLES 64
 #define FREQUENCY_TO_MCYCLES 4
 
@@ -49,7 +48,7 @@ void Clock::Init(Memory& memory)
 {
 	memory.Write(DIVIDER_REGISTER, 0x00);
 	memory.Write(TAC_REGISTER, 0xF8);
-	memory.RegisterCallback(DIVIDER_REGISTER, Clock::ResetDivider);
+	memory.RegisterCallback(DIVIDER_REGISTER, Clock::ResetDivider, nullptr);
 }
 
 void Clock::Increment(uint32_t mCycles, Memory& memory)
@@ -87,7 +86,7 @@ void Clock::Reset()
 	m_timerCycleAccumulator = 0;
 }
 
-void Clock::ResetDivider(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue)
+void Clock::ResetDivider(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	memory->WriteDirect(DIVIDER_REGISTER, 0);
 }

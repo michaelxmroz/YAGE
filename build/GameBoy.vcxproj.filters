@@ -22,6 +22,18 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{405b94b3-e79c-4822-b919-8899b2ed61c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Platforms">
+      <UniqueIdentifier>{8bd20e91-87c4-4112-b5ee-770424c2f7f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Platforms\Windows">
+      <UniqueIdentifier>{60582ec8-ef9f-4391-8931-9934032299bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platforms">
+      <UniqueIdentifier>{c2af9a9c-2275-4e0f-bbb9-006705da33db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platforms\Windows">
+      <UniqueIdentifier>{228a7e1b-7195-427f-bbb3-48dbf32dfef3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(BaseItemPath)\CommandLineArguments.cpp">
@@ -45,9 +57,6 @@
     <ClCompile Include="..\src\GameBoy\Logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\BackendWin32.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
@@ -57,8 +66,23 @@
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Time.cpp">
+    <ClCompile Include="..\src\GameBoy\Audio.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GameBoy\AudioPortaudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GameBoy\Clock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GameBoy\AudioWin32.cpp">
+      <Filter>Source Files\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GameBoy\TimerWin32.cpp">
+      <Filter>Source Files\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\GameBoy\BackendWin32.cpp">
+      <Filter>Source Files\Platforms\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,9 +104,6 @@
     <ClInclude Include="..\src\GameBoy\Logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\BackendWin32.h">
-      <Filter>Header Files\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\GameBoy\RendererVulkan.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
@@ -92,8 +113,23 @@
     <ClInclude Include="..\src\GameBoy\MiniMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Time.h">
+    <ClInclude Include="..\src\GameBoy\Audio.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\AudioPortaudio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\BackendWin32.h">
+      <Filter>Header Files\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\TimerWin32.h">
+      <Filter>Header Files\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoy\AudioWin32.h">
+      <Filter>Header Files\Platforms\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -18,7 +18,8 @@ public:
 	PPU operator= (const PPU& other) = delete;
 
 	void Init(Memory& memory);
-	bool Render(uint32_t mCycles, Memory& memory);
+	void Render(uint32_t mCycles, Memory& memory);
+	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
 
 private:
@@ -53,6 +54,7 @@ private:
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
 	uint32_t m_totalCycles;
+	int32_t m_cycleDebt;
 	uint8_t m_lineY;
 	uint8_t m_lineX;
 	uint8_t m_lineSpriteCount;
@@ -68,7 +70,8 @@ private:
 
 	WindowState m_windowState;
 
-	void* m_renderedFrame;
+	void* m_activeFrame;
+	void* m_backBuffer;
 	RenderFunc m_renderCallback;
 
 	uint32_t m_frameCount;

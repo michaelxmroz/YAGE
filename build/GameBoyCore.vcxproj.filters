@@ -75,6 +75,9 @@
     <ClCompile Include="..\src\GameBoyCore\Source\Serialization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoyCore\Source\APU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
@@ -126,6 +129,9 @@
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\src\GameBoyCore\Source\Serialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoyCore\Source\APU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

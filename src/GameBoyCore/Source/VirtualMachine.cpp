@@ -9,6 +9,8 @@ VirtualMachine::VirtualMachine()
 	, m_totalCycles(0)
 	, m_joypad()
 	, m_clock(&m_serializer)
+	, m_frameRendered(false)
+	, m_stepDuration(0.0)
 {
 }
 
@@ -29,6 +31,7 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 	Interrupts::Init(m_memory);
 	m_clock.Init(m_memory);
 	m_ppu.Init(m_memory);
+	m_apu.Init(m_memory);
 	m_joypad.Init(m_memory);
 	m_serial.Init(m_memory);
 }
@@ -41,24 +44,37 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, c
 	m_memory.Write(0xFF40, 0x00);
 }
 
-void VirtualMachine::Step(EmulatorInputs::InputState inputState)
+void VirtualMachine::SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
 {
-	bool frameRendered = false;
-	while (!frameRendered)
+	m_apu.SetExternalAudioBuffer(buffer, size, sampleRate, startOffset);
+}
+
+void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
+{
+	m_totalCycles = 0;
+	m_samplesGenerated = 0;
+	while (m_stepDuration < deltaMs)
 	{
 		m_joypad.Update(inputState, m_memory);
 		uint32_t cyclesPassed = m_cpu.Step(m_memory);
 		m_clock.Increment(cyclesPassed, m_memory);
-		frameRendered = m_ppu.Render(cyclesPassed, m_memory);
-
-		//TODO process APU
+		m_ppu.Render(cyclesPassed, m_memory);
+		m_samplesGenerated += m_apu.Update(m_memory,cyclesPassed);
 		m_totalCycles += cyclesPassed;
+		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / static_cast<double>(CPU_FREQUENCY);
+		m_stepDuration += cycleDurationS * 1000.0;
 	}
+	m_stepDuration -= deltaMs;
 }
 
 const void* VirtualMachine::GetFrameBuffer()
 {
 	return m_ppu.GetFrameBuffer();
+}
+
+uint32_t VirtualMachine::GetNumberOfGeneratedSamples()
+{
+	return m_samplesGenerated;
 }
 
 void VirtualMachine::SetLoggerCallback(LoggerCallback callback)

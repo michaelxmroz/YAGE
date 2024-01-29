@@ -3,6 +3,8 @@
 #include "debugapi.h"
 #include <iostream>
 
+//TODO separate into platform layer
+
 namespace Logger_Helpers
 {
 	void OutputToVisualStudioConsole(const char* message)

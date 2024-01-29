@@ -1,6 +1,3 @@
-// GameBoy.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include "CommandLineArguments.h"
 #include "Emulator.h"
@@ -9,10 +6,13 @@
 #include "Logging.h"
 #include "Input.h"
 #include "RendererVulkan.h"
-#include "Time.h"
+#include "Audio.h"
+#include "Clock.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
+
+#define DEFAULT_FRAME_DURATION 16667
 
 static std::string s_persistentMemoryPath;
 
@@ -63,6 +63,12 @@ int main(int argc, char* argv[])
     {
         Renderer renderer(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
 
+        //TODO is it better to try to match the GB rate, or should we always go for 60 FPS?
+        const double preferredFrameTime = 1000.0 / EmulatorConstants::PREFERRED_REFRESH_RATE;
+
+        Audio audio;
+        audio.Init();
+
         Emulator* emu = Emulator::Create();
 
         emu->SetLoggerCallback(&LogMessage);
@@ -81,68 +87,95 @@ int main(int argc, char* argv[])
         }
         emu->SetPersistentMemoryCallback(SavePersistentMemory);
 
-        InputHandler inputHandler;
-        Time time;
+        emu->SetAudioBuffer(audio.GetAudioBuffer(), audio.GetAudioBufferSize(), audio.GetSampleRate(), audio.GetWritePosition());
 
-        float preferredFrameTime = 1000.0f / EmulatorConstants::PREFERRED_REFRESH_RATE;
+        InputHandler inputHandler;
         uint32_t frameCount = 0;
-        const void* frameBuffer = emu->GetFrameBuffer();
+        const void* frameBuffer = nullptr;
+
+        Clock clock;
+
+        //float avgSamplesConsumed = 0;
+        //float avgSamplesGenerated = 0;
+
+        clock.Start();
+
+        int64_t previousFrameUs = clock.Query();
+
         while (!renderer.RequestExit())
         {
+            int64_t currentFrameUs = clock.Query();
+            int64_t deltaUs = currentFrameUs - previousFrameUs;
+            previousFrameUs = currentFrameUs;
+            double deltaMs = deltaUs / 1000.0;
 
-            double remainingTime = static_cast<double>(preferredFrameTime);
-
-            while(remainingTime > 0.0)
+            if (frameCount == 0)
             {
-                EmulatorInputs::InputState inputState;
-                inputHandler.Update(inputState);
-
-                time.StartFrame();
-
-                if(inputHandler.m_turbo)
-                {
-                    remainingTime -= time.GetDeltaTime();
-                }
-                else
-                {
-                    remainingTime = 0;
-                }
-
-                if (!inputHandler.IsPaused())
-                {
-                    emu->Step(inputState);
-                    frameBuffer = emu->GetFrameBuffer();
-                }
-
-                renderer.ShowFPS_Cheap(time.GetDampenedDeltaTime());
-
-                if (inputHandler.m_debugSaveState)
-                {
-                    std::vector<uint8_t> saveState = emu->Serialize();
-                    std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                    FileParser::Write(saveStatePath, saveState.data(), saveState.size());
-                }
-                else if (inputHandler.m_debugLoadState)
-                {
-                    std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                    std::vector<char> saveState;
-                    if (FileParser::Read(saveStatePath, saveState))
-                    {
-                        emu->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
-                    }
-                }
-
-                frameCount++;
+                //On the first frame we just fake the delta time
+                deltaMs = preferredFrameTime;
             }
 
+            EmulatorInputs::InputState inputState;
+            inputHandler.Update(inputState);
 
+            if (!inputHandler.IsPaused())
+            {
+                emu->Step(inputState, deltaMs);
+                frameBuffer = emu->GetFrameBuffer();
+            }
 
             renderer.Draw(frameBuffer);
 
+            if (inputHandler.m_debugSaveState)
+            {
+                std::vector<uint8_t> saveState = emu->Serialize();
+                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+            }
+            else if (inputHandler.m_debugLoadState)
+            {
+                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
+                std::vector<char> saveState;
+                if (FileParser::Read(saveStatePath, saveState))
+                {
+                    emu->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+                }
+            }
 
+            //uint32_t samplesGenerated = emu->GetNumberOfGeneratedSamples();
+            //double playDurationSec = static_cast<float>(samplesGenerated) / audio.GetSampleRate();
+           // double playDurationMs = playDurationSec * 1000.0;
+            //uint32_t samplesConsumed = audio.GetFramesConsumed();
+            //audio.ResetFramesConsumed();
+
+            if (frameCount == 0)
+            {
+                //Start playing audio after buffer has been filled for the first frame
+                audio.Play();
+                //samplesConsumed = samplesGenerated;
+            }
+
+
+            //avgSamplesConsumed = (samplesConsumed + frameCount * avgSamplesConsumed) / (frameCount + 1);
+            //avgSamplesGenerated = (samplesGenerated + frameCount * avgSamplesGenerated) / (frameCount + 1);
+            //std::cout << "Frame end. samples gen/consumed diff: " << avgSamplesGenerated - avgSamplesConsumed  << std::endl;
+            
+            frameCount++;
+
+            //clock.Query();
+            //float frameTime = clock.GetElapsedMs();
+            //float waitTime = playDurationMs - frameTime; // audio rate sync
+            //double waitTime = preferredFrameTime - deltaMs; //video rate sync
+            //if (waitTime > 0)
+            //{
+            //    clock.Limit(waitTime);
+            //}
+            std::cout << "True Frame time: " << deltaMs << std::endl;
+            clock.Limit(preferredFrameTime * 1000);
         }
 
         renderer.WaitForIdle();
+        audio.Terminate();
 
         //ScreenshotUtility::CreateScreenshot("../screen.png", frameBuffer, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT);
 
