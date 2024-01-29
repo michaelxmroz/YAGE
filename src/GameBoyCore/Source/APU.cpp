@@ -207,14 +207,6 @@ APU::APU() :
 		Channel(3, 64, 4, 7, CHANNEL4_MASTER_CONTROL_ON_OFF_BIT, CHANNEL4_CONTROL_REGISTER, CHANNEL4_LENGTH_REGISTER, CHANNEL4_ENVELOPE_REGISTER)
 }
 {
-	for (int i = 0; i < TABLE_SIZE; i++)
-	{
-		sine[i] = (float)sin(((double)i / (double)TABLE_SIZE) * M_PI * 2.);
-	}
-
-	left_phase = 0;
-	right_phase = 0;
-
 	m_externalAudioBuffer.buffer = nullptr;
 	m_externalAudioBuffer.size = 0;
 	m_externalAudioBuffer.sampleRate = 0;
@@ -222,7 +214,6 @@ APU::APU() :
 	m_externalAudioBuffer.resampleRate = 0.0f;
 	m_externalAudioBuffer.samplesToGenerate = 0.0f;
 
-	DEBUG_samplebuffer.reserve(48000);
 }
 
 void APU::Init(Memory& memory)

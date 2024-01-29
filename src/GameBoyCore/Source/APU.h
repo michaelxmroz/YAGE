@@ -97,10 +97,4 @@ private:
 	Channel m_channels[CHANNEL_COUNT];
 	ExternalAudioBuffer m_externalAudioBuffer;
 	uint32_t m_previousFrameSequencerStep;
-
-	float sine[200];
-	int left_phase;
-	int right_phase;
-
-	std::vector<float> DEBUG_samplebuffer;
 };
