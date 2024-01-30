@@ -78,6 +78,9 @@
     <ClCompile Include="..\src\GameBoyCore\Source\APU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoyCore\Source\AudioChannel.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
@@ -133,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="..\src\GameBoyCore\Source\APU.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h">
+      <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

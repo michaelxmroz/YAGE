@@ -102,6 +102,7 @@
     <ClCompile Include="$(BaseItemPath)\Registers.cpp" />
     <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\APU.cpp" />
+    <ClCompile Include="..\src\GameBoyCore\Source\AudioChannel.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\Emulator.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\MBC.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\Serial.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h" />
     <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\APU.h" />
+    <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Serialization.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\MBC.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Serial.h" />
