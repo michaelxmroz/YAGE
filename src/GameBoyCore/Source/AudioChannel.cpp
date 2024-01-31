@@ -306,8 +306,8 @@ float AudioProcessors::NoiseAmplitude::UpdateAmplitude(const Memory& memory, con
 
 float AudioProcessors::AudioChannel_Internal::DAC(uint8_t amplitude)
 {
-	//return -(static_cast<float>(amplitude) / 7.5f - 1.0f);
-	return static_cast<float>(amplitude) / 15.0f;
+	return -(static_cast<float>(amplitude) / 7.5f - 1.0f);
+	//return static_cast<float>(amplitude) / 15.0f;
 }
 
 void AudioProcessors::AudioChannel_Internal::Pan(Memory& memory, float amplitude, uint8_t panRegisterOffset, float& mixedAmplitudeLeft, float& mixedAmplitudeRight)

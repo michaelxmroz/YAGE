@@ -6,8 +6,8 @@
 struct Sample
 {
 	Sample() :
-		  m_left (0)
-		, m_right(0)
+		  m_left (0.0f)
+		, m_right(0.0f)
 		, m_activeChannels(0)
 	{}
 	float m_left;

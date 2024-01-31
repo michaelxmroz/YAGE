@@ -4,6 +4,8 @@
 
 #define CHANNEL_COUNT 4
 
+#define M_PI 3.14159265
+
 class APU
 {
 public:
@@ -15,6 +17,20 @@ public:
 
 private:
 
+	class HighPassFilter
+	{
+	public:
+		HighPassFilter();
+
+		void SetParams(float cutoff, float sampleRate);
+		float ProcessSample(float inputSample);
+
+	private:
+		float m_alpha;
+		float m_prevOutput;
+		float m_prevInput;
+	};
+
 	struct ExternalAudioBuffer
 	{
 		float* buffer;
@@ -25,7 +41,7 @@ private:
 		double samplesToGenerate;
 	};
 
-	static void GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample& sample);
+	static void GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample& sample, HighPassFilter& hpfLeft, HighPassFilter& hpfRight);
 	static void WriteToAudioBuffer(APU::ExternalAudioBuffer* buffer, float leftSample, float rightSample);
 
 	static void CheckForReset(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -37,4 +53,6 @@ private:
 	ChannelData m_channels[CHANNEL_COUNT];
 	ExternalAudioBuffer m_externalAudioBuffer;
 	uint32_t m_previousFrameSequencerStep;
+	HighPassFilter m_HPFLeft;
+	HighPassFilter m_HPFRight;
 };

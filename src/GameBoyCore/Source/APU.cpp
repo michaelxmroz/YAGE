@@ -149,6 +149,9 @@ void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRa
 	m_externalAudioBuffer.sampleRate = sampleRate;
 	m_externalAudioBuffer.currentPosition = startOffset;
 
+	m_HPFLeft.SetParams(100, sampleRate);
+	m_HPFRight.SetParams(100, sampleRate);
+
 	m_externalAudioBuffer.resampleRate = static_cast<double>(m_externalAudioBuffer.sampleRate) / CPU_FREQUENCY;
 }
 
@@ -162,7 +165,7 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 	Sample sample;
 	if ((memory[AUDIO_MASTER_CONTROL_REGISTER] & APU_ON_OFF_BIT) == 0)
 	{
-		GenerateSamples(m_externalAudioBuffer, sample);
+		GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 		return samplesgenerated;
 	}
 
@@ -176,23 +179,27 @@ uint32_t APU::Update(Memory& memory, const uint32_t& cyclesPassed)
 	Channel3::Synthesize(m_channels[2], memory, cyclesToStep, frameSequencerStep, sample);
 	Channel4::Synthesize(m_channels[3], memory, cyclesToStep, frameSequencerStep, sample);
 
-	sample.m_left /= sample.m_activeChannels;
-	sample.m_right /= sample.m_activeChannels;
-
+	//TODO is this necessary when we have a HPF?
+	if (sample.m_activeChannels != 0)
+	{
+		sample.m_left /= sample.m_activeChannels;
+		sample.m_right /= sample.m_activeChannels;
+	}
+	
 	APU_Internal::UpdateMasterVolume(memory, sample);
 
-	//TODO HPF
-
-	GenerateSamples(m_externalAudioBuffer, sample);
+	GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 
 	return samplesgenerated;
 }
 
-void APU::GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample& sample)
+void APU::GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample& sample, HighPassFilter& hpfLeft, HighPassFilter& hpfRight)
 {
 	while (externalAudioBuffer.samplesToGenerate >= 1.0f)
 	{
-		WriteToAudioBuffer(&externalAudioBuffer, sample.m_left, sample.m_right);
+		float processedLeft = hpfLeft.ProcessSample(sample.m_left);
+		float processedRight = hpfRight.ProcessSample(sample.m_right);
+		WriteToAudioBuffer(&externalAudioBuffer, processedLeft, processedRight);
 
 		if (*externalAudioBuffer.currentPosition >= externalAudioBuffer.size)
 		{
@@ -289,3 +296,23 @@ void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, u
 	}
 }
 
+APU::HighPassFilter::HighPassFilter() :
+	m_alpha(0.0f)
+	, m_prevOutput(0.0f)
+	, m_prevInput(0.0f)
+{
+}
+
+void APU::HighPassFilter::SetParams(float cutoff, float sampleRate)
+{
+	m_alpha = 1.0f / (1.0f + 2.0f * M_PI * cutoff / sampleRate);
+}
+
+float APU::HighPassFilter::ProcessSample(float inputSample)
+{
+	float output = m_alpha * (m_prevOutput + inputSample - m_prevInput);
+
+	m_prevInput = inputSample;
+	m_prevOutput = output;
+	return output;
+}
