@@ -8,7 +8,9 @@
 
 #define EI_OPCODE 0xFB
 
+#if _DEBUG
 #define CPU_STATE_LOGGING 1
+#endif
 
 CPU::CPU()
 	: CPU(nullptr, true)

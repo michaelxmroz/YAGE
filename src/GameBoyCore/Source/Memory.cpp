@@ -317,13 +317,6 @@ uint8_t Memory::operator[](uint16_t addr) const
 		return m_externalRamMemory[m_mbc->GetRAMAddr(addr)];
 	}
 
-	//DEBUG FOR BLARGS TESTROMS, REMOVE AFTER TESTING!!!!!
-	/*
-	if (addr == 0xFF44)
-	{
-		return 0x90;
-	}
-	*/
 	return m_mappedMemory[addr];
 }
 

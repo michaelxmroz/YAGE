@@ -41,7 +41,7 @@ namespace InstructionFunctions
 
 		FORCE_INLINE void SetHalfCarryFlag(const uint8_t& previousReg, const uint8_t& operand, bool subtract, Registers* registers)
 		{
-			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && static_cast<int16_t>(previousReg & 0xF) < static_cast<int16_t>(operand & 0xF);
+			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && ((static_cast<int16_t>(previousReg & 0xF) - static_cast<int16_t>(operand & 0xF)) & 0x10) > 0;
 			registers->SetFlag(Registers::Flags::h, halfCarry);
 		}
 
@@ -99,8 +99,12 @@ namespace InstructionFunctions
 		FORCE_INLINE void SubtractionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
-			operand2 += cy;
+			Helpers::Subtraction(operand1, cy, registers);
+			uint8_t tmpCy = registers->GetFlag(Registers::Flags::cy);
+			uint8_t tmpH = registers->GetFlag(Registers::Flags::h);
 			Helpers::Subtraction(operand1, operand2, registers);
+			registers->OrFlag(Registers::Flags::cy, tmpCy);
+			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
 
 		FORCE_INLINE void AdditionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
@@ -111,7 +115,7 @@ namespace InstructionFunctions
 			uint8_t tmpH = registers->GetFlag(Registers::Flags::h);
 			Helpers::Addition(operand1, operand2, registers);
 			registers->OrFlag(Registers::Flags::cy, tmpCy);
-			registers->OrFlag(Registers::Flags::h, tmpCy);
+			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
 
 		FORCE_INLINE void BitwiseAnd(uint8_t& operand1, uint8_t operand2, Registers* registers)
@@ -3875,9 +3879,9 @@ uint32_t InstructionFunctions::LD_HL_SP_n(const char* mnemonic, Registers* regis
 	registers->HL = registers->SP + immediate;
 	registers->ResetFlag(Registers::Flags::zf);
 	registers->ResetFlag(Registers::Flags::n);
-	uint8_t operand = static_cast<uint8_t>(abs(immediate));
-	Helpers::SetCarry(previous, operand, registers, subtraction);
-	Helpers::SetHalfCarryFlag(previous, operand, subtraction, registers);
+	uint8_t operand = static_cast<uint8_t>(immediate);
+	Helpers::SetCarry(previous, operand, registers, false);
+	Helpers::SetHalfCarryFlag(previous, operand, false, registers);
 	LOG_INSTRUCTION(mnemonic, immediate);
     return 0;
 }
@@ -4019,9 +4023,11 @@ uint32_t InstructionFunctions::ADD_SP_n(const char* mnemonic, Registers* registe
 	uint8_t previous = static_cast<uint8_t>(registers->SP);
 	registers->SP += immediate;
 	registers->ResetFlag(Registers::Flags::n);
-	uint8_t operand = static_cast<uint8_t>(abs(immediate));
-	Helpers::SetCarry(previous, operand, registers, subtraction);
-	Helpers::SetHalfCarryFlag(previous, operand, subtraction, registers);
+	registers->ResetFlag(Registers::Flags::zf);
+	uint8_t operand = static_cast<uint8_t>(immediate);
+
+	Helpers::SetCarry(previous, operand, registers, false);
+	Helpers::SetHalfCarryFlag(previous, operand, false, registers);
 	LOG_INSTRUCTION(mnemonic, immediate);
     return 0;
 }
