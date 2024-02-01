@@ -1,10 +1,10 @@
 #pragma once
 #include <cstdint>
 
-#define WIN32_BACKEND 0
+#define WIN32_AUDIO 0
 #define PORTAUDIO_BACKEND 1
 
-#if WIN32_BACKEND
+#if WIN32_AUDIO
 #include "AudioWin32.h"
 
 typedef AudioWin32 AudioBackend;

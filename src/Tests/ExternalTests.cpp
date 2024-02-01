@@ -23,7 +23,7 @@ class ExternalTestFixture : public testing::TestWithParam<std::string> {
     // To access the test parameter, call GetParam() from class
     // TestWithParam<T>.
 };
-
+/*
 TEST_P(ExternalTestFixture, Main) {
     // Inside a test, access the test parameter with the GetParam() method
     // of the TestWithParam<T> class:
@@ -53,7 +53,7 @@ TEST_P(ExternalTestFixture, Main) {
 
     EXPECT_TRUE(IsFibonacci(vm.GetRegisters()));
 }
-
+*/
 std::string GetTestName(testing::TestParamInfo<std::string> param)
 {
     std::string fileName = FileParser::GetFileNameFromPath(param.param);

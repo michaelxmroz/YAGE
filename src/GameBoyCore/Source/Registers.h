@@ -18,7 +18,8 @@ struct Registers
 		cy = 1 << 4,
 		h = 1 << 5,
 		n = 1 << 6,
-		zf = 1 << 7
+		zf = 1 << 7,
+		all = 0xF0
 	};
 
 	enum class State
@@ -105,5 +106,12 @@ struct Registers
 	{
 		return static_cast<uint8_t>(IsFlagSet(flag));
 	}
+	
+	FORCE_INLINE void SetAllFlags(uint8_t val)
+	{
+		FLAGS &= ~static_cast<uint8_t>(Flags::all);
+		FLAGS |= (val & static_cast<uint8_t>(Flags::all));
+	}
+	
 };
 

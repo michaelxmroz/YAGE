@@ -53,6 +53,9 @@ public:
 
 	typedef void (*LoggerCallback)(const char* message, uint8_t severity);
 	typedef void (*PersistentMemoryCallback)(const void* data, uint32_t size);
+#if _DEBUG
+	typedef void (*DebugCallback)(void);
+#endif
 
 	static Emulator* Create();
 	static void Delete(Emulator* emulator);
@@ -71,6 +74,13 @@ public:
 
 	virtual std::vector<uint8_t> Serialize() const = 0;
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
+
+#if _DEBUG
+	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback) = 0;
+	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) = 0;
+	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback) = 0;
+	virtual void ClearCallbacks() = 0;
+#endif
 protected:
 	virtual ~Emulator();
 };

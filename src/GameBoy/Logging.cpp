@@ -1,18 +1,6 @@
-#include "Logging.h"
-#include <Windows.h>
-#include "debugapi.h"
+#include "Logger.h"
 #include <iostream>
 
-//TODO separate into platform layer
-
-namespace Logger_Helpers
-{
-	void OutputToVisualStudioConsole(const char* message)
-	{
-		OutputDebugStringA(message);
-		std::cout << message;
-	}
-}
 
 void LogMessage(const char* message, uint8_t severity)
 {
@@ -24,8 +12,12 @@ void LogMessage(const char* message, uint8_t severity)
 	{
 		LOG_WARNING(message);
 	}
-	else
+	else if (severity == 2)
 	{
 		LOG_ERROR(message);
+	}
+	else if (severity == 3)
+	{
+		LOG_MINIMAL(message);
 	}
 }

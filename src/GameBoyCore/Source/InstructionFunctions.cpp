@@ -1955,6 +1955,7 @@ uint32_t InstructionFunctions::DAA(const char* mnemonic, Registers* registers, M
 uint32_t InstructionFunctions::RLCA(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	Helpers::RotateLeft(registers->A, registers);
+	registers->SetFlag(Registers::Flags::zf, 0);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -1962,6 +1963,7 @@ uint32_t InstructionFunctions::RLCA(const char* mnemonic, Registers* registers, 
 uint32_t InstructionFunctions::RLA(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	Helpers::RotateLeftWithCarry(registers->A, registers);
+	registers->SetFlag(Registers::Flags::zf, 0);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -1969,6 +1971,7 @@ uint32_t InstructionFunctions::RLA(const char* mnemonic, Registers* registers, M
 uint32_t InstructionFunctions::RRCA(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	Helpers::RotateRight(registers->A, registers);
+	registers->SetFlag(Registers::Flags::zf, 0);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -1976,6 +1979,7 @@ uint32_t InstructionFunctions::RRCA(const char* mnemonic, Registers* registers, 
 uint32_t InstructionFunctions::RRA(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	Helpers::RotateRightWithCarry(registers->A, registers);
+	registers->SetFlag(Registers::Flags::zf, 0);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3908,7 +3912,8 @@ uint32_t InstructionFunctions::POP_HL(const char* mnemonic, Registers* registers
 
 uint32_t InstructionFunctions::POP_AF(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	registers->AF = Helpers::Read16Bit(registers->SP, memory);
+	registers->SetAllFlags(memory[registers->SP++]);
+	registers->A = memory[registers->SP++];
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }

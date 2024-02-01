@@ -230,16 +230,23 @@ void AudioProcessors::Length::UpdateLength(Memory& memory, ChannelData& channel,
 
 void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered)
 {
-	const uint8_t SWEEP_PACE_BITS = 0x07;
+	const uint8_t ENVELOPE_PACE_BITS = 0x07;
 	const uint8_t ENVELOPE_DIRECTION_BITS = 0x8;
 	const uint8_t INITIAL_VOLUME_BITS = 0xF0;
 	const uint8_t INITIAL_VOLUME_OFFSET = 4;
 	const uint8_t ENVELOPE_FRAME_SEQUENCER_STEP = 7;
+	const uint32_t ENVELOPE_PERIOD_DEFAULT_VALUE = 8;
 
 	if (isTriggered)
 	{
-		uint8_t sweepPace = memory[channel.m_volumeEnvelopeRegister] & SWEEP_PACE_BITS;
-		channel.m_periodTimer = sweepPace;
+		uint8_t period = memory[channel.m_volumeEnvelopeRegister] & ENVELOPE_PACE_BITS;
+		/*if (period == 0)
+		{
+			period = ENVELOPE_PERIOD_DEFAULT_VALUE;
+		}*/
+		channel.m_envelopePeriod = period;
+		channel.m_periodTimer = period;
+		channel.m_envelopeIncrease = (memory[channel.m_volumeEnvelopeRegister] & ENVELOPE_DIRECTION_BITS) > 0;
 		uint8_t volume = (memory[channel.m_volumeEnvelopeRegister] & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
 		channel.m_currentVolume = volume;
 	}
@@ -247,8 +254,7 @@ void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channe
 	//only update envelope every 8 ticks
 	if (frameSequencerStep == ENVELOPE_FRAME_SEQUENCER_STEP)
 	{
-		uint8_t registerValue = memory[channel.m_volumeEnvelopeRegister];
-		uint8_t period = registerValue & SWEEP_PACE_BITS;
+		uint8_t period = channel.m_envelopePeriod;
 		if (period == 0)
 		{
 			return;
@@ -262,11 +268,9 @@ void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channe
 		{
 			channel.m_periodTimer = period;
 
-			bool increase = (registerValue & ENVELOPE_DIRECTION_BITS) > 0;
-
-			if ((channel.m_currentVolume < 0x0F && increase) || (channel.m_currentVolume > 0x00 && !increase))
+			if ((channel.m_currentVolume < 0x0F && channel.m_envelopeIncrease) || (channel.m_currentVolume > 0x00 && !channel.m_envelopeIncrease))
 			{
-				channel.m_currentVolume += increase ? 1 : -1;
+				channel.m_currentVolume += channel.m_envelopeIncrease ? 1 : -1;
 			}
 		}
 	}

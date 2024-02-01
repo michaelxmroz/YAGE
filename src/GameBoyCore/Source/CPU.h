@@ -3,6 +3,7 @@
 #include "Registers.h"
 #include "InstructionFunctions.h"
 #include "Interrupts.h"
+#include <map>
 
 #define INSTRUCTION_SET_SIZE 512
 
@@ -15,17 +16,21 @@ public:
 	CPU(Serializer* serializer, bool enableInterruptHandling);
 
 #if _DEBUG
-	void StopOnInstruction(uint8_t instr);
-	bool HasReachedInstruction(Memory& memory);
+	void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback);
+	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback);
+	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback);
+	void ClearCallbacks();
+
 #endif
 	uint32_t Step(Memory& memory);
 
 	void SetProgramCounter(unsigned short addr);
 
 	void Reset();
+	void ResetToBootromValues();
 
 	// For tests
-//#ifdef _DEBUG
+#ifdef _DEBUG
 
 	uint32_t Step(uint8_t* memory)
 	{
@@ -37,7 +42,7 @@ public:
 	{
 		return m_registers;
 	}
-//#endif // _DEBUG
+#endif // _DEBUG
 
 private:
 	typedef uint32_t (*InstructionFunc)(const char* mnemonic, Registers* registers, Memory& memory);
@@ -64,10 +69,14 @@ private:
 	bool m_haltBug;
 	bool m_delayedInterruptHandling;
 	const bool m_InterruptHandlingEnabled;
-#if _DEBUG
-	uint8_t m_stopOnInstruction;
-	bool m_stopOnInstructionEnabled;
-#endif
 
+#if _DEBUG
+
+	std::map<uint16_t, Emulator::DebugCallback> DEBUG_PCCallbackMap;
+	std::map<uint8_t, Emulator::DebugCallback> DEBUG_instrCallbackMap;
+	std::map<uint64_t, Emulator::DebugCallback> DEBUG_instrCountCallbackMap;
+
+	uint64_t DEBUG_instructionCount = 0;
+#endif
 };
 

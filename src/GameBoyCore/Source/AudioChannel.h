@@ -61,6 +61,8 @@ struct ChannelData
 	uint32_t m_frequencyTimer;
 	uint32_t m_dutyStep;
 	uint32_t m_periodTimer;
+	uint32_t m_envelopePeriod;
+	bool m_envelopeIncrease;
 	uint32_t m_currentVolume;
 	uint32_t m_lengthCounter;
 

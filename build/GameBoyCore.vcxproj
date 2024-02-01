@@ -115,7 +115,6 @@
     <ClInclude Include="$(BaseItemPath)\InstructionFunctions.h" />
     <ClInclude Include="$(BaseItemPath)\Interrupts.h" />
     <ClInclude Include="$(BaseItemPath)\Joypad.h" />
-    <ClInclude Include="$(BaseItemPath)\Logging.h" />
     <ClInclude Include="$(BaseItemPath)\Memory.h" />
     <ClInclude Include="$(BaseItemPath)\PixelFetcher.h" />
     <ClInclude Include="$(BaseItemPath)\PixelFIFO.h" />
@@ -125,6 +124,7 @@
     <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\APU.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h" />
+    <ClInclude Include="..\src\GameBoyCore\Source\Logging.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Serialization.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\MBC.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Serial.h" />

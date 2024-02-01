@@ -8,6 +8,7 @@
 #include "RendererVulkan.h"
 #include "Audio.h"
 #include "Clock.h"
+#include "Debugging.h"
 
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
@@ -88,6 +89,10 @@ int main(int argc, char* argv[])
 
         emu->SetAudioBuffer(audio.GetAudioBuffer(), audio.GetAudioBufferSize(), audio.GetSampleRate(), audio.GetWritePosition());
 
+        //Debug stops
+        //emu->SetPCCallback(0xC31D, &Debugging::TriggerBreakpoint);
+        //emu->SetInstructionCountCallback(153550, &Debugging::TriggerBreakpoint);
+
         InputHandler inputHandler;
         uint32_t frameCount = 0;
         const void* frameBuffer = nullptr;
@@ -146,7 +151,7 @@ int main(int argc, char* argv[])
 
             frameCount++;
 
-            std::cout << "True Frame time: " << deltaMs << std::endl;
+            //std::cout << "True Frame time: " << deltaMs << std::endl;
             clock.Limit(preferredFrameTime * 1000);
         }
 

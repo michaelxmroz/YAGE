@@ -99,8 +99,9 @@
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp" />
     <ClCompile Include="..\src\GameBoy\Audio.cpp" />
     <ClCompile Include="..\src\GameBoy\AudioPortaudio.cpp" />
-    <ClCompile Include="..\src\GameBoy\AudioWin32.cpp" />
     <ClCompile Include="..\src\GameBoy\BackendWin32.cpp" />
+    <ClCompile Include="..\src\GameBoy\Debugging.cpp" />
+    <ClCompile Include="..\src\GameBoy\Logger.cpp" />
     <ClCompile Include="..\src\GameBoy\Logging.cpp" />
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp" />
     <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp" />
@@ -116,8 +117,9 @@
     <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h" />
     <ClInclude Include="..\src\GameBoy\Audio.h" />
     <ClInclude Include="..\src\GameBoy\AudioPortaudio.h" />
-    <ClInclude Include="..\src\GameBoy\AudioWin32.h" />
     <ClInclude Include="..\src\GameBoy\BackendWin32.h" />
+    <ClInclude Include="..\src\GameBoy\Debugging.h" />
+    <ClInclude Include="..\src\GameBoy\Logger.h" />
     <ClInclude Include="..\src\GameBoy\Logging.h" />
     <ClInclude Include="..\src\GameBoy\MiniMath.h" />
     <ClInclude Include="..\src\GameBoy\RendererVulkan.h" />

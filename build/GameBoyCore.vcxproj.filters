@@ -113,9 +113,6 @@
     <ClInclude Include="$(BaseItemPath)\InstructionFunctions.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\Logging.h">
-      <Filter>Header Files\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="$(BaseItemPath)\PixelFetcher.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -138,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoyCore\Source\Logging.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>

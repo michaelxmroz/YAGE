@@ -25,7 +25,7 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 	// Setup memory
 	m_memory.ClearMemory();
 	m_memory.MapROM(&m_serializer, rom, size);
-	m_cpu.Reset();
+	m_cpu.ResetToBootromValues();
 	m_cpu.SetProgramCounter(ROM_ENTRY_POINT);
 
 	Interrupts::Init(m_memory);
@@ -39,6 +39,7 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize)
 {
 	Load(romName, rom, size);
+	m_cpu.Reset();
 	m_memory.MapBootrom(bootrom, bootromSize);
 	m_cpu.SetProgramCounter(0x00);
 	m_memory.Write(0xFF40, 0x00);
@@ -101,16 +102,29 @@ void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
 	m_serializer.Deserialize(buffer, size, m_memory.GetHeaderChecksum());
 }
 
+
 #if _DEBUG
-void VirtualMachine::StopOnInstruction(uint8_t instr)
+
+void VirtualMachine::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback)
 {
-	m_cpu.StopOnInstruction(instr);
+	m_cpu.SetInstructionCallback(instr, callback);
 }
 
-bool VirtualMachine::HasReachedInstruction()
+void VirtualMachine::SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback)
 {
-	return m_cpu.HasReachedInstruction(m_memory);
+	m_cpu.SetInstructionCountCallback(instr, callback);
 }
+
+void VirtualMachine::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback)
+{
+	m_cpu.SetPCCallback(pc, callback);
+}
+
+void VirtualMachine::ClearCallbacks()
+{
+	m_cpu.ClearCallbacks();
+}
+
 Registers& VirtualMachine::GetRegisters()
 {
 	return m_cpu.GetRegisters();

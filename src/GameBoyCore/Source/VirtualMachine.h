@@ -33,8 +33,10 @@ public:
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) override;
 
 #if _DEBUG
-	void StopOnInstruction(uint8_t instr);
-	bool HasReachedInstruction();
+	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback) override;
+	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) override;
+	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback) override;
+	virtual void ClearCallbacks() override;
 	Registers& GetRegisters();
 #endif
 private:

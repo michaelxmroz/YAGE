@@ -40,3 +40,9 @@ Logger_Helpers::loggerCallback(message, 1); \
 if(Logger_Helpers::loggerCallback != nullptr) \
 Logger_Helpers::loggerCallback(message, 2); \
 }
+
+#define LOG_CPU_STATE(message) \
+{ \
+if(Logger_Helpers::loggerCallback != nullptr) \
+Logger_Helpers::loggerCallback(message, 3); \
+}

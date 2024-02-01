@@ -8,6 +8,8 @@
 
 #define EI_OPCODE 0xFB
 
+#define CPU_STATE_LOGGING 1
+
 CPU::CPU()
 	: CPU(nullptr, true)
 {
@@ -29,10 +31,6 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
-#if _DEBUG
-	, m_stopOnInstruction(0x0)
-	, m_stopOnInstructionEnabled(false)
-#endif
 	, m_instructions {
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
@@ -552,16 +550,28 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 
 #if _DEBUG
 
-void CPU::StopOnInstruction(uint8_t instr)
+void CPU::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback)
 {
-	m_stopOnInstruction = instr;
-	m_stopOnInstructionEnabled = true;
+	DEBUG_instrCallbackMap.emplace(instr, callback);
 }
 
-bool CPU::HasReachedInstruction(Memory& memory)
+void CPU::SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback)
 {
-	return memory[m_registers.PC] == m_stopOnInstruction;
+	DEBUG_instrCountCallbackMap.emplace(instrCount, callback);
 }
+
+void CPU::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback)
+{
+	DEBUG_PCCallbackMap.emplace(pc, callback);
+}
+
+void CPU::ClearCallbacks()
+{
+	DEBUG_PCCallbackMap.clear();
+	DEBUG_instrCallbackMap.clear();
+	DEBUG_instrCountCallbackMap.clear();
+}
+
 #endif
 
 uint32_t CPU::Step(Memory& memory)
@@ -575,15 +585,31 @@ uint32_t CPU::Step(Memory& memory)
 	if (m_registers.CpuState == Registers::State::Running)
 	{
 #if _DEBUG
-		if (m_stopOnInstructionEnabled)
+		if (DEBUG_PCCallbackMap.size() > 0)
 		{
-			uint8_t encodedInstruction = memory[m_registers.PC];
-			if (encodedInstruction == m_stopOnInstruction)
+			if (DEBUG_PCCallbackMap.count(m_registers.PC))
 			{
-				m_registers.CpuState = Registers::State::Stop;
-				return 0;
+				DEBUG_PCCallbackMap[m_registers.PC]();
 			}
 		}
+		if (DEBUG_instrCallbackMap.size() > 0)
+		{
+			if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
+			{
+				DEBUG_instrCallbackMap[memory[m_registers.PC]]();
+			}
+		}
+
+		DEBUG_instructionCount++;
+		if (DEBUG_instrCountCallbackMap.size() > 0)
+		{
+			if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
+			{
+				DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
+			}
+		}
+
+
 #endif
 
 		ExecuteInstruction(memory, mCycles);
@@ -649,6 +675,25 @@ void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 
 void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
+#if CPU_STATE_LOGGING == 1
+	LOG_CPU_STATE(string_format("A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
+		m_registers.A,
+		m_registers.FLAGS,
+		m_registers.B,
+		m_registers.C,
+		m_registers.D,
+		m_registers.E,
+		m_registers.H,
+		m_registers.L,
+		m_registers.SP,
+		m_registers.PC,
+		memory[m_registers.PC],
+		memory[m_registers.PC + 1],
+		memory[m_registers.PC + 2],
+		memory[m_registers.PC + 3]
+	).c_str());
+#endif
+
 	//Fetch
 	uint16_t encodedInstruction = memory[m_registers.PC++];
 
@@ -686,12 +731,31 @@ void CPU::Reset()
 	m_delayedInterruptHandling = false;
 	m_haltBug = false;
 	ClearRegisters();
+
+#if _DEBUG
+	DEBUG_instructionCount=0;
+#endif
+}
+
+void CPU::ResetToBootromValues()
+{
+	m_delayedInterruptHandling = false;
+	m_haltBug = false;
+	ClearRegisters();
+	m_registers.AF = 0x01B0;
+	m_registers.BC = 0x0013;
+	m_registers.DE = 0x00D8;
+	m_registers.HL = 0x014D;
+	m_registers.PC = 0x0100;
+
+#if _DEBUG
+	DEBUG_instructionCount = 0;
+#endif
 }
 
 void CPU::ClearRegisters()
 {
 	m_registers.SP = DEFAULT_STACK_POINTER;
-	//TODO do the other registers need to be initialized to the boot ROM values?
 	m_registers.AF = 0;
 	m_registers.BC = 0;
 	m_registers.DE = 0;
