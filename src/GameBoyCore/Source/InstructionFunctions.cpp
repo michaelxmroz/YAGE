@@ -327,7 +327,7 @@ uint32_t InstructionFunctions::JR_Z_n(const char* mnemonic, Registers* registers
 	if (registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC += immediate;
-
+		return 1;
 	}
     return 0;
 }

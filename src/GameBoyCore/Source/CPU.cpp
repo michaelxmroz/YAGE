@@ -50,6 +50,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "DEC C", 1, 1, &InstructionFunctions::DEC_C }
 	, { "LD C n", 2, 2, &InstructionFunctions::LD_C_n }
 	, { "RRCA", 1, 1, &InstructionFunctions::RRCA }
+
 	, { "STOP", 1, 2, &InstructionFunctions::STOP }
 	, { "LD DE nn", 3, 3, &InstructionFunctions::LD_DE_nn }
 	, { "LD (DE) A", 1, 2, &InstructionFunctions::LD_mDE_A }
@@ -58,7 +59,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "DEC D", 1, 1, &InstructionFunctions::DEC_D }
 	, { "LD D n", 2, 2, &InstructionFunctions::LD_D_n }
 	, { "RLA", 1, 1, &InstructionFunctions::RLA }
-	, { "JR n", 2, 2, &InstructionFunctions::JR_n }
+	, { "JR n", 2, 3, &InstructionFunctions::JR_n }
 	, { "ADD HL DE", 1, 2, &InstructionFunctions::ADD_HL_DE }
 	, { "LD A (DE)", 1, 2, &InstructionFunctions::LD_A_mDE }
 	, { "DEC DE", 1, 2, &InstructionFunctions::DEC_DE }
@@ -66,10 +67,11 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "DEC E", 1, 1, &InstructionFunctions::DEC_E }
 	, { "LD E n", 2, 2, &InstructionFunctions::LD_E_n }
 	, { "RRA", 1, 1, &InstructionFunctions::RRA }
+
 	, { "JR NZ n", 2, 2, &InstructionFunctions::JR_NZ_n }
 	, { "LD HL nn", 3, 3, &InstructionFunctions::LD_HL_nn }
 	, { "LD (HL+) A", 1, 2, &InstructionFunctions::LD_mHLinc_A }
-	, { "INC HL", 1, 1, &InstructionFunctions::INC_HL }
+	, { "INC HL", 1, 2, &InstructionFunctions::INC_HL }
 	, { "INC H", 1, 1, &InstructionFunctions::INC_H }
 	, { "DEC H", 1, 1, &InstructionFunctions::DEC_H }
 	, { "LD H n", 2, 2, &InstructionFunctions::LD_H_n }
@@ -82,6 +84,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "DEC L", 1, 1, &InstructionFunctions::DEC_L }
 	, { "LD L n", 2, 2, &InstructionFunctions::LD_L_n }
 	, { "CPL", 1, 1, &InstructionFunctions::CPL }
+
 	, { "JR NC n", 2, 2, &InstructionFunctions::JR_NC_n }
 	, { "LD SP nn", 3, 3, &InstructionFunctions::LD_SP_nn }
 	, { "LD (HL-) A", 1, 2, &InstructionFunctions::LD_mHLdec_A }
@@ -98,6 +101,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "DEC_A", 1, 1, &InstructionFunctions::DEC_A }
 	, { "LD A n", 2, 2, &InstructionFunctions::LD_A_n }
 	, { "CCF", 1, 1, &InstructionFunctions::CCF }
+
 	, { "LD B B", 1, 1, &InstructionFunctions::LD_B_B }
 	, { "LD B C", 1, 1, &InstructionFunctions::LD_B_C }
 	, { "LD B D", 1, 1, &InstructionFunctions::LD_B_D }
@@ -114,6 +118,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "LD C L", 1, 1, &InstructionFunctions::LD_C_L }
 	, { "LD C (HL)", 1, 2, &InstructionFunctions::LD_C_mHL }
 	, { "LD C A", 1, 1, &InstructionFunctions::LD_C_A }
+
 	, { "LD D B", 1, 1, &InstructionFunctions::LD_D_B }
 	, { "LD D C", 1, 1, &InstructionFunctions::LD_D_C }
 	, { "LD D D", 1, 1, &InstructionFunctions::LD_D_D }
@@ -130,6 +135,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "LD E L", 1, 1, &InstructionFunctions::LD_E_L }
 	, { "LD E (HL)", 1, 2, &InstructionFunctions::LD_E_mHL }
 	, { "LD E A", 1, 1, &InstructionFunctions::LD_E_A }
+
 	, { "LD H B", 1, 1, &InstructionFunctions::LD_H_B }
 	, { "LD H C", 1, 1, &InstructionFunctions::LD_H_C }
 	, { "LD H D", 1, 1, &InstructionFunctions::LD_H_D }
@@ -146,6 +152,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "LD L L", 1, 1, &InstructionFunctions::LD_L_L }
 	, { "LD L (HL)", 1, 2, &InstructionFunctions::LD_L_mHL }
 	, { "LD L A", 1, 1, &InstructionFunctions::LD_L_A }
+
 	, { "LD (HL) B", 1, 2, &InstructionFunctions::LD_mHL_B }
 	, { "LD (HL) C", 1, 2, &InstructionFunctions::LD_mHL_C }
 	, { "LD (HL) D", 1, 2, &InstructionFunctions::LD_mHL_D }
@@ -162,6 +169,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "LD A L", 1, 1, &InstructionFunctions::LD_A_L }
 	, { "LD A (HL)", 1, 2, &InstructionFunctions::LD_A_mHL }
 	, { "LD A A", 1, 1, &InstructionFunctions::LD_A_A }
+
 	, { "ADD A B", 1, 1, &InstructionFunctions::ADD_A_B }
 	, { "ADD A C", 1, 1, &InstructionFunctions::ADD_A_C }
 	, { "ADD A D", 1, 1, &InstructionFunctions::ADD_A_D }
@@ -178,6 +186,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "ADC A L", 1, 1, &InstructionFunctions::ADC_A_L }
 	, { "ADC A (HL)", 1, 2, &InstructionFunctions::ADC_A_mHL }
 	, { "ADC A A", 1, 1, &InstructionFunctions::ADC_A_A }
+
 	, { "SUB A B", 1, 1, &InstructionFunctions::SUB_A_B }
 	, { "SUB A C", 1, 1, &InstructionFunctions::SUB_A_C }
 	, { "SUB A D", 1, 1, &InstructionFunctions::SUB_A_D }
@@ -194,6 +203,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SBC A L", 1, 1, &InstructionFunctions::SBC_A_L }
 	, { "SBC A (HL)", 1, 2, &InstructionFunctions::SBC_A_mHL }
 	, { "SBC A A", 1, 1, &InstructionFunctions::SBC_A_A }
+
 	, { "AND A B", 1, 1, &InstructionFunctions::AND_A_B }
 	, { "AND A C", 1, 1, &InstructionFunctions::AND_A_C }
 	, { "AND A D", 1, 1, &InstructionFunctions::AND_A_D }
@@ -210,6 +220,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "XOR A L", 1, 1, &InstructionFunctions::XOR_A_L }
 	, { "XOR A (HL)", 1, 2, &InstructionFunctions::XOR_A_mHL }
 	, { "XOR A A", 1, 1, &InstructionFunctions::XOR_A_A }
+
 	, { "OR A B", 1, 1, &InstructionFunctions::OR_A_B }
 	, { "OR A C", 1, 1, &InstructionFunctions::OR_A_C }
 	, { "OR A D", 1, 1, &InstructionFunctions::OR_A_D }
@@ -226,6 +237,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "CP A L", 1, 1, &InstructionFunctions::CP_A_L }
 	, { "CP A (HL)", 1, 2, &InstructionFunctions::CP_A_mHL }
 	, { "CP A A", 1, 1, &InstructionFunctions::CP_A_A }
+
 	, { "RET NZ", 1, 2, &InstructionFunctions::RET_NZ }
 	, { "POP BC", 1, 3, &InstructionFunctions::POP_BC }
 	, { "JP NZ nn", 3, 3, &InstructionFunctions::JP_NZ_nn }
@@ -242,6 +254,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "CALL nn", 3, 6, &InstructionFunctions::CALL_nn }
 	, { "ADC A n", 2, 2, &InstructionFunctions::ADC_A_n }
 	, { "RST 0x08", 1, 4, &InstructionFunctions::RST_08 }
+
 	, { "RET NC", 1, 2, &InstructionFunctions::RET_NC }
 	, { "POP DE", 1, 3, &InstructionFunctions::POP_DE }
 	, { "JP NC nn", 3, 3, &InstructionFunctions::JP_NC_nn }
@@ -258,6 +271,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "SBC A n", 2, 2, &InstructionFunctions::SBC_A_n }
 	, { "RST 0x18", 1, 4, &InstructionFunctions::RST_18 }
+
 	, { "LDH (n) A", 2, 3, &InstructionFunctions::LDH_mn_A }
 	, { "POP HL", 1, 3, &InstructionFunctions::POP_HL }
 	, { "LDH (C) A", 1, 2, &InstructionFunctions::LDH_mC_A }
@@ -274,6 +288,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "XOR A n", 2, 2, &InstructionFunctions::XOR_A_n }
 	, { "RST 0x28", 1, 4, &InstructionFunctions::RST_28 }
+
 	, { "LDH A (n)", 2, 3, &InstructionFunctions::LDH_A_mn }
 	, { "POP AF", 1, 3, &InstructionFunctions::POP_AF }
 	, { "LDH A (C)", 1, 2, &InstructionFunctions::LDH_A_mC }
@@ -290,6 +305,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "UNASSIGNED", 1, 1, &InstructionFunctions::UNIMPLEMENTED }
 	, { "CP A n", 2, 2, &InstructionFunctions::CP_A_n }
 	, { "RST 0x38", 1, 4, &InstructionFunctions::RST_38 }
+
 	, { "RLC B", 2, 2, &InstructionFunctions::RLC_B }
 	, { "RLC C", 2, 2, &InstructionFunctions::RLC_C }
 	, { "RLC D", 2, 2, &InstructionFunctions::RLC_D }
@@ -306,6 +322,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RRC L", 2, 2, &InstructionFunctions::RRC_L }
 	, { "RRC (HL)", 2, 4, &InstructionFunctions::RRC_mHL }
 	, { "RRC A", 2, 2, &InstructionFunctions::RRC_A }
+
 	, { "RL B", 2, 2, &InstructionFunctions::RL_B }
 	, { "RL C", 2, 2, &InstructionFunctions::RL_C }
 	, { "RL D", 2, 2, &InstructionFunctions::RL_D }
@@ -322,6 +339,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RR L", 2, 2, &InstructionFunctions::RR_L }
 	, { "RR (HL)", 2, 4, &InstructionFunctions::RR_mHL }
 	, { "RR A", 2, 2, &InstructionFunctions::RR_A }
+
 	, { "SLA B", 2, 2, &InstructionFunctions::SLA_B }
 	, { "SLA C", 2, 2, &InstructionFunctions::SLA_C }
 	, { "SLA D", 2, 2, &InstructionFunctions::SLA_D }
@@ -338,6 +356,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SRA L", 2, 2, &InstructionFunctions::SRA_L }
 	, { "SRA (HL)", 2, 4, &InstructionFunctions::SRA_mHL }
 	, { "SRA A", 2, 2, &InstructionFunctions::SRA_A }
+
 	, { "SWAP B", 2, 2, &InstructionFunctions::SWAP_B }
 	, { "SWAP C", 2, 2, &InstructionFunctions::SWAP_C }
 	, { "SWAP D", 2, 2, &InstructionFunctions::SWAP_D }
@@ -354,6 +373,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SRL L", 2, 2, &InstructionFunctions::SRL_L }
 	, { "SRL (HL)", 2, 4, &InstructionFunctions::SRL_mHL }
 	, { "SRL A", 2, 2, &InstructionFunctions::SRL_A }
+
 	, { "BIT 0 B", 2, 2, &InstructionFunctions::BIT_0_B }
 	, { "BIT 0 C", 2, 2, &InstructionFunctions::BIT_0_C }
 	, { "BIT 0 D", 2, 2, &InstructionFunctions::BIT_0_D }
@@ -370,6 +390,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "BIT 1 L", 2, 2, &InstructionFunctions::BIT_1_L }
 	, { "BIT 1 (HL)", 2, 3, &InstructionFunctions::BIT_1_mHL }
 	, { "BIT 1 A", 2, 2, &InstructionFunctions::BIT_1_A }
+
 	, { "BIT 2 B", 2, 2, &InstructionFunctions::BIT_2_B }
 	, { "BIT 2 C", 2, 2, &InstructionFunctions::BIT_2_C }
 	, { "BIT 2 D", 2, 2, &InstructionFunctions::BIT_2_D }
@@ -386,6 +407,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "BIT 3 L", 2, 2, &InstructionFunctions::BIT_3_L }
 	, { "BIT 3 (HL)", 2, 3, &InstructionFunctions::BIT_3_mHL }
 	, { "BIT 3 A", 2, 2, &InstructionFunctions::BIT_3_A }
+
 	, { "BIT 4 B", 2, 2, &InstructionFunctions::BIT_4_B }
 	, { "BIT 4 C", 2, 2, &InstructionFunctions::BIT_4_C }
 	, { "BIT 4 D", 2, 2, &InstructionFunctions::BIT_4_D }
@@ -402,6 +424,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "BIT 5 L", 2, 2, &InstructionFunctions::BIT_5_L}
 	, { "BIT 5 (HL)", 2, 3, &InstructionFunctions::BIT_5_mHL }
 	, { "BIT 5 A", 2, 2, &InstructionFunctions::BIT_5_A }
+
 	, { "BIT 6 B", 2, 2, &InstructionFunctions::BIT_6_B }
 	, { "BIT 6 C", 2, 2, &InstructionFunctions::BIT_6_C }
 	, { "BIT 6 D", 2, 2, &InstructionFunctions::BIT_6_D }
@@ -418,6 +441,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "BIT 7 L", 2, 2, &InstructionFunctions::BIT_7_L }
 	, { "BIT 7 (HL)", 2, 3, &InstructionFunctions::BIT_7_mHL }
 	, { "BIT 7 A", 2, 2, &InstructionFunctions::BIT_7_A }
+
 	, { "RES 0 B", 2, 2, &InstructionFunctions::RES_0_B }
 	, { "RES 0 C", 2, 2, &InstructionFunctions::RES_0_C }
 	, { "RES 0 D", 2, 2, &InstructionFunctions::RES_0_D }
@@ -434,6 +458,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RES 1 L", 2, 2, &InstructionFunctions::RES_1_L }
 	, { "RES 1 (HL)", 2, 4, &InstructionFunctions::RES_1_mHL }
 	, { "RES 1 A", 2, 2, &InstructionFunctions::RES_1_A }
+
 	, { "RES 2 B", 2, 2, &InstructionFunctions::RES_2_B }
 	, { "RES 2 C", 2, 2, &InstructionFunctions::RES_2_C }
 	, { "RES 2 D", 2, 2, &InstructionFunctions::RES_2_D }
@@ -450,6 +475,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RES 3 L", 2, 2, &InstructionFunctions::RES_3_L }
 	, { "RES 3 (HL)", 2, 4, &InstructionFunctions::RES_3_mHL }
 	, { "RES 3 A", 2, 2, &InstructionFunctions::RES_3_A }
+
 	, { "RES 4 B", 2, 2, &InstructionFunctions::RES_4_B }
 	, { "RES 4 C", 2, 2, &InstructionFunctions::RES_4_C }
 	, { "RES 4 D", 2, 2, &InstructionFunctions::RES_4_D }
@@ -466,6 +492,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RES 5 L", 2, 2, &InstructionFunctions::RES_5_L }
 	, { "RES 5 (HL)", 2, 4, &InstructionFunctions::RES_5_mHL }
 	, { "RES 5 A", 2, 2, &InstructionFunctions::RES_5_A }
+
 	, { "RES 6 B", 2, 2, &InstructionFunctions::RES_6_B }
 	, { "RES 6 C", 2, 2, &InstructionFunctions::RES_6_C }
 	, { "RES 6 D", 2, 2, &InstructionFunctions::RES_6_D }
@@ -481,7 +508,8 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "RES 7 H", 2, 2, &InstructionFunctions::RES_7_H }
 	, { "RES 7 L", 2, 2, &InstructionFunctions::RES_7_L }
 	, { "RES 7 (HL)", 2, 4, &InstructionFunctions::RES_7_mHL }
-	, { "RES 7 A", 2, 2, &InstructionFunctions::RES_7_A }	
+	, { "RES 7 A", 2, 2, &InstructionFunctions::RES_7_A }
+
 	, { "SET 0 B", 2, 2, &InstructionFunctions::SET_0_B }
 	, { "SET 0 C", 2, 2, &InstructionFunctions::SET_0_C }
 	, { "SET 0 D", 2, 2, &InstructionFunctions::SET_0_D }
@@ -498,6 +526,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 1 L", 2, 2, &InstructionFunctions::SET_1_L }
 	, { "SET 1 (HL)", 2, 4, &InstructionFunctions::SET_1_mHL }
 	, { "SET 1 A", 2, 2, &InstructionFunctions::SET_1_A }
+
 	, { "SET 2 B", 2, 2, &InstructionFunctions::SET_2_B }
 	, { "SET 2 C", 2, 2, &InstructionFunctions::SET_2_C }
 	, { "SET 2 D", 2, 2, &InstructionFunctions::SET_2_D }
@@ -514,6 +543,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 3 L", 2, 2, &InstructionFunctions::SET_3_L }
 	, { "SET 3 (HL)", 2, 4, &InstructionFunctions::SET_3_mHL }
 	, { "SET 3 A", 2, 2, &InstructionFunctions::SET_3_A }
+
 	, { "SET 4 B", 2, 2, &InstructionFunctions::SET_4_B }
 	, { "SET 4 C", 2, 2, &InstructionFunctions::SET_4_C }
 	, { "SET 4 D", 2, 2, &InstructionFunctions::SET_4_D }
@@ -530,6 +560,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 5 L", 2, 2, &InstructionFunctions::SET_5_L }
 	, { "SET 5 (HL)", 2, 4, &InstructionFunctions::SET_5_mHL }
 	, { "SET 5 A", 2, 2, &InstructionFunctions::SET_5_A }
+
 	, { "SET 6 B", 2, 2, &InstructionFunctions::SET_6_B }
 	, { "SET 6 C", 2, 2, &InstructionFunctions::SET_6_C }
 	, { "SET 6 D", 2, 2, &InstructionFunctions::SET_6_D }
