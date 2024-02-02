@@ -21,6 +21,9 @@
 #define HEADER_ROM_SIZE 0x0148
 #define HEADER_RAM_SIZE 0x0149
 
+#define IO_REGISTERS_BEGIN 0xFF00
+#define IO_REGISTERS_END 0xFF4B
+
 Memory::Memory(Serializer* serializer) : ISerializable(serializer)
 {
 	m_mappedMemory = new uint8_t[MEMORY_SIZE];
@@ -59,7 +62,12 @@ Memory::~Memory()
 	delete[] m_writeCallbacks;
 }
 
-void Memory::Write(uint16_t addr, uint8_t value)
+void Memory::CPUWrite(uint16_t addr, uint8_t value)
+{
+	Write(addr, value, true);
+}
+
+void Memory::Write(uint16_t addr, uint8_t value, bool bypassIODelay)
 {
 	if (!m_externalMemory)
 	{
@@ -108,17 +116,20 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		}
 	}
 
-	uint8_t prevValue = m_mappedMemory[addr];
-	m_mappedMemory[addr] = value;
-
-	if (m_writeCallbacks[addr] != nullptr)
+	//delay writes to IO registers from the CPU to the end of the cycle, to make sure that they don't start too early. 
+	if (!bypassIODelay && addr >= IO_REGISTERS_BEGIN && addr <= IO_REGISTERS_END)
 	{
-		m_writeCallbacks[addr](this, addr, prevValue, value, reinterpret_cast<void*>(m_callbackUserData[addr]));
+		m_delayedWrites[m_delayedWriteCount++] = { addr, value };
+#if _DEBUG
+		if (m_delayedWriteCount >= MAX_DELAYED_WRITES)
+		{
+			LOG_ERROR("Exeeded max delayed writes per CPU instruction!");
+		}
+#endif
+		return;
 	}
 
-#ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	m_initializationTracker[addr] = 1;
-#endif
+	WriteInternal(addr, value);
 }
 
 void Memory::WriteDirect(uint16_t addr, uint8_t value)
@@ -128,6 +139,15 @@ void Memory::WriteDirect(uint16_t addr, uint8_t value)
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker[addr] = 1;
 #endif
+}
+
+void Memory::CommitDelayedWrites()
+{
+	for (uint8_t i = 0; i < m_delayedWriteCount; ++i)
+	{
+		WriteInternal(m_delayedWrites[i].m_addr, m_delayedWrites[i].m_value);
+	}
+	m_delayedWriteCount = 0;
 }
 
 uint8_t Memory::ReadDirect(uint16_t addr)
@@ -245,6 +265,8 @@ void Memory::Init()
 
 	m_vRamAccess = VRamAccess::All;
 
+	m_delayedWriteCount = 0;
+
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker = new uint8_t[MEMORY_SIZE];
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
@@ -355,4 +377,19 @@ void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const 
 	}
 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
+}
+
+inline void Memory::WriteInternal(uint16_t addr, uint8_t value)
+{
+	uint8_t prevValue = m_mappedMemory[addr];
+	m_mappedMemory[addr] = value;
+
+	if (m_writeCallbacks[addr] != nullptr)
+	{
+		m_writeCallbacks[addr](this, addr, prevValue, value, reinterpret_cast<void*>(m_callbackUserData[addr]));
+	}
+
+#ifdef TRACK_UNINITIALIZED_MEMORY_READS
+	m_initializationTracker[addr] = 1;
+#endif
 }

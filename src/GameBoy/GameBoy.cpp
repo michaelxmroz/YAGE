@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
         emu->SetAudioBuffer(audio.GetAudioBuffer(), audio.GetAudioBufferSize(), audio.GetSampleRate(), audio.GetWritePosition());
 
         //Debug stops
-        //emu->SetPCCallback(0xC31D, &Debugging::TriggerBreakpoint);
-        //emu->SetInstructionCountCallback(1069618, &Debugging::TriggerBreakpoint);
+        //emu->SetPCCallback(0xC1B9, &Debugging::TriggerBreakpoint);
+        //emu->SetInstructionCountCallback(165290, &Debugging::TriggerBreakpoint);
 
         InputHandler inputHandler;
         uint32_t frameCount = 0;

@@ -130,7 +130,7 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
 
         if (data->m_playbackPosition == data->m_writePosition)
         {
-            fprintf(stderr, "Playback running ahead of audio generation\n");
+            //fprintf(stderr, "Playback running ahead of audio generation\n");
             *out++ = 0;
             *out++ = 0;
             continue;

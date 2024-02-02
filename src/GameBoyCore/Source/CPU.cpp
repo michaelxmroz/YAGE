@@ -709,7 +709,7 @@ void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
 #if CPU_STATE_LOGGING == 1
-	LOG_CPU_STATE(string_format("A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
+	LOG_CPU_STATE(string_format("A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X DIV:%02X TIMA:%02X TMA:%02X\n",
 		m_registers.A,
 		m_registers.FLAGS,
 		m_registers.B,
@@ -723,7 +723,10 @@ void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 		memory[m_registers.PC],
 		memory[m_registers.PC + 1],
 		memory[m_registers.PC + 2],
-		memory[m_registers.PC + 3]
+		memory[m_registers.PC + 3],
+		memory[0xFF04],
+		memory[0xFF05],
+		memory[0xFF06]
 	).c_str());
 #endif
 

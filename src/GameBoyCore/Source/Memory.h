@@ -11,6 +11,7 @@
 #define TRACK_UNINITIALIZED_MEMORY_READS 1
 #endif // _DEBUG
 
+#define MAX_DELAYED_WRITES 5
 
 class Memory;
 
@@ -59,8 +60,10 @@ public:
 
 	uint8_t operator[](uint16_t addr) const;
 
-	void Write(uint16_t addr, uint8_t value);
+	void CPUWrite(uint16_t addr, uint8_t value);
+	void Write(uint16_t addr, uint8_t value, bool bypassIODelay = true);
 	void WriteDirect(uint16_t addr, uint8_t value);
+	void CommitDelayedWrites();
 	uint8_t ReadDirect(uint16_t addr);
 
 	const SpriteAttributes& ReadOAMEntry(uint8_t index) const;
@@ -82,6 +85,13 @@ public:
 	uint8_t GetHeaderChecksum() const;
 
 private:
+
+	struct DelayedWrite
+	{
+		uint16_t m_addr;
+		uint8_t m_value;
+	};
+
 	void Init();
 
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -89,6 +99,8 @@ private:
 
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
+
+	inline void WriteInternal(uint16_t addr, uint8_t value);
 
 	/*
 	  Memory Map
@@ -115,6 +127,9 @@ private:
 	uint64_t* m_callbackUserData;
 	MemoryBankController* m_mbc;
 	Emulator::PersistentMemoryCallback m_onExternalRamDisable;
+	DelayedWrite m_delayedWrites[MAX_DELAYED_WRITES];
+	uint8_t m_delayedWriteCount;
+
 
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;

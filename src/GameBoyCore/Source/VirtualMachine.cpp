@@ -61,6 +61,9 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
 		m_clock.Increment(cyclesPassed, m_memory);
 		m_ppu.Render(cyclesPassed, m_memory);
 		m_samplesGenerated += m_apu.Update(m_memory,cyclesPassed);
+
+		m_memory.CommitDelayedWrites();
+
 		m_totalCycles += cyclesPassed;
 		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / static_cast<double>(CPU_FREQUENCY);
 		m_stepDuration += cycleDurationS * 1000.0;

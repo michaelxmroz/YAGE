@@ -3,7 +3,6 @@
 #include "Interrupts.h"
 
 #define DIVIDER_MCYCLES 64
-#define FREQUENCY_TO_MCYCLES 4
 
 #define DIVIDER_REGISTER 0xFF04
 #define TIMA_REGISTER 0xFF05
@@ -47,6 +46,8 @@ Clock::Clock(Serializer* serializer)
 void Clock::Init(Memory& memory)
 {
 	memory.Write(DIVIDER_REGISTER, 0x00);
+	memory.Write(TIMA_REGISTER, 0x00);
+	memory.Write(TMA_REGISTER, 0x00);
 	memory.Write(TAC_REGISTER, 0xF8);
 	memory.RegisterCallback(DIVIDER_REGISTER, Clock::ResetDivider, nullptr);
 }
@@ -64,17 +65,19 @@ void Clock::Increment(uint32_t mCycles, Memory& memory)
 	{
 		m_timerCycleAccumulator += mCycles;
 		uint32_t timerFrequency = Helpers::GetTimerFrequency(memory);
-		if (m_dividerCycleAccumulator >= timerFrequency)
+
+		while (m_timerCycleAccumulator >= timerFrequency)
 		{
-			m_dividerCycleAccumulator %= timerFrequency;
-			if (memory[TIMA_REGISTER] == 0xFF)
+			m_timerCycleAccumulator -= timerFrequency;
+			uint8_t TIMA = memory[TIMA_REGISTER];
+			if (TIMA == 0xFF)
 			{
 				memory.Write(TIMA_REGISTER, memory[TMA_REGISTER]);
 				Interrupts::RequestInterrupt(Interrupts::Types::Timer, memory);
 			}
 			else
 			{
-				memory.Write(TIMA_REGISTER, memory[TIMA_REGISTER] + 1);
+				memory.Write(TIMA_REGISTER, TIMA + 1);
 			}
 		}
 	}
