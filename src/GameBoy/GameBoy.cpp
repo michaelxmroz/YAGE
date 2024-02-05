@@ -27,6 +27,8 @@ void SavePersistentMemory(const void* data, uint32_t size)
 
 int main(int argc, char* argv[])
 {
+    Logger::FileOutput::Init("log.txt");
+
     CommandLineParser commandLine(argc, argv);
 
     std::string filePath = commandLine.GetArgument("-file");
@@ -151,7 +153,7 @@ int main(int argc, char* argv[])
 
             frameCount++;
 
-            //std::cout << "True Frame time: " << deltaMs << std::endl;
+            std::cout << "True Frame time: " << deltaMs << std::endl;
             clock.Limit(preferredFrameTime * 1000);
         }
 

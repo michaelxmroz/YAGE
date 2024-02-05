@@ -10,18 +10,49 @@
 
 //set to 0 if you do not want to include windows.h for the visual studio debug out, or console out
 #define VS_OUT 1
+//set to 1 for windows high-precision timer
+#define WIN_TIMER 1
 
 #define DEFAULT_FILE_NAME "log.txt"
-#define FILE_MESSAGE_BUFFER_SIZE 2048
+#define FILE_MESSAGE_BUFFER_SIZE 4096
+#define FILE_MESSAGE_FLUSH_TIME_MICRONS 1000
 
 namespace Logger
 {
     namespace Logging_Helpers
     {
-        void MergeFinalMessage(const EzString& prefix, const EzString& message, const EzString& postfix, EzString& finalMessageOut);
-        void GetFormatedDateTime(EzString& dateTimeOut);
+        constexpr unsigned int ConstLen(const char* str)
+        {
+            return *str ? 1 + ConstLen(str + 1) : 0;
+        } 
+        constexpr const char* GetDateTimeTemplate(unsigned int index)
+        {
+            const char* templateParts[6] = { "/", "/", " ", ":", ":", " - " };
+            return templateParts[index];
+        }
+        constexpr const char* GetFileLineTemplate(unsigned int index)
+        {
+            const char* templateParts[3] = { " - [", "(", ")]\n" };
+            return templateParts[index];
+        }
+        constexpr unsigned int GetFormatedDateTimeLength()
+        {
+            //TODO no magic constant
+            return 20;
+        }
+        constexpr unsigned int GetFileLineTemplateLength()
+        {
+            return ConstLen(GetFileLineTemplate(0)) + ConstLen(GetFileLineTemplate(1)) + ConstLen(GetFileLineTemplate(2));
+        }
+
+        unsigned int UInt32ToStringInPlace(unsigned int value, char* buffer, unsigned int length);
+        void GetFormatedDateTime(char* buffer);
+        void FormatFileLine(char* buffer, unsigned int totalLength, unsigned int fileLength, const char* path, const int line);    
+        void AppendNextDateTimeTemplateElement(char*& buffer, unsigned int index);
+
         void VSDebugOut(const char* message);
         void ConsoleOut(const char* message);
+        unsigned int GetDigits(int value);
 
         // see https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 #pragma warning( push )
@@ -115,6 +146,13 @@ namespace Logger
         }
     }
 
+    template<LogLevel level>
+    static constexpr unsigned int LogLevelStringSize()
+    {
+        return Logging_Helpers::ConstLen(LogLevelToString<level>());
+    }
+
+
 //Output Controllers
 //----------------------------------//
 #if VS_OUT
@@ -122,11 +160,9 @@ namespace Logger
     {
     public:
         template<LogLevel level>
-        static void Output(const EzString& prefix, const EzString& message, const EzString& postfix)
+        static void Output(const EzString& message)
         {
-            EzString finalMessage;
-            Logging_Helpers::MergeFinalMessage(prefix, message.c_str(), postfix, finalMessage);
-            Logging_Helpers::VSDebugOut(finalMessage.c_str());
+            Logging_Helpers::VSDebugOut(message.c_str());
         };
     };
 #endif
@@ -135,11 +171,9 @@ namespace Logger
     {
     public:
         template<LogLevel level>
-        static void Output(const EzString& prefix, const EzString& message, const EzString& postfix)
+        static void Output(const EzString& message)
         {
-            EzString finalMessage;
-            Logging_Helpers::MergeFinalMessage(prefix, message.c_str(), postfix, finalMessage);
-            Logging_Helpers::ConsoleOut(finalMessage.c_str());
+            Logging_Helpers::ConsoleOut(message.c_str());
         };
     };
 
@@ -152,17 +186,14 @@ namespace Logger
         static void Init(const char* filePath);
 
         template<LogLevel level>
-        static void Output(const EzString& prefix, const EzString& message, const EzString& postfix)
+        static void Output(const EzString& message)
         {
             if (!m_instance)
             {
                 Init(DEFAULT_FILE_NAME);
             }
 
-            EzString finalMessage;
-            Logging_Helpers::MergeFinalMessage(prefix, message.c_str(), postfix, finalMessage);
-
-            m_instance.get()->m_writer.m_buffer.Push(finalMessage);
+            m_instance.get()->m_writer.m_buffer.Push(message);
         };
 
     private:
@@ -202,32 +233,88 @@ namespace Logger
     {
     public:
         template <LogLevel level>
-        static void Log(const EzString& message, const char* path, const int line)
+        static void Log(const char* message, const char* path, const int line)
         {
             if constexpr ((static_cast<unsigned int>(level) & static_cast<unsigned int>(severity)) == 0)
             {
                 return;
             }
 
-            EzString prefix("");
-            EzString postfix("");
+            unsigned int prefixLength = 0;
+            unsigned int messageLength = static_cast<unsigned int>(strlen(message));
+            unsigned int postfixLength = 0;
+            unsigned int pathLength = 0;
+
+            GetTotalMessageLength<level>(prefixLength, postfixLength, pathLength, path, line);
+
+            unsigned int totalLength = prefixLength + messageLength + postfixLength;
+            EzString finalMessageBuffer;
+            finalMessageBuffer.resize(totalLength);
+
+            ComposeMessage<level>(finalMessageBuffer, prefixLength, message, messageLength, postfixLength, pathLength, path, line);
+
+            output::Output<level>(finalMessageBuffer);
+        }
+
+        template<LogLevel level>
+        static void ComposeMessage(std::string& finalMessageBuffer, unsigned int prefixLength, const char* message, unsigned int messageLength, unsigned int postfixLength, unsigned int pathLength, const char* path, int line)
+        {
+            char* writePosition = &finalMessageBuffer[0];
 
             if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::DateTime)) != 0)
             {
-                Logging_Helpers::GetFormatedDateTime(prefix);
-            }
-
-            if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::FileLine)) != 0)
-            {
-                postfix = Logging_Helpers::string_format(" - [%s(%i)]\n", path, line);
+                Logging_Helpers::GetFormatedDateTime(writePosition);
+                writePosition += Logging_Helpers::GetFormatedDateTimeLength();
             }
 
             if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::Level)) != 0)
             {
-                prefix = Logging_Helpers::string_format("%s %s: \n", prefix, LogLevelToString<level>());
+                unsigned int length = LogLevelStringSize<level>();
+                memcpy(writePosition, LogLevelToString<level>(), length);
+                writePosition += length;
             }
 
-            output::Output<level>(prefix, message, postfix);
+            if (prefixLength != 0)
+            {
+                memcpy(writePosition, ": ", 2);
+            }
+
+            writePosition = &finalMessageBuffer[0] + prefixLength;
+            memcpy(writePosition, message, messageLength);
+            writePosition += messageLength;
+
+            if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::FileLine)) != 0)
+            {
+                Logging_Helpers::FormatFileLine(writePosition, postfixLength, pathLength, path, line);
+                writePosition += postfixLength;
+            }
+        }
+
+        template<LogLevel level>
+        static void GetTotalMessageLength(unsigned int& prefixLength, unsigned int& postfixLength, unsigned int& pathLength, const char* path, int line)
+        {
+            if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::DateTime)) != 0)
+            {
+                prefixLength += Logging_Helpers::GetFormatedDateTimeLength();
+            }
+
+            if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::Level)) != 0)
+            {
+                prefixLength += LogLevelStringSize<level>();
+            }
+
+            if (prefixLength != 0)
+            {
+                prefixLength += 2;
+            }
+
+            if constexpr ((static_cast<unsigned int>(verbosity) & static_cast<unsigned int>(LogVerbosityOptions::FileLine)) != 0)
+            {
+                pathLength = static_cast<unsigned int>(strlen(path));
+                postfixLength += pathLength;
+                postfixLength += Logging_Helpers::GetDigits(line);
+                postfixLength += Logging_Helpers::GetFileLineTemplateLength();
+            }
         }
     };
 #pragma warning( pop )
@@ -235,14 +322,14 @@ namespace Logger
 //Compound loggers through template magic
 //----------------------------------//
     template<LogLevel level, class T>
-    void ResolveVariadicLogCall(const EzString& message, const char* path, const int line)
+    void ResolveVariadicLogCall(const char* message, const char* path, const int line)
     {
         T::Log<level>(message, path, line);
     }
 
     template<LogLevel level, class T, class ... loggers>
     typename std::enable_if<sizeof ... (loggers) != 0, void>::type
-        ResolveVariadicLogCall(const EzString& message, const char* path, const int line)
+        ResolveVariadicLogCall(const char* message, const char* path, const int line)
     {
         T::Log<level>(message, path, line);
         ResolveVariadicLogCall<level, loggers ... >(message, path, line);

@@ -14,6 +14,7 @@ public:
 	explicit CPU(bool enableInterruptHandling);
 	explicit CPU(Serializer* serializer);
 	CPU(Serializer* serializer, bool enableInterruptHandling);
+	~CPU();
 
 #if _DEBUG
 	void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback);
@@ -77,6 +78,9 @@ private:
 	std::map<uint64_t, Emulator::DebugCallback> DEBUG_instrCountCallbackMap;
 
 	uint64_t DEBUG_instructionCount = 0;
+
+	char* DEBUG_CPUInstructionLog;
+	const char* DEBUG_LogTemplate = "A:00 F:00 B:00 C:00 D:00 E:00 H:00 L:00 SP:0000 PC:0000 PCMEM:00,00,00,00\n";
 #endif
 };
 

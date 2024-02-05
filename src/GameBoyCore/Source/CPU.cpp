@@ -12,6 +12,50 @@
 #define CPU_STATE_LOGGING 1
 #endif
 
+#if CPU_STATE_LOGGING == 1
+
+inline void HexToString(uint8_t value, char* buffer)
+{
+	const char* LUT = "0123456789ABCDEF";
+	buffer[0] = LUT[value >> 4];
+	buffer[1] = LUT[value & 0xF];
+}
+
+inline void HexToString(uint16_t value, char* buffer)
+{
+	HexToString(static_cast<uint8_t>(value >> 8), buffer);
+	HexToString(static_cast<uint8_t>(value), buffer + 2);
+}
+
+void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
+{
+	const char* hexTemplate = "%02X";
+	const char* hexTemplateLong = "%04X";
+	const uint32_t offsets[14] = { 2,7,12,17,22,27,32,37,43,51,62,65,68,71 };
+
+	char tmpString[5] = { 'X','X','X','X','\0' };
+
+	char* strBuffer = buffer;
+
+	HexToString(registers.A, strBuffer + offsets[0]);
+	HexToString(registers.FLAGS, strBuffer + offsets[1]);
+	HexToString(registers.B, strBuffer + offsets[2]);
+	HexToString(registers.C, strBuffer + offsets[3]);
+	HexToString(registers.D, strBuffer + offsets[4]);
+	HexToString(registers.E, strBuffer + offsets[5]);
+	HexToString(registers.H, strBuffer + offsets[6]);
+	HexToString(registers.L, strBuffer + offsets[7]);
+	HexToString(registers.SP, strBuffer + offsets[8]);
+	HexToString(registers.PC, strBuffer + offsets[9]);
+	HexToString(memory[registers.PC], strBuffer + offsets[10]);
+	HexToString(memory[registers.PC + 1], strBuffer + offsets[11]);
+	HexToString(memory[registers.PC + 2], strBuffer + offsets[12]);
+	HexToString(memory[registers.PC + 3], strBuffer + offsets[13]);
+
+	LOG_CPU_STATE(strBuffer);
+}
+#endif
+
 CPU::CPU()
 	: CPU(nullptr, true)
 {
@@ -579,6 +623,18 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 7 A", 2, 2, &InstructionFunctions::SET_7_A }
 }
 {
+#if CPU_STATE_LOGGING == 1
+	uint32_t templateLength = strlen(DEBUG_LogTemplate) + 1;
+	DEBUG_CPUInstructionLog = new char[templateLength]();
+	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
+#endif
+}
+
+CPU::~CPU()
+{
+#if CPU_STATE_LOGGING == 1
+	delete[] DEBUG_CPUInstructionLog;
+#endif
 }
 
 #if _DEBUG
@@ -709,25 +765,7 @@ void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
 #if CPU_STATE_LOGGING == 1
-	LOG_CPU_STATE(string_format("A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X DIV:%02X TIMA:%02X TMA:%02X\n",
-		m_registers.A,
-		m_registers.FLAGS,
-		m_registers.B,
-		m_registers.C,
-		m_registers.D,
-		m_registers.E,
-		m_registers.H,
-		m_registers.L,
-		m_registers.SP,
-		m_registers.PC,
-		memory[m_registers.PC],
-		memory[m_registers.PC + 1],
-		memory[m_registers.PC + 2],
-		memory[m_registers.PC + 3],
-		memory[0xFF04],
-		memory[0xFF05],
-		memory[0xFF06]
-	).c_str());
+	LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
 #endif
 
 	//Fetch

@@ -5,28 +5,108 @@
 
 
 #if VS_OUT
-#define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
-#undef WIN32_LEAN_AND_MEAN
 #include "debugapi.h"
 #endif // VS_Out
 
+
+#if WIN_TIMER
+#include "synchapi.h"
+#include <profileapi.h>
+
+class Timer
+{
+public:
+    Timer()
+    {
+        QueryPerformanceFrequency(&m_frequency);
+        timeBeginPeriod(1);
+        QueryPerformanceCounter(&m_startTime);
+    }
+    ~Timer()
+    {
+        timeEndPeriod(1);
+    }
+
+    int64_t Query()
+    {
+        QueryPerformanceCounter(&m_endingTime);
+
+        m_endingTime.QuadPart *= 1000000ll;
+        m_endingTime.QuadPart /= m_frequency.QuadPart;
+        return m_endingTime.QuadPart;
+    }
+
+private:
+    LARGE_INTEGER m_startTime;
+    LARGE_INTEGER m_endingTime;
+    LARGE_INTEGER m_frequency;
+};
+#endif
+
 #include <iostream>
 
-void Logger::Logging_Helpers::MergeFinalMessage(const EzString& prefix, const EzString& message, const EzString& postfix, EzString& finalMessageOut)
+unsigned int Logger::Logging_Helpers::UInt32ToStringInPlace(unsigned int value, char* buffer, unsigned int length)
 {
-    finalMessageOut = string_format("%s%s%s", prefix.c_str(), message.c_str(), postfix.c_str());
+    if (buffer == nullptr)
+    {
+        return 0;
+    }
+
+    unsigned int i = length - 1;  // Start from the end of the array
+    char* writePos = buffer + i;
+    unsigned int generatedChars = 0;
+    do {
+        unsigned int prev = i;
+        i /= 10;
+        *writePos-- = '0' + (prev - i);
+        generatedChars++;
+    } while (writePos >= buffer);
+    return generatedChars;
 }
 
-void Logger::Logging_Helpers::GetFormatedDateTime(EzString& dateTimeOut)
+void Logger::Logging_Helpers::GetFormatedDateTime(char* buffer)
 {
     time_t now = std::time(0);
     std::tm ltm{};
     localtime_s(&ltm, &now);
-    std::stringstream time;
-    time << ltm.tm_year + 1900 << "/" << ltm.tm_mon + 1 << "/" << ltm.tm_mday << " " << ltm.tm_hour << ":" << ltm.tm_min <<
-        ":" << ltm.tm_sec << " - ";
-    dateTimeOut = time.str().c_str();
+
+    buffer += UInt32ToStringInPlace(ltm.tm_year + 1900, buffer, 4);
+    AppendNextDateTimeTemplateElement(buffer, 0);
+
+    buffer += UInt32ToStringInPlace(ltm.tm_mon + 1, buffer, 2);
+    AppendNextDateTimeTemplateElement(buffer, 1);
+
+    buffer += UInt32ToStringInPlace(ltm.tm_mday, buffer, 2);
+    AppendNextDateTimeTemplateElement(buffer, 2);
+
+    buffer += UInt32ToStringInPlace(ltm.tm_hour, buffer, 2);
+    AppendNextDateTimeTemplateElement(buffer, 3);
+
+    buffer += UInt32ToStringInPlace(ltm.tm_min, buffer, 2);
+    AppendNextDateTimeTemplateElement(buffer, 4);
+
+    buffer += UInt32ToStringInPlace(ltm.tm_sec, buffer, 2);
+    AppendNextDateTimeTemplateElement(buffer, 5);
+}
+
+void Logger::Logging_Helpers::FormatFileLine(char* buffer, unsigned int totalLength, unsigned int fileLength, const char* path, const int line)
+{
+    char* initialPos = buffer;
+    memcpy(buffer, GetFileLineTemplate(0), ConstLen(GetFileLineTemplate(0)));
+    buffer += 4;
+    memcpy(buffer, path, fileLength);
+    buffer += fileLength;
+    memcpy(buffer, GetFileLineTemplate(1), ConstLen(GetFileLineTemplate(1)));
+    buffer++;
+    UInt32ToStringInPlace(line, buffer, GetDigits(line));
+    memcpy(initialPos + totalLength - 3, GetFileLineTemplate(2), ConstLen(GetFileLineTemplate(2)));
+}
+
+void Logger::Logging_Helpers::AppendNextDateTimeTemplateElement(char*& buffer, unsigned int index)
+{
+    memcpy(buffer, GetDateTimeTemplate(index), ConstLen(GetDateTimeTemplate(index)));
+    buffer += ConstLen(GetDateTimeTemplate(index));
 }
 
 Logger::Logging_Helpers::LocklessRingBuffer::LocklessRingBuffer()
@@ -76,6 +156,22 @@ void Logger::Logging_Helpers::ConsoleOut(const char* message)
     std::cout << message;
 }
 
+//see https://stackoverflow.com/questions/1068849/how-do-i-determine-the-number-of-digits-of-an-integer-in-c
+unsigned int Logger::Logging_Helpers::GetDigits(int value)
+{
+    if (value < 0) value = (value == INT_MIN) ? INT_MAX : -value;
+    if (value > 999999999) return 10;
+    if (value > 99999999) return 9;
+    if (value > 9999999) return 8;
+    if (value > 999999) return 7;
+    if (value > 99999) return 6;
+    if (value > 9999) return 5;
+    if (value > 999) return 4;
+    if (value > 99) return 3;
+    if (value > 9) return 2;
+    return 1;
+}
+
 std::unique_ptr<Logger::FileOutput> Logger::FileOutput::m_instance;
 std::once_flag Logger::FileOutput::m_onceFlag;
 
@@ -103,14 +199,23 @@ Logger::FileOutput::FileOutput(const char* filePath)
 void Logger::FileOutput::Writer::operator()()
 {
     m_isRunning = true;
+    Timer timer;
+    uint64_t previousTime = timer.Query();
 
+    EzString message;
     while (m_isRunning)
     {
-        EzString message;
         if (m_buffer.PopIfPossible(message))
         {
             m_fileHandle.get()->write(message.c_str(), message.size());
-            m_fileHandle.get()->flush();
+            
+            uint64_t now = timer.Query();
+            uint64_t delta = now - previousTime;
+            if (delta >= FILE_MESSAGE_FLUSH_TIME_MICRONS)
+            {
+                previousTime = now;
+                m_fileHandle.get()->flush();
+            }
         }
     }
 }
