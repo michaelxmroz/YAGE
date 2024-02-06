@@ -53,13 +53,13 @@ unsigned int Logger::Logging_Helpers::UInt32ToStringInPlace(unsigned int value, 
         return 0;
     }
 
-    unsigned int i = length - 1;  // Start from the end of the array
-    char* writePos = buffer + i;
+    unsigned int i = value;
+    char* writePos = buffer + length - 1; // Start from the end of the array
     unsigned int generatedChars = 0;
     do {
         unsigned int prev = i;
         i /= 10;
-        *writePos-- = '0' + (prev - i);
+        *writePos-- = '0' + (prev - i * 10);
         generatedChars++;
     } while (writePos >= buffer);
     return generatedChars;
@@ -153,7 +153,7 @@ void Logger::Logging_Helpers::VSDebugOut(const char* message)
 
 void Logger::Logging_Helpers::ConsoleOut(const char* message)
 {
-    std::cout << message;
+    printf(message);
 }
 
 //see https://stackoverflow.com/questions/1068849/how-do-i-determine-the-number-of-digits-of-an-integer-in-c

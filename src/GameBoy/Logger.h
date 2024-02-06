@@ -358,7 +358,7 @@ namespace Logger
 
     typedef SubLogger<LogSeverity::All, LogVerbosity::Minimal, FileOutput> FileLoggerMinimal;
 
-    typedef CompoundLogger<VSLogger, ConsoleLogger> DefaultLogger;
+    typedef CompoundLogger<ConsoleLogger> DefaultLogger;
     typedef CompoundLogger<FileLoggerMinimal> MinimalLogger;
 }
 

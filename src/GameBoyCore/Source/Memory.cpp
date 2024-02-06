@@ -87,7 +87,7 @@ void Memory::Write(uint16_t addr, uint8_t value, bool bypassIODelay)
 		{
 			if (m_mbc->WriteRegister(addr, value))
 			{
-				if (m_onExternalRamDisable != nullptr)
+				if (m_onExternalRamDisable != nullptr && m_externalRamMemory != nullptr)
 				{
 					m_onExternalRamDisable(m_externalRamMemory, m_mbc->GetRAMSize());
 				}
