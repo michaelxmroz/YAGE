@@ -60,10 +60,8 @@ public:
 
 	uint8_t operator[](uint16_t addr) const;
 
-	void CPUWrite(uint16_t addr, uint8_t value);
-	void Write(uint16_t addr, uint8_t value, bool bypassIODelay = true);
+	void Write(uint16_t addr, uint8_t value);
 	void WriteDirect(uint16_t addr, uint8_t value);
-	void CommitDelayedWrites();
 	uint8_t ReadDirect(uint16_t addr);
 
 	const SpriteAttributes& ReadOAMEntry(uint8_t index) const;
@@ -127,9 +125,6 @@ private:
 	uint64_t* m_callbackUserData;
 	MemoryBankController* m_mbc;
 	Emulator::PersistentMemoryCallback m_onExternalRamDisable;
-	DelayedWrite m_delayedWrites[MAX_DELAYED_WRITES];
-	uint8_t m_delayedWriteCount;
-
 
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;

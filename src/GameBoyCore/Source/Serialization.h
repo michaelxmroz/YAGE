@@ -6,7 +6,7 @@ enum class ChunkId
 {
 	Memory = 0,
 	CPU = 1,
-	Clock = 2,
+	Timer = 2,
 	MBC = 3,
 };
 

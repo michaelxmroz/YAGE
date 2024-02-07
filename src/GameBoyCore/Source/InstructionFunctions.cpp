@@ -1,6 +1,5 @@
 #include "InstructionFunctions.h"
 #include "Helpers.h"
-#include "Clock.h"
 #include <cassert>
 
 namespace InstructionFunctions
@@ -23,8 +22,8 @@ namespace InstructionFunctions
 		{
 			uint8_t lsb = static_cast<uint8_t>(data);
 			uint8_t msb = static_cast<uint8_t>(data >> 8);
-			memory.CPUWrite(addr++, lsb);
-			memory.CPUWrite(addr, msb);
+			memory.Write(addr++, lsb);
+			memory.Write(addr, msb);
 		}
 
 		FORCE_INLINE void SetZeroFlag(uint8_t result, Registers* registers)
@@ -623,7 +622,7 @@ uint32_t InstructionFunctions::STOP(const char* mnemonic, Registers* registers, 
 {
 	registers->PC++;
 	registers->CpuState = Registers::State::Stop;
-	Clock::ResetDivider(&memory, 0x00, 0, 0, nullptr);
+	memory.Write(0xFF04, 0); // Reset divider
 	LOG_INSTRUCTION(mnemonic);
 	return 0;
 }
@@ -633,28 +632,28 @@ uint32_t InstructionFunctions::STOP(const char* mnemonic, Registers* registers, 
 //-------------------------------------------------------------------------------------------------
 uint32_t InstructionFunctions::LD_mBC_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->BC, registers->A);
+	memory.Write(registers->BC, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mDE_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->DE, registers->A);
+	memory.Write(registers->DE, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHLinc_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL++, registers->A);
+	memory.Write(registers->HL++, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHLdec_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL--, registers->A);
+	memory.Write(registers->HL--, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -686,7 +685,7 @@ uint32_t InstructionFunctions::LD_H_n(const char* mnemonic, Registers* registers
 uint32_t InstructionFunctions::LD_mHL_n(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	uint8_t immediate = memory[registers->PC++];
-	memory.CPUWrite(registers->HL, immediate);
+	memory.Write(registers->HL, immediate);
 	LOG_INSTRUCTION(mnemonic, immediate);
     return 0;
 }
@@ -1061,49 +1060,49 @@ uint32_t InstructionFunctions::LD_L_A(const char* mnemonic, Registers* registers
 
 uint32_t InstructionFunctions::LD_mHL_B(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->B);
+	memory.Write(registers->HL, registers->B);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_C(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->C);
+	memory.Write(registers->HL, registers->C);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_D(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->D);
+	memory.Write(registers->HL, registers->D);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_E(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->E);
+	memory.Write(registers->HL, registers->E);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_H(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->H);
+	memory.Write(registers->HL, registers->H);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_L(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->L);
+	memory.Write(registers->HL, registers->L);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
 
 uint32_t InstructionFunctions::LD_mHL_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
-	memory.CPUWrite(registers->HL, registers->A);
+	memory.Write(registers->HL, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -1196,7 +1195,7 @@ uint32_t InstructionFunctions::LDH_mn_A(const char* mnemonic, Registers* registe
 {
 	uint8_t immediate = memory[registers->PC++];
 	uint16_t addr = Helpers::u16(immediate, 0xFF);
-	memory.CPUWrite(addr, registers->A);
+	memory.Write(addr, registers->A);
 	LOG_INSTRUCTION(mnemonic, immediate);
     return 0;
 }
@@ -1213,7 +1212,7 @@ uint32_t InstructionFunctions::LDH_A_mn(const char* mnemonic, Registers* registe
 uint32_t InstructionFunctions::LDH_mC_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	uint16_t addr = Helpers::u16(registers->C, 0xFF);
-	memory.CPUWrite(addr, registers->A);
+	memory.Write(addr, registers->A);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -1229,7 +1228,7 @@ uint32_t InstructionFunctions::LDH_A_mC(const char* mnemonic, Registers* registe
 uint32_t InstructionFunctions::LD_mnn_A(const char* mnemonic, Registers* registers, Memory& memory)
 {
 	uint16_t immediate = Helpers::Read16Bit(registers->PC, memory);
-	memory.CPUWrite(immediate, registers->A);
+	memory.Write(immediate, registers->A);
 	LOG_INSTRUCTION(mnemonic, immediate);
     return 0;
 }
@@ -1279,7 +1278,7 @@ uint32_t InstructionFunctions::INC_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t prevReg = memory[registers->HL];
 	uint8_t reg = prevReg + 1;
-	memory.CPUWrite(registers->HL, reg);
+	memory.Write(registers->HL, reg);
 	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
@@ -1363,7 +1362,7 @@ uint32_t InstructionFunctions::DEC_mHL(const char* mnemonic, Registers* register
 {	 
 	uint8_t prevReg = memory[registers->HL];
 	uint8_t reg = prevReg - 1;
-	memory.CPUWrite(registers->HL, reg);
+	memory.Write(registers->HL, reg);
 	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
@@ -2034,7 +2033,7 @@ uint32_t InstructionFunctions::RLC_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::RotateLeft(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2092,7 +2091,7 @@ uint32_t InstructionFunctions::RRC_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::RotateRight(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2150,7 +2149,7 @@ uint32_t InstructionFunctions::RL_mHL(const char* mnemonic, Registers* registers
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::RotateLeftWithCarry(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2208,7 +2207,7 @@ uint32_t InstructionFunctions::RR_mHL(const char* mnemonic, Registers* registers
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::RotateRightWithCarry(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2266,7 +2265,7 @@ uint32_t InstructionFunctions::SLA_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ShiftLeftArithmetic(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2324,7 +2323,7 @@ uint32_t InstructionFunctions::SRA_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ShiftRightArithmetic(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2382,7 +2381,7 @@ uint32_t InstructionFunctions::SWAP_mHL(const char* mnemonic, Registers* registe
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SwapNibbles(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2440,7 +2439,7 @@ uint32_t InstructionFunctions::SRL_mHL(const char* mnemonic, Registers* register
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ShiftRightLogic(val, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -2946,7 +2945,7 @@ uint32_t InstructionFunctions::RES_0_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 0, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3004,7 +3003,7 @@ uint32_t InstructionFunctions::RES_1_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 1, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3062,7 +3061,7 @@ uint32_t InstructionFunctions::RES_2_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 2, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3120,7 +3119,7 @@ uint32_t InstructionFunctions::RES_3_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 3, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3178,7 +3177,7 @@ uint32_t InstructionFunctions::RES_4_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 4, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3236,7 +3235,7 @@ uint32_t InstructionFunctions::RES_5_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 5, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3294,7 +3293,7 @@ uint32_t InstructionFunctions::RES_6_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 6, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3352,7 +3351,7 @@ uint32_t InstructionFunctions::RES_7_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::ResetBit(val, 7, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3410,7 +3409,7 @@ uint32_t InstructionFunctions::SET_0_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 0, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3468,7 +3467,7 @@ uint32_t InstructionFunctions::SET_1_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 1, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3526,7 +3525,7 @@ uint32_t InstructionFunctions::SET_2_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 2, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3584,7 +3583,7 @@ uint32_t InstructionFunctions::SET_3_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 3, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3642,7 +3641,7 @@ uint32_t InstructionFunctions::SET_4_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 4, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3700,7 +3699,7 @@ uint32_t InstructionFunctions::SET_5_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 5, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3758,7 +3757,7 @@ uint32_t InstructionFunctions::SET_6_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 6, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }
@@ -3816,7 +3815,7 @@ uint32_t InstructionFunctions::SET_7_mHL(const char* mnemonic, Registers* regist
 {
 	uint8_t val = memory[registers->HL];
 	Helpers::SetBit(val, 7, registers);
-	memory.CPUWrite(registers->HL, val);
+	memory.Write(registers->HL, val);
 	LOG_INSTRUCTION(mnemonic);
     return 0;
 }

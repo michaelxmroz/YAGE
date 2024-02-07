@@ -1,14 +1,14 @@
 #include "gtest/gtest.h"
 #include "Memory.h"
 #include "CPU.h"
-#include "Clock.h"
+#include "Timer.h"
 #include "Interrupts.h"
 
 TEST(ClockTest, Divider)
 {
 	CPU cpu(true);
 	{
-		Clock clock;
+		Timer clock;
 		uint8_t* command = new uint8_t[0x10000];
 		memset(command, 0, 0x10000);
 		Memory mem(command);
@@ -32,7 +32,7 @@ TEST(ClockTest, Timer)
 {
 	CPU cpu(true);
 	{
-		Clock clock;
+		Timer clock;
 		uint8_t* command = new uint8_t[0x10000];
 		memset(command, 0, 0x10000);
 		Memory mem(command);

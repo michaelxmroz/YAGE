@@ -24,7 +24,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(BaseItemPath)\Clock.cpp">
+    <ClCompile Include="..\src\GameBoyCore\Source\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\CPU.cpp">
@@ -86,7 +86,7 @@
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\Clock.h">
+    <ClInclude Include="..\src\GameBoyCore\Source\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\CPU.h">

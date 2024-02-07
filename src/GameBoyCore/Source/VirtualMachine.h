@@ -3,7 +3,7 @@
 #include "Registers.h"
 #include "CPU.h"
 #include "Memory.h"
-#include "Clock.h"
+#include "Timer.h"
 #include "PPU.h"
 #include "Joypad.h"
 #include "Serial.h"
@@ -43,7 +43,7 @@ private:
 	Serializer m_serializer;
 	Memory m_memory;
 	CPU m_cpu;
-	Clock m_clock;
+	Timer m_clock;
 	PPU m_ppu;
 	APU m_apu;
 	Joypad m_joypad;

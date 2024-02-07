@@ -1,6 +1,6 @@
 #include "Clock.h"
 
-inline Clock::Clock() :
+Clock::Clock() :
 	m_backend()
 {
 

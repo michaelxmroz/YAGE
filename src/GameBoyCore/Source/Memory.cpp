@@ -1,5 +1,4 @@
 #include "Memory.h"
-#include "Clock.h"
 #include "Logging.h"
 
 #define ECHO_RAM_BEGIN 0xE000
@@ -23,6 +22,8 @@
 
 #define IO_REGISTERS_BEGIN 0xFF00
 #define IO_REGISTERS_END 0xFF4B
+
+#define DIVIDER_REGISTER 0xFF04
 
 Memory::Memory(Serializer* serializer) : ISerializable(serializer)
 {
@@ -62,12 +63,7 @@ Memory::~Memory()
 	delete[] m_writeCallbacks;
 }
 
-void Memory::CPUWrite(uint16_t addr, uint8_t value)
-{
-	Write(addr, value, true);
-}
-
-void Memory::Write(uint16_t addr, uint8_t value, bool bypassIODelay)
+void Memory::Write(uint16_t addr, uint8_t value)
 {
 	if (!m_externalMemory)
 	{
@@ -116,19 +112,6 @@ void Memory::Write(uint16_t addr, uint8_t value, bool bypassIODelay)
 		}
 	}
 
-	//delay writes to IO registers from the CPU to the end of the cycle, to make sure that they don't start too early. 
-	if (!bypassIODelay && addr >= IO_REGISTERS_BEGIN && addr <= IO_REGISTERS_END)
-	{
-		m_delayedWrites[m_delayedWriteCount++] = { addr, value };
-#if _DEBUG
-		if (m_delayedWriteCount >= MAX_DELAYED_WRITES)
-		{
-			LOG_ERROR("Exeeded max delayed writes per CPU instruction!");
-		}
-#endif
-		return;
-	}
-
 	WriteInternal(addr, value);
 }
 
@@ -139,15 +122,6 @@ void Memory::WriteDirect(uint16_t addr, uint8_t value)
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker[addr] = 1;
 #endif
-}
-
-void Memory::CommitDelayedWrites()
-{
-	for (uint8_t i = 0; i < m_delayedWriteCount; ++i)
-	{
-		WriteInternal(m_delayedWrites[i].m_addr, m_delayedWrites[i].m_value);
-	}
-	m_delayedWriteCount = 0;
 }
 
 uint8_t Memory::ReadDirect(uint16_t addr)
@@ -264,8 +238,6 @@ void Memory::Init()
 	RegisterCallback(BOOTROM_BANK, UnmapBootrom, nullptr);
 
 	m_vRamAccess = VRamAccess::All;
-
-	m_delayedWriteCount = 0;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker = new uint8_t[MEMORY_SIZE];

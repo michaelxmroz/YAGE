@@ -2,11 +2,11 @@
 #include <cstdint>
 #include "Memory.h"
 
-class Clock : ISerializable
+class Timer : ISerializable
 {
 public:
-	Clock();
-	explicit Clock(Serializer* serializer);
+	Timer();
+	explicit Timer(Serializer* serializer);
 
 	void Init(Memory& memory);
 
@@ -18,7 +18,16 @@ private:
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 
-	uint32_t m_dividerCycleAccumulator;
-	uint32_t m_timerCycleAccumulator;
+	union // Div timer
+	{
+		uint16_t m_divTotal;
+		struct
+		{
+			uint8_t m_divLow;
+			uint8_t m_divHigh;
+		};
+	};
+	bool m_previousCycleTimerModuloEdge;
+	uint8_t m_currentCyclesStepped;
 };
 

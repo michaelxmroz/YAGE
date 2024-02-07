@@ -13,7 +13,7 @@ struct Registers
 	  3-0  -     -   -    Not used (always zero)
 	*/
 
-	enum class Flags : unsigned char
+	enum class Flags : uint8_t
 	{
 		cy = 1 << 4,
 		h = 1 << 5,
@@ -31,46 +31,46 @@ struct Registers
 
 	union // Accumulator & Flags
 	{
-		unsigned short AF;
+		uint16_t AF;
 		struct
 		{
-			unsigned char FLAGS;
-			unsigned char A;
+			uint8_t FLAGS;
+			uint8_t A;
 		};
 	};
 
 	union // BC
 	{
-		unsigned short BC;
+		uint16_t BC;
 		struct
 		{
-			unsigned char C;
-			unsigned char B;
+			uint8_t C;
+			uint8_t B;
 		};
 	};
 
 	union // DE
 	{
-		unsigned short DE;
+		uint16_t DE;
 		struct
 		{
-			unsigned char E;
-			unsigned char D;
+			uint8_t E;
+			uint8_t D;
 		};
 	};
 
 	union // HL
 	{
-		unsigned short HL;
+		uint16_t HL;
 		struct
 		{
-			unsigned char L;
-			unsigned char H;
+			uint8_t L;
+			uint8_t H;
 		};
 	};
 
-	unsigned short SP; // Stack Pointer
-	unsigned short PC; // Program Counter
+	uint16_t SP; // Stack Pointer
+	uint16_t PC; // Program Counter
 
 	bool IMEF; // Interrupt Master Enable Flag
 

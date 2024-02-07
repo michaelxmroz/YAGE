@@ -1,5 +1,6 @@
 #include "CPU.h"
 #include "Memory.h"
+#include <algorithm>
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define EXTENSION_OPCODE 0xCB
@@ -50,7 +51,7 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 	HexToString(memory[registers.PC], strBuffer + offsets[10]);
 	HexToString(memory[registers.PC + 1], strBuffer + offsets[11]);
 	HexToString(memory[registers.PC + 2], strBuffer + offsets[12]);
-	HexToString(memory[registers.PC + 3], strBuffer + offsets[13]);
+	HexToString(memory[0xFF05], strBuffer + offsets[13]);
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -665,8 +666,7 @@ void CPU::ClearCallbacks()
 
 uint32_t CPU::Step(Memory& memory)
 {
-	uint32_t mCycles = 1; //always do at least 1 cycle for sync purposes with the other subsystems, even when in halt states
-
+	uint32_t mCycles = 0; 
 	ProcessInterrupts(memory, mCycles);
 
 	m_delayedInterruptHandling = false;
@@ -704,7 +704,7 @@ uint32_t CPU::Step(Memory& memory)
 		ExecuteInstruction(memory, mCycles);
 	}
 
-	return mCycles;
+	return std::max(mCycles, static_cast<uint32_t>(1)); //always do at least 1 cycle for sync purposes with the other subsystems, even when in halt states
 }
 
 void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)

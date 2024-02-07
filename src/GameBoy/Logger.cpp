@@ -14,16 +14,16 @@
 #include "synchapi.h"
 #include <profileapi.h>
 
-class Timer
+class FileWriteTimer
 {
 public:
-    Timer()
+    FileWriteTimer()
     {
         QueryPerformanceFrequency(&m_frequency);
         timeBeginPeriod(1);
         QueryPerformanceCounter(&m_startTime);
     }
-    ~Timer()
+    ~FileWriteTimer()
     {
         timeEndPeriod(1);
     }
@@ -199,7 +199,7 @@ Logger::FileOutput::FileOutput(const char* filePath)
 void Logger::FileOutput::Writer::operator()()
 {
     m_isRunning = true;
-    Timer timer;
+    FileWriteTimer timer;
     uint64_t previousTime = timer.Query();
 
     EzString message;

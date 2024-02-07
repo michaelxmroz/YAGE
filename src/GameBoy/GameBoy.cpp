@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 
         //Debug stops
         //emu->SetPCCallback(0xC1B9, &Debugging::TriggerBreakpoint);
-        //emu->SetInstructionCountCallback(165290, &Debugging::TriggerBreakpoint);
+        //emu->SetInstructionCountCallback(166644, &Debugging::TriggerBreakpoint);
 
         InputHandler inputHandler;
         uint32_t frameCount = 0;
