@@ -126,6 +126,16 @@ void VirtualMachine::ClearCallbacks()
 	m_cpu.ClearCallbacks();
 }
 
+void VirtualMachine::StopOnInstruction(uint8_t instr)
+{
+	m_cpu.StopOnInstruction(instr);
+}
+
+bool VirtualMachine::HasReachedInstruction(uint8_t instr)
+{
+	return m_cpu.HasReachedInstruction(instr);
+}
+
 Registers& VirtualMachine::GetRegisters()
 {
 	return m_cpu.GetRegisters();

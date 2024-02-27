@@ -149,8 +149,8 @@ void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRa
 	m_externalAudioBuffer.sampleRate = sampleRate;
 	m_externalAudioBuffer.currentPosition = startOffset;
 
-	m_HPFLeft.SetParams(100, sampleRate);
-	m_HPFRight.SetParams(100, sampleRate);
+	m_HPFLeft.SetParams(100.0f, static_cast<float>(sampleRate));
+	m_HPFRight.SetParams(100.0f, static_cast<float>(sampleRate));
 
 	m_externalAudioBuffer.resampleRate = static_cast<double>(m_externalAudioBuffer.sampleRate) / CPU_FREQUENCY;
 }

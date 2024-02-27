@@ -37,6 +37,9 @@ public:
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) override;
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback) override;
 	virtual void ClearCallbacks() override;
+
+	void StopOnInstruction(uint8_t instr);
+	bool HasReachedInstruction(uint8_t instr);
 	Registers& GetRegisters();
 #endif
 private:

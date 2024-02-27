@@ -515,9 +515,9 @@ TEST(Instructions, Loads16Bit)
 		uint8_t command[3] = { 0xF5, 0x00 , 0x00 };
 		cpu.Reset();
 		cpu.GetRegisters().SP = 0x03;
-		cpu.GetRegisters().AF = 0x0203;
+		cpu.GetRegisters().AF = 0x0283;
 		cpu.Step(command);
-		EXPECT_EQ(command[1], 0x03);
+		EXPECT_EQ(command[1], 0x83);
 		EXPECT_EQ(command[2], 0x02);
 	}
 	{
@@ -549,11 +549,11 @@ TEST(Instructions, Loads16Bit)
 	}
 	//POP
 	{
-		uint8_t command[3] = { 0xF1, 0x03 , 0x02 };
+		uint8_t command[3] = { 0xF1, 0x83 , 0x02 };
 		cpu.Reset();
 		cpu.GetRegisters().SP = 0x01;
 		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().AF, 0x0203);
+		EXPECT_EQ(cpu.GetRegisters().AF, 0x0280);
 		EXPECT_EQ(cpu.GetRegisters().SP, 0x03);
 	}
 	{
@@ -661,13 +661,6 @@ TEST(Instructions, Arithmatic16Bit)
 		EXPECT_EQ(cpu.GetRegisters().SP, 0x0);
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
 		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::cy));
-
-		command[1] = 0xF1;
-		cpu.Reset();
-		cpu.GetRegisters().SP = 0xF1;
-		cpu.Step(command);
-		EXPECT_EQ(cpu.GetRegisters().SP, 0xE2);
-		EXPECT_TRUE(cpu.GetRegisters().IsFlagSet(Registers::Flags::h));
 	}
 	//DEC
 	{

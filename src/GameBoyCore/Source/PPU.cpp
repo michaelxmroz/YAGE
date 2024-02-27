@@ -182,6 +182,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				uint32_t positionInLine = totalCycles % SCANLINE_DURATION;
 				ScanOAM(positionInLine, memory, processedCycles);
+				processedCycles += 2;
+				positionInLine += 2;
 				if (positionInLine == OAM_SCAN_DURATION)
 				{
 					TransitionToDraw(memory);
@@ -200,7 +202,9 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::HBlank:
 			{
-				if (PPUHelpers::IsNewScanline(totalCycles, m_lineY, memory))
+				processedCycles += 2;
+
+				if (PPUHelpers::IsNewScanline(m_totalCycles + processedCycles, m_lineY, memory))
 				{
 					if (m_totalCycles % 2 != 0)
 					{
@@ -220,7 +224,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 				}
 				else
 				{
-					processedCycles += 2;
+					
 				}
 			}
 			break;
@@ -247,7 +251,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		}
 
 		totalCycles = m_totalCycles + processedCycles;
-
 	}
 
 	m_cycleDebt =  targetCycles - processedCycles;
@@ -270,9 +273,6 @@ const void* PPU::GetFrameBuffer() const
 
 void PPU::TransitionToVBlank(Memory& memory)
 {
-	if (m_frameCount == 1000)
-		UpdateRenderListener();
-
 	Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
 	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode1Interrupt, memory))
 	{
@@ -397,7 +397,15 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 				m_backgroundFIFO.Pop();
 			}
 
-			processedCycles += fineScroll;
+			if (fineScroll > 4)
+			{
+				processedCycles += 8;
+			}
+			else if (fineScroll > 0)
+			{
+				processedCycles += 4;
+			}
+			//processedCycles += fineScroll;
 		}
 	}
 
@@ -450,7 +458,6 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& proc
 		m_lineSprites[m_lineSpriteCount] = attr;
 		m_lineSpriteCount++;
 	}
-	processedCycles += 2;
 }
 
 void PPU::UpdateRenderListener()

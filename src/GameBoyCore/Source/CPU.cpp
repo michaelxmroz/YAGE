@@ -13,7 +13,7 @@
 #define CPU_STATE_LOGGING 1
 #endif
 
-#if CPU_STATE_LOGGING == 1
+#if CPU_STATE_LOGGING
 
 inline void HexToString(uint8_t value, char* buffer)
 {
@@ -639,6 +639,19 @@ CPU::~CPU()
 }
 
 #if _DEBUG
+void CPU::StopOnInstruction(uint8_t instr)
+{
+	DEBUG_stopInstructions.emplace(instr, false);
+}
+
+bool CPU::HasReachedInstruction(uint8_t instr)
+{
+	if (DEBUG_stopInstructions.count(instr))
+	{
+		return DEBUG_stopInstructions[instr];
+	}
+	return false;
+}
 
 void CPU::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback)
 {
@@ -660,8 +673,8 @@ void CPU::ClearCallbacks()
 	DEBUG_PCCallbackMap.clear();
 	DEBUG_instrCallbackMap.clear();
 	DEBUG_instrCountCallbackMap.clear();
+	DEBUG_stopInstructions.clear();
 }
-
 #endif
 
 uint32_t CPU::Step(Memory& memory)
@@ -698,7 +711,15 @@ uint32_t CPU::Step(Memory& memory)
 			}
 		}
 
-
+		if (DEBUG_stopInstructions.size() > 0)
+		{
+			uint8_t instr = memory[m_registers.PC];
+			if (DEBUG_stopInstructions.count(instr))
+			{
+				m_registers.CpuState = Registers::State::Stop;
+				DEBUG_stopInstructions[instr] = true;
+			}
+		}
 #endif
 
 		ExecuteInstruction(memory, mCycles);

@@ -3,6 +3,8 @@
 #include "FileHelper.h"
 #include <algorithm>
 
+#define MOONEYE_STOP_INSTR 0x40
+
 std::vector<std::string> GetExternalTests()
 {
     return FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("-externalTestDir"));
@@ -19,11 +21,8 @@ bool IsFibonacci(Registers& regs)
 }
 
 class ExternalTestFixture : public testing::TestWithParam<std::string> {
-    // You can implement all the usual fixture class members here.
-    // To access the test parameter, call GetParam() from class
-    // TestWithParam<T>.
 };
-/*
+
 TEST_P(ExternalTestFixture, Main) {
     // Inside a test, access the test parameter with the GetParam() method
     // of the TestWithParam<T> class:
@@ -37,28 +36,26 @@ TEST_P(ExternalTestFixture, Main) {
 
     VirtualMachine vm;
 
-    vm.Load("External Test", romBlob.data(), static_cast<uint32_t>(romBlob.size()));
+    vm.Load("External Tests", romBlob.data(), static_cast<uint32_t>(romBlob.size()));
 
-    vm.StopOnInstruction(0x40);
+    vm.StopOnInstruction(MOONEYE_STOP_INSTR);
 
-    uint32_t frameCount = 0;
     bool stopReached = false;
     while (!stopReached)
     {
         EmulatorInputs::InputState inputState;
         vm.Step(inputState, 16.67);
-        stopReached = vm.HasReachedInstruction();
-        frameCount++;
+        stopReached = vm.HasReachedInstruction(MOONEYE_STOP_INSTR);
     }
 
     EXPECT_TRUE(IsFibonacci(vm.GetRegisters()));
 }
-*/
+
 std::string GetTestName(testing::TestParamInfo<std::string> param)
 {
     std::string fileName = FileParser::GetFileNameFromPath(param.param);
-    std::replace(fileName.begin(), fileName.end(), '_', 'X');
-    std::replace(fileName.begin(), fileName.end(), '-', 'X');
+    std::replace(fileName.begin(), fileName.end(), '_', 'x');
+    std::replace(fileName.begin(), fileName.end(), '-', 'x');
     return fileName;
 }
 

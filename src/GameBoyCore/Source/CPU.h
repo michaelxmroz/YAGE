@@ -21,6 +21,8 @@ public:
 	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback);
 	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback);
 	void ClearCallbacks();
+	void StopOnInstruction(uint8_t instr);
+	bool HasReachedInstruction(uint8_t instr);
 
 #endif
 	uint32_t Step(Memory& memory);
@@ -76,6 +78,7 @@ private:
 	std::map<uint16_t, Emulator::DebugCallback> DEBUG_PCCallbackMap;
 	std::map<uint8_t, Emulator::DebugCallback> DEBUG_instrCallbackMap;
 	std::map<uint64_t, Emulator::DebugCallback> DEBUG_instrCountCallbackMap;
+	std::map<uint8_t, bool> DEBUG_stopInstructions;
 
 	uint64_t DEBUG_instructionCount = 0;
 

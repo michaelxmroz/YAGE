@@ -8,6 +8,8 @@ enum class ChunkId
 	CPU = 1,
 	Timer = 2,
 	MBC = 3,
+	APU = 4,
+	PPU = 5,
 };
 
 class ISerializable;
