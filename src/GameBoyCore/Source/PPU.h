@@ -7,10 +7,10 @@
 
 typedef void (*RenderFunc)(const void* image);
 
-class PPU
+class PPU : ISerializable
 {
 public:
-	PPU();
+	PPU(Serializer* serializer);
 
 	~PPU();
 
@@ -49,33 +49,55 @@ private:
 
 	void DisableScreen(Memory& memory);
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
-	void UpdateRenderListener();
 
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
-	uint32_t m_totalCycles;
-	int32_t m_cycleDebt;
-	uint8_t m_lineY;
-	uint8_t m_lineX;
-	uint8_t m_lineSpriteCount;
-	SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
-	uint16_t m_lineSpriteMask;
-	uint8_t m_spritePrefetchLine;
+	struct PPUData
+	{
+		PPUData()
+			: m_totalCycles(0)
+			, m_lineY(0)
+			, m_lineSpriteCount(0)
+			, m_frameCount(0)
+			, m_backgroundFetcher(false)
+			, m_spriteFetcher(true)
+			, m_lineSprites()
+			, m_lineX(0)
+			, m_windowState(WindowState::NoWindow)
+			, m_state(PPUState::OAMScan)
+			, m_spritePrefetchLine(0)
+			, m_lineSpriteMask(0)
+			, m_cycleDebt(0)
+		{}
 
-	PixelFIFO m_spriteFIFO;
-	PixelFIFO m_backgroundFIFO;
+		uint32_t m_totalCycles;
+		int32_t m_cycleDebt;
+		uint8_t m_lineY;
+		uint8_t m_lineX;
+		uint8_t m_lineSpriteCount;
+		SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
+		uint16_t m_lineSpriteMask;
+		uint8_t m_spritePrefetchLine;
 
-	PixelFetcher m_backgroundFetcher;
-	PixelFetcher m_spriteFetcher;
+		PixelFIFO m_spriteFIFO;
+		PixelFIFO m_backgroundFIFO;
 
-	WindowState m_windowState;
+		PixelFetcher m_backgroundFetcher;
+		PixelFetcher m_spriteFetcher;
 
+		WindowState m_windowState;
+
+		uint32_t m_frameCount;
+
+		PPUState m_state;
+	} data;
 	void* m_activeFrame;
 	void* m_backBuffer;
-	RenderFunc m_renderCallback;
 
-	uint32_t m_frameCount;
 
-	PPUState m_state;
+
+	// Inherited via ISerializable
+	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
+	void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 };
 

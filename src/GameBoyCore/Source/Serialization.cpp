@@ -161,13 +161,13 @@ const ISerializable::Chunk* ISerializable::FindChunk(const Chunk* chunks, const 
 	return nullptr;
 }
 
-void ISerializable::WriteAndMove(uint8_t* destination, const void* source, const uint32_t& size)
+void ISerializable::WriteAndMove(uint8_t*& destination, const void* source, const uint32_t& size)
 {
 	memcpy(destination, source, static_cast<size_t>(size));
 	destination += size;
 }
 
-void ISerializable::ReadAndMove(const uint8_t* source, void* destination, const uint32_t& size)
+void ISerializable::ReadAndMove(const uint8_t*& source, void* destination, const uint32_t& size)
 {
 	memcpy(destination, source, static_cast<size_t>(size));
 	source += size;

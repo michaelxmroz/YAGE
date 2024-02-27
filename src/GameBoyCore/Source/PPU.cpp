@@ -113,21 +113,8 @@ namespace PPUHelpers
 	}
 }
 
-PPU::PPU()
-	: m_totalCycles(0)
-	, m_lineY(0)
-	, m_lineSpriteCount(0)
-	, m_frameCount(0)
-	, m_renderCallback(nullptr)
-	, m_backgroundFetcher(false)
-	, m_spriteFetcher(true)
-	, m_lineSprites()
-	, m_lineX(0)
-	, m_windowState(WindowState::NoWindow)
-	, m_state(PPUState::OAMScan)
-	, m_spritePrefetchLine(0)
-	, m_lineSpriteMask(0)
-	, m_cycleDebt(0)
+PPU::PPU(Serializer* serializer) : ISerializable(serializer)
+	, data()
 {
 	m_activeFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
 	m_backBuffer = new RGBA[EmulatorConstants::SCREEN_SIZE];
@@ -162,7 +149,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 {
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
-		if (m_totalCycles != 0)
+		if (data.m_totalCycles != 0)
 		{
 			DisableScreen(memory);
 		}
@@ -170,13 +157,13 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	}
 
 	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
-	targetCycles += m_cycleDebt;
+	targetCycles += data.m_cycleDebt;
 	uint32_t processedCycles = 0;
-	uint32_t totalCycles = m_totalCycles;
+	uint32_t totalCycles = data.m_totalCycles;
 
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
-		switch (m_state)
+		switch (data.m_state)
 		{
 			case PPUState::OAMScan:
 			{
@@ -194,7 +181,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				DrawPixels(memory, processedCycles);
 
-				if (m_lineX == EmulatorConstants::SCREEN_WIDTH)
+				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
 					TransitionToHBlank(memory);
 				}
@@ -204,14 +191,14 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				processedCycles += 2;
 
-				if (PPUHelpers::IsNewScanline(m_totalCycles + processedCycles, m_lineY, memory))
+				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
-					if (m_totalCycles % 2 != 0)
+					if (data.m_totalCycles % 2 != 0)
 					{
-						m_totalCycles--;
+						data.m_totalCycles--;
 					}
 
-					if (m_lineY == EmulatorConstants::SCREEN_HEIGHT)
+					if (data.m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
 						SwapBackbuffer();
 
@@ -230,15 +217,15 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::VBlank:
 			{
-				if (PPUHelpers::IsNewScanline(totalCycles, m_lineY, memory))
+				if (PPUHelpers::IsNewScanline(totalCycles, data.m_lineY, memory))
 				{
-					if (m_lineY == 0)
+					if (data.m_lineY == 0)
 					{
-						m_cycleDebt = 0;
+						data.m_cycleDebt = 0;
 
 						totalCycles = 0;
-						m_totalCycles = totalCycles;
-						m_frameCount++;
+						data.m_totalCycles = totalCycles;
+						data.m_frameCount++;
 						TransitionToOAMScan(memory);
 					}
 				}
@@ -250,13 +237,13 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 		}
 
-		totalCycles = m_totalCycles + processedCycles;
+		totalCycles = data.m_totalCycles + processedCycles;
 	}
 
-	m_cycleDebt =  targetCycles - processedCycles;
+	data.m_cycleDebt =  targetCycles - processedCycles;
 
-	memory.Write(LY_REGISTER, m_lineY);
-	m_totalCycles += processedCycles;
+	memory.Write(LY_REGISTER, data.m_lineY);
+	data.m_totalCycles += processedCycles;
 }
 
 void PPU::SwapBackbuffer()
@@ -279,7 +266,7 @@ void PPU::TransitionToVBlank(Memory& memory)
 		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 	}
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::VBlank), memory);
-	m_state = PPUState::VBlank;
+	data.m_state = PPUState::VBlank;
 }
 
 void PPU::TransitionToHBlank(Memory& memory)
@@ -290,28 +277,28 @@ void PPU::TransitionToHBlank(Memory& memory)
 	}
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
-	m_state = PPUState::HBlank;
+	data.m_state = PPUState::HBlank;
 }
 
 void PPU::TransitionToDraw(Memory& memory)
 {
-	m_lineX = 0;
-	m_backgroundFIFO.Clear();
-	m_spriteFIFO.Clear();
-	m_backgroundFetcher.Reset();
-	m_spriteFetcher.Reset();
+	data.m_lineX = 0;
+	data.m_backgroundFIFO.Clear();
+	data.m_spriteFIFO.Clear();
+	data.m_backgroundFetcher.Reset();
+	data.m_spriteFetcher.Reset();
 
 	memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::Drawing), memory);
-	m_state = PPUState::Drawing;
+	data.m_state = PPUState::Drawing;
 }
 
 void PPU::TransitionToOAMScan(Memory& memory)
 {
-	m_lineSpriteCount = 0;
-	m_lineSpriteMask = 0;
-	m_spritePrefetchLine = 0;
-	m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && m_lineY >= memory[WY_REGISTER] ? WindowState::InScanline : WindowState::NoWindow;
+	data.m_lineSpriteCount = 0;
+	data.m_lineSpriteMask = 0;
+	data.m_spritePrefetchLine = 0;
+	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory[WY_REGISTER] ? WindowState::InScanline : WindowState::NoWindow;
 
 	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode2Interrupt, memory))
 	{
@@ -319,82 +306,81 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	}
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::OAMScan), memory);
 	memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
-	m_state = PPUState::OAMScan;
+	data.m_state = PPUState::OAMScan;
 }
 
 void PPU::DisableScreen(Memory& memory)
 {
 	memory.Write(LY_REGISTER, 0);
-	m_totalCycles = 0;
-	m_cycleDebt = 0;
-	m_lineY = 0x0;
+	data.m_totalCycles = 0;
+	data.m_cycleDebt = 0;
+	data.m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	TransitionToOAMScan(memory);
-	UpdateRenderListener();
 }
 
 void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
 	processedCycles += 2;
 
-	if (m_windowState == WindowState::InScanline && m_lineX + 7 >= memory[WX_REGISTER])
+	if (data.m_windowState == WindowState::InScanline && data.m_lineX + 7 >= memory[WX_REGISTER])
 	{
-		m_backgroundFetcher.Reset();
-		m_backgroundFIFO.Clear();
-		m_backgroundFetcher.FetchWindow();
-		m_windowState = WindowState::Draw;
+		data.m_backgroundFetcher.Reset();
+		data.m_backgroundFIFO.Clear();
+		data.m_backgroundFetcher.FetchWindow();
+		data.m_windowState = WindowState::Draw;
 	}
 	
 	uint8_t currentSpriteIndex;
 
-	if (m_lineX == 0)
+	if (data.m_lineX == 0)
 	{
-		while (m_spritePrefetchLine < SPRITE_SINGLE_SIZE)
+		while (data.m_spritePrefetchLine < SPRITE_SINGLE_SIZE)
 		{
-			if (GetCurrentSprite(currentSpriteIndex, SPRITE_SINGLE_SIZE - m_spritePrefetchLine))
+			if (GetCurrentSprite(currentSpriteIndex, SPRITE_SINGLE_SIZE - data.m_spritePrefetchLine))
 			{
-				m_spriteFetcher.SetSpriteAttributes(&m_lineSprites[currentSpriteIndex]);
-				bool fetchFinished = m_spriteFetcher.Step(m_lineX, m_lineY, m_spriteFIFO, processedCycles, memory);
+				data.m_spriteFetcher.SetSpriteAttributes(&data.m_lineSprites[currentSpriteIndex]);
+				bool fetchFinished = data.m_spriteFetcher.Step(data.m_lineX, data.m_lineY, data.m_spriteFIFO, processedCycles, memory);
 				if (fetchFinished)
 				{
-					m_lineSpriteMask |= (1 << currentSpriteIndex);
+					data.m_lineSpriteMask |= (1 << currentSpriteIndex);
 				}
 				return;
 			}
-			m_spritePrefetchLine++;
+			data.m_spritePrefetchLine++;
 		}
 	}
 
 	if (GetCurrentSprite(currentSpriteIndex, 8))
 	{
-		m_spriteFetcher.SetSpriteAttributes(&m_lineSprites[currentSpriteIndex]);
-		bool fetchFinished = m_spriteFetcher.Step(m_lineX, m_lineY, m_spriteFIFO, processedCycles, memory);
+		data.m_spriteFetcher.SetSpriteAttributes(&data.m_lineSprites[currentSpriteIndex]);
+		bool fetchFinished = data.m_spriteFetcher.Step(data.m_lineX, data.m_lineY, data.m_spriteFIFO, processedCycles, memory);
 		if (fetchFinished)
 		{
-			m_lineSpriteMask |= (1 << currentSpriteIndex);
+			data.m_lineSpriteMask |= (1 << currentSpriteIndex);
 		}
 		return;
 	}
 	else
 	{
-		m_backgroundFetcher.Step(m_lineX, m_lineY, m_backgroundFIFO, processedCycles, memory);
+		data.m_backgroundFetcher.Step(data.m_lineX, data.m_lineY, data.m_backgroundFIFO, processedCycles, memory);
 	}
 	
-	if (m_lineX == 0)
+	if (data.m_lineX == 0)
 	{
 		uint8_t fineScroll = memory[SCX_REGISTER] & 0x7;
 
-		if (m_windowState == WindowState::Draw)
+		if (data.m_windowState == WindowState::Draw)
 		{
 			fineScroll =  0x7 - memory[WX_REGISTER] & 0x7;
 		}
 
-		if (fineScroll > 0 && m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
+		if (fineScroll > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
 		{
 			for (uint8_t i = 0; i < fineScroll; ++i)
 			{
-				m_backgroundFIFO.Pop();
+				data.m_backgroundFIFO.Pop();
 			}
 
 			if (fineScroll > 4)
@@ -409,7 +395,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		}
 	}
 
-	if (m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE )
+	if (data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE )
 	{
 		RenderNextPixel(memory);
 		RenderNextPixel(memory);
@@ -418,17 +404,17 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 
 void PPU::RenderNextPixel(Memory& memory)
 {
-	Pixel bgPixel = m_backgroundFIFO.Pop();
+	Pixel bgPixel = data.m_backgroundFIFO.Pop();
 	RGBA pixelColor = PPUHelpers::ResolvePixelColor(bgPixel.m_color, BGP_REGISTER, memory);
 
-	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory) && m_windowState != WindowState::Draw)
+	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory) && data.m_windowState != WindowState::Draw)
 	{
 		pixelColor = SCREEN_COLORS[0];
 	}
 
-	if (m_spriteFIFO.Size() > 0)
+	if (data.m_spriteFIFO.Size() > 0)
 	{
-		Pixel spritePixel = m_spriteFIFO.Pop();
+		Pixel spritePixel = data.m_spriteFIFO.Pop();
 		RGBA spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
 
 		if (PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
@@ -438,9 +424,9 @@ void PPU::RenderNextPixel(Memory& memory)
 		}
 	}
 
-	uint32_t renderIndex = m_lineX + m_lineY * EmulatorConstants::SCREEN_WIDTH;
+	uint32_t renderIndex = data.m_lineX + data.m_lineY * EmulatorConstants::SCREEN_WIDTH;
 	reinterpret_cast<RGBA*>(m_activeFrame)[renderIndex] = pixelColor;
-	m_lineX++;
+	data.m_lineX++;
 }
 
 void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& processedCycles)
@@ -451,29 +437,21 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& proc
 	bool doubleSize = PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjSize, memory);
 	uint8_t doubleSizeAdjustment = doubleSize ? 0 : SPRITE_SINGLE_SIZE;
 
-	bool isInLine = m_lineY + doubleSizeAdjustment < attr.m_posY && m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY;
+	bool isInLine = data.m_lineY + doubleSizeAdjustment < attr.m_posY && data.m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY;
 
-	if (m_lineSpriteCount < MAX_SPRITES_PER_LINE && isInLine)
+	if (data.m_lineSpriteCount < MAX_SPRITES_PER_LINE && isInLine)
 	{
-		m_lineSprites[m_lineSpriteCount] = attr;
-		m_lineSpriteCount++;
-	}
-}
-
-void PPU::UpdateRenderListener()
-{
-	if (m_renderCallback != nullptr)
-	{
-		m_renderCallback(m_activeFrame);
+		data.m_lineSprites[data.m_lineSpriteCount] = attr;
+		data.m_lineSpriteCount++;
 	}
 }
 
 bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 {
-	for (uint8_t i = 0; i < m_lineSpriteCount; ++i)
+	for (uint8_t i = 0; i < data.m_lineSpriteCount; ++i)
 	{
-		int16_t posDifference = m_lineSprites[i].m_posX - (m_lineX + offset);
-		bool isAvailable = (m_lineSpriteMask & (1 << i)) == 0;
+		int16_t posDifference = data.m_lineSprites[i].m_posX - (data.m_lineX + offset);
+		bool isAvailable = (data.m_lineSpriteMask & (1 << i)) == 0;
 		if (isAvailable && (posDifference == 0 || posDifference == 1))
 		{
 			spriteIndex = i;
@@ -481,4 +459,25 @@ bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 		}
 	}
 	return false;
+}
+
+void PPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& serializationData)
+{
+	uint32_t dataSize = sizeof(data);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, serializationData, dataSize, ChunkId::PPU);
+
+	WriteAndMove(rawData, &data, dataSize);
+}
+
+void PPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* serializationData, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::PPU);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	serializationData += myChunk->m_offset;
+
+	ReadAndMove(serializationData, &data, sizeof(data));
 }

@@ -6,10 +6,10 @@
 
 #define M_PI 3.14159265f
 
-class APU
+class APU : ISerializable
 {
 public:
-	APU();
+	APU(Serializer* serializer);
 	void Init(Memory& memory);
 	void SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset);
 
@@ -55,4 +55,8 @@ private:
 	uint32_t m_previousFrameSequencerStep;
 	HighPassFilter m_HPFLeft;
 	HighPassFilter m_HPFRight;
+
+	// Inherited via ISerializable
+	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
+	void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 };

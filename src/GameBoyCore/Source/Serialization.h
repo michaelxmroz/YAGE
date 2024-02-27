@@ -43,6 +43,6 @@ protected:
 
 	static uint8_t* CreateChunkAndGetDataPtr(std::vector<Chunk>& chunks, std::vector<uint8_t>& data, const uint32_t& writeDataSize, const ChunkId& chunkId);
 	static const Chunk* FindChunk(const Chunk* chunks, const uint32_t& chunkCount, const ChunkId& chunkId);
-	static void WriteAndMove(uint8_t* destination, const void* source, const uint32_t& size);
-	static void ReadAndMove(const uint8_t* source, void* destination, const uint32_t& size);
+	static void WriteAndMove(uint8_t*& destination, const void* source, const uint32_t& size);
+	static void ReadAndMove(const uint8_t*& source, void* destination, const uint32_t& size);
 };

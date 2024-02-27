@@ -98,8 +98,8 @@ namespace APU_Internal
 	}
 }
 
-APU::APU() :
-	m_channels{
+APU::APU(Serializer* serializer) : ISerializable(serializer)
+	, m_channels{
 		ChannelData(0, 64, 4, 7, 0x3F, CHANNEL1_MASTER_CONTROL_ON_OFF_BIT, CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, CHANNEL1_LENGTH_DUTY_REGISTER, CHANNEL1_ENVELOPE_REGISTER,CHANNEL1_FREQUENCY_LOW_REGISTER, CHANNEL1_SWEEP_REGISTER),
 		ChannelData(1, 64, 4, 7, 0x3F, CHANNEL2_MASTER_CONTROL_ON_OFF_BIT, CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, CHANNEL2_LENGTH_DUTY_REGISTER, CHANNEL2_ENVELOPE_REGISTER, CHANNEL2_FREQUENCY_LOW_REGISTER, 0x0),
 		ChannelData(2, 256, 2, 31, 0xFF, CHANNEL3_MASTER_CONTROL_ON_OFF_BIT, CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, CHANNEL3_LENGTH_REGISTER, CHANNEL3_VOLUME_REGISTER, CHANNEL3_FREQUENCY_LOW_REGISTER, CHANNEL3_ON_OFF_REGISTER),
@@ -294,6 +294,41 @@ void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, u
 		channel.m_triggered = (newValue & CONTROL_REGISTER_TRIGGER_BIT) != 0;
 		break;
 	}
+}
+
+void APU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t dataSize = sizeof(ChannelData) * 4 + sizeof(HighPassFilter) * 2 + sizeof(uint32_t);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::APU);
+
+	for (uint32_t i = 0; i < CHANNEL_COUNT; ++i)
+	{
+		WriteAndMove(rawData, m_channels + i, sizeof(ChannelData));
+	}
+
+	WriteAndMove(rawData, &m_HPFLeft, sizeof(HighPassFilter));
+	WriteAndMove(rawData, &m_HPFRight, sizeof(HighPassFilter));
+	WriteAndMove(rawData, &m_previousFrameSequencerStep, sizeof(uint32_t));
+}
+
+void APU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::APU);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	for (uint32_t i = 0; i < CHANNEL_COUNT; ++i)
+	{
+		ReadAndMove(data, m_channels + i, sizeof(ChannelData));
+	}
+
+	ReadAndMove(data, &m_HPFLeft, sizeof(HighPassFilter));
+	ReadAndMove(data, &m_HPFRight, sizeof(HighPassFilter));
+	ReadAndMove(data, &m_previousFrameSequencerStep, sizeof(uint32_t));
 }
 
 APU::HighPassFilter::HighPassFilter() :

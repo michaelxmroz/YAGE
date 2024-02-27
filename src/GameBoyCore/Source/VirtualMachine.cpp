@@ -11,6 +11,9 @@ VirtualMachine::VirtualMachine()
 	, m_clock(&m_serializer)
 	, m_frameRendered(false)
 	, m_stepDuration(0.0)
+	, m_ppu(&m_serializer)
+	, m_apu(&m_serializer)
+	, m_samplesGenerated(0)
 {
 }
 
