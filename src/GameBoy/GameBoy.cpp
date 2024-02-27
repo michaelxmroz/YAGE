@@ -13,8 +13,6 @@
 #define PERSISTENT_MEMORY_FILE_ENDING "sav"
 #define SAVE_STATE_FILE_ENDING "ssf"
 
-#define DEFAULT_FRAME_DURATION 16667
-
 static std::string s_persistentMemoryPath;
 
 void SavePersistentMemory(const void* data, uint32_t size)
