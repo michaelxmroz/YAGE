@@ -4,6 +4,7 @@
 #include "backends/imgui_impl_vulkan.h"
 #include "Logger.h"
 #include "Logging.h"
+#include "EngineState.h"
 
 static void check_vk_result(VkResult err)
 {
@@ -29,13 +30,16 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 
 namespace UI_Internal
 {
-    void DrawMainMenuBar()
+    void DrawMainMenuBar(EngineData& data)
     {
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Reset")) {}
+                if (ImGui::MenuItem("Reset")) 
+                {
+                	data.m_state = EngineData::State::RESET;
+                }
                 if (ImGui::MenuItem("Load")) 
                 {
                     Backend::OpenFileDialog();
@@ -97,7 +101,7 @@ UI::UI(RendererVulkan& renderer)
     }
 }
 
-void UI::Prepare()
+void UI::Prepare(EngineData& data)
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -105,7 +109,7 @@ void UI::Prepare()
     bool show = true;
     ImGui::ShowDemoWindow(&show);
 
-    UI_Internal::DrawMainMenuBar();
+    UI_Internal::DrawMainMenuBar(data);
 }
 
 void UI::Draw(RendererVulkan& renderer)

@@ -142,7 +142,7 @@ inline void EngineController::RunEmulatorLoop()
             deltaMs = m_preferredFrameTime;
         }
 
-        m_UI->Prepare();
+        m_UI->Prepare(m_data);
 
         EmulatorInputs::InputState inputState;
         m_inputHandler->Update(inputState);
