@@ -60,13 +60,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>propsys.lib;shlwapi.lib;comctl32.lib;GameBoyCore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.268.0\Lib;$(SolutionDir)\..\externalLibs\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -78,7 +78,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -97,10 +97,20 @@
     <ClCompile Include="$(BaseItemPath)\Input.cpp" />
     <ClCompile Include="$(BaseItemPath)\miniz.c" />
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\imgui.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="..\src\GameBoy\Audio.cpp" />
     <ClCompile Include="..\src\GameBoy\AudioPortaudio.cpp" />
     <ClCompile Include="..\src\GameBoy\BackendWin32.cpp" />
     <ClCompile Include="..\src\GameBoy\Debugging.cpp" />
+    <ClCompile Include="..\src\GameBoy\EngineController.cpp" />
+    <ClCompile Include="..\src\GameBoy\EngineState.cpp" />
     <ClCompile Include="..\src\GameBoy\Logger.cpp" />
     <ClCompile Include="..\src\GameBoy\Logging.cpp" />
     <ClCompile Include="..\src\GameBoy\MiniMath.cpp" />
@@ -108,6 +118,7 @@
     <ClCompile Include="..\src\GameBoy\ShaderCompiler.cpp" />
     <ClCompile Include="..\src\GameBoy\Clock.cpp" />
     <ClCompile Include="..\src\GameBoy\TimerWin32.cpp" />
+    <ClCompile Include="..\src\GameBoy\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -115,10 +126,21 @@
     <ClInclude Include="$(BaseItemPath)\Input.h" />
     <ClInclude Include="$(BaseItemPath)\miniz.h" />
     <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h" />
+    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.h" />
+    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="..\externalLibs\imgui\imconfig.h" />
+    <ClInclude Include="..\externalLibs\imgui\imgui.h" />
+    <ClInclude Include="..\externalLibs\imgui\imgui_internal.h" />
+    <ClInclude Include="..\externalLibs\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\externalLibs\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\externalLibs\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\src\GameBoy\Audio.h" />
     <ClInclude Include="..\src\GameBoy\AudioPortaudio.h" />
     <ClInclude Include="..\src\GameBoy\BackendWin32.h" />
     <ClInclude Include="..\src\GameBoy\Debugging.h" />
+    <ClInclude Include="..\src\GameBoy\EngineController.h" />
+    <ClInclude Include="..\src\GameBoy\EngineState.h" />
     <ClInclude Include="..\src\GameBoy\Logger.h" />
     <ClInclude Include="..\src\GameBoy\Logging.h" />
     <ClInclude Include="..\src\GameBoy\MiniMath.h" />
@@ -126,14 +148,19 @@
     <ClInclude Include="..\src\GameBoy\ShaderCompiler.h" />
     <ClInclude Include="..\src\GameBoy\Clock.h" />
     <ClInclude Include="..\src\GameBoy\TimerWin32.h" />
+    <ClInclude Include="..\src\GameBoy\UI.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="..\src\GameBoy\main.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\src\GameBoy\main.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\externalLibs\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

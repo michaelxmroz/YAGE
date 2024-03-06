@@ -64,7 +64,7 @@ void TimerWin32::Limit(int64_t microSeconds)
             int64_t sleepUs = (microSeconds - deltaUs);
             if (sleepUs > 2000) 
             {
-                uint32_t ms = (sleepUs - 2000) / 1000;
+                uint32_t ms = static_cast<uint32_t>((sleepUs - 2000) / 1000);
                 TimerWin32Internal::WinSleep(ms);
             }
             else 

@@ -13,10 +13,10 @@
 
 #if WIN32_BACKEND
 #include "BackendWin32.h"
-
-typedef BackendWin32 Backend;
 #endif
 #include "MiniMath.h"
+
+class UI;
 
 class RendererVulkan
 {
@@ -27,11 +27,20 @@ public:
 	RendererVulkan(const RendererVulkan& other) = delete;
 	RendererVulkan operator= (const RendererVulkan& other) = delete;
 
-	void Draw(const void* renderedImage);
+	void BeginDraw(const void* renderedImage);
+	void EndDraw();
 	void WaitForIdle();
 	bool RequestExit();
 
+	void* GetWindowHandle()
+	{
+		return m_backend.GetWindowHandle();
+	}
+
 private:
+
+	friend class UI;
+
 	void Init();
 	void CreateInstance();
 	void SelectPhysicalDevice();
@@ -93,8 +102,11 @@ private:
 	std::vector<VkDescriptorSet> m_descriptorSets;
 
 	std::vector<VkCommandBuffer> m_commandBuffers;
+	uint32_t m_commandBufferIndex;
 	VkSemaphore m_imageAvailableSemaphore;
 	VkSemaphore m_renderFinishedSemaphore;
+
+	uint32_t m_graphicsQueueFamilyIndex;
 
 	const Vertex m_fullscreenQuadVertices[4];
 	const uint16_t m_fullscreenQuadIndices[6];

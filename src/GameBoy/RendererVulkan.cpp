@@ -839,6 +839,13 @@ void RendererVulkan::CreateGraphicsPipeline()
 
 	VK_CHECK(vkCreatePipelineLayout(m_logicalDevice, &pipelineLayoutInfo, nullptr, &m_pipelineLayout));
 
+	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+	VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
+	dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateInfo.dynamicStateCount = 2;
+	dynamicStateInfo.pDynamicStates = dynamicStates;
+
 	VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
 	pipelineInfo.stageCount = 2;
 	pipelineInfo.pStages = shaderStages;
@@ -849,7 +856,7 @@ void RendererVulkan::CreateGraphicsPipeline()
 	pipelineInfo.pMultisampleState = &multisampling;
 	pipelineInfo.pDepthStencilState = nullptr;
 	pipelineInfo.pColorBlendState = &colorBlending;
-	pipelineInfo.pDynamicState = nullptr;
+	pipelineInfo.pDynamicState = &dynamicStateInfo;
 	pipelineInfo.layout = m_pipelineLayout;
 	pipelineInfo.renderPass = m_renderPass;
 	pipelineInfo.subpass = 0;
@@ -891,6 +898,8 @@ void RendererVulkan::CreateCommandPool()
 
 	VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 	poolInfo.queueFamilyIndex = queueFamilyIndices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Graphics);
+	m_graphicsQueueFamilyIndex = poolInfo.queueFamilyIndex;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	VK_CHECK(vkCreateCommandPool(m_logicalDevice, &poolInfo, nullptr, &m_commandPool));
 }
@@ -905,43 +914,6 @@ void RendererVulkan::CreateCommandBuffers()
 	allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
 
 	VK_CHECK(vkAllocateCommandBuffers(m_logicalDevice, &allocInfo, m_commandBuffers.data()));
-
-	for (size_t i = 0; i < m_commandBuffers.size(); i++) 
-	{
-		VkCommandBufferBeginInfo beginInfo { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-
-		VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo));
-
-		RendererVulkanInternal::TransitionImageLayout(m_commandBuffers[i], m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		RendererVulkanInternal::CopyBufferToImage(m_commandBuffers[i], m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
-		RendererVulkanInternal::TransitionImageLayout(m_commandBuffers[i], m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		renderPassInfo.renderPass = m_renderPass;
-		renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = VkExtent2D{ m_scaledWidth, m_scaledHeight };
-		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-		VkBuffer vertexBuffers[] = { m_vertexBuffer };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
-
-		vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
-
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(6), 1, 0, 0, 0);
-
-		vkCmdEndRenderPass(m_commandBuffers[i]);
-
-		VK_CHECK(vkEndCommandBuffer(m_commandBuffers[i]));
-	}
 }
 
 void RendererVulkan::CreateSemaphores()
@@ -954,14 +926,18 @@ void RendererVulkan::CreateSemaphores()
 
 void RendererVulkan::CreateDescriptorPool()
 {
-	VkDescriptorPoolSize poolSize{};
-	poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSize.descriptorCount = static_cast<uint32_t>(m_swapChainImages.size());
+	VkDescriptorPoolSize poolSizes[2]{ {} ,{} };
+	//VkDescriptorPoolSize poolSize{};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_swapChainImages.size());
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = 1;
 
 	VkDescriptorPoolCreateInfo poolInfo { VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
-	poolInfo.maxSets = static_cast<uint32_t>(m_swapChainImages.size());
+	poolInfo.poolSizeCount = 2;
+	poolInfo.pPoolSizes = poolSizes;
+	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	poolInfo.maxSets = static_cast<uint32_t>(m_swapChainImages.size()) + 1;
 
 	VK_CHECK(vkCreateDescriptorPool(m_logicalDevice, &poolInfo, nullptr, &m_descriptorPool));
 }
@@ -1178,10 +1154,12 @@ void RendererVulkan::Init()
 }
 
 
-void RendererVulkan::Draw(const void* renderedImage)
+void RendererVulkan::BeginDraw(const void* renderedImage)
 {
 	uint32_t imageIndex;
 	vkAcquireNextImageKHR(m_logicalDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	
+	m_commandBufferIndex = imageIndex;
 	
 	if (renderedImage != nullptr)
 	{
@@ -1192,6 +1170,65 @@ void RendererVulkan::Draw(const void* renderedImage)
 		vkUnmapMemory(m_logicalDevice, m_imageUploadBufferMemory);
 	}
 	
+	//VK_CHECK(vkResetCommandPool(m_logicalDevice, m_commandPool, 0));
+
+	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	VkCommandBuffer& activeBuffer = m_commandBuffers[m_commandBufferIndex];
+	VK_CHECK(vkBeginCommandBuffer(activeBuffer, &beginInfo));
+
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float)m_scaledWidth;
+	viewport.height = (float)m_scaledHeight;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor{};
+	scissor.offset = { 0, 0 };
+	scissor.extent = VkExtent2D{ m_scaledWidth, m_scaledHeight };
+
+	vkCmdSetViewport(activeBuffer, 0, 1, &viewport);
+	vkCmdSetScissor(activeBuffer, 0, 1, &scissor);
+
+	
+	RendererVulkanInternal::TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	RendererVulkanInternal::CopyBufferToImage(activeBuffer, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
+	RendererVulkanInternal::TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+	renderPassInfo.renderPass = m_renderPass;
+	renderPassInfo.framebuffer = m_swapChainFramebuffers[m_commandBufferIndex];
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = VkExtent2D{ m_scaledWidth, m_scaledHeight };
+	VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+	renderPassInfo.clearValueCount = 1;
+	renderPassInfo.pClearValues = &clearColor;
+
+	vkCmdBeginRenderPass(activeBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	
+	vkCmdBindPipeline(activeBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+	VkBuffer vertexBuffers[] = { m_vertexBuffer };
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(activeBuffer, 0, 1, vertexBuffers, offsets);
+
+	vkCmdBindIndexBuffer(activeBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+	vkCmdBindDescriptorSets(activeBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[m_commandBufferIndex], 0, nullptr);
+
+	vkCmdDrawIndexed(activeBuffer, static_cast<uint32_t>(6), 1, 0, 0, 0);
+	
+}
+
+void RendererVulkan::EndDraw()
+{
+	vkCmdEndRenderPass(m_commandBuffers[m_commandBufferIndex]);
+
+	VK_CHECK(vkEndCommandBuffer(m_commandBuffers[m_commandBufferIndex]));
+
 	VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 
 	VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore };
@@ -1200,7 +1237,7 @@ void RendererVulkan::Draw(const void* renderedImage)
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+	submitInfo.pCommandBuffers = &m_commandBuffers[m_commandBufferIndex];
 
 	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore };
 	submitInfo.signalSemaphoreCount = 1;
@@ -1215,11 +1252,12 @@ void RendererVulkan::Draw(const void* renderedImage)
 	VkSwapchainKHR swapChains[] = { m_swapChain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
-	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pImageIndices = &m_commandBufferIndex;
 
 	vkQueuePresentKHR(m_presentQueue, &presentInfo);
 
 	vkQueueWaitIdle(m_presentQueue);
+	
 }
 
 void RendererVulkan::WaitForIdle()

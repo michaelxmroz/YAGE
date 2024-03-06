@@ -11,6 +11,9 @@ public:
 	bool RequestQuit() const;
 
 	void SetWindowTitle(const char* title);
+	HWND* GetWindowHandle();
+
+	static std::string OpenFileDialog();
 private:
 
 	struct WindowState
@@ -32,4 +35,6 @@ private:
 	Window m_window;
 	std::thread m_windowThread;
 };
+
+typedef BackendWin32 Backend;
 
