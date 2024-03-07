@@ -71,7 +71,7 @@ namespace UI_Internal
                 }
                 if (ImGui::MenuItem("Load")) 
                 {
-                    std::string path = Backend::OpenFileDialog();
+                    std::string path = Backend::OpenFileLoadDialog(L"Rom Files (*.gb; *.rom)", L"*.gb;*.rom");
                     if (!path.empty())
                     {
                         data.m_gamePath = path;
@@ -89,8 +89,24 @@ namespace UI_Internal
                     data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
                     data.m_saveLoadPath = "";
                 }
-                if (ImGui::MenuItem("Save state as")) {}
-                if (ImGui::MenuItem("Load state")) {}
+                if (ImGui::MenuItem("Save state as")) 
+                {
+                    std::string path = Backend::OpenFileSaveDialog(L"Save state files (*.ssf)", L"*.ssf", L"ssf");
+                    if (!path.empty())
+                    {
+                        data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
+                        data.m_saveLoadPath = path;
+                    }
+                }
+                if (ImGui::MenuItem("Load state")) 
+                {
+                    std::string path = Backend::OpenFileLoadDialog(L"Save state files (*.ssf)", L"*.ssf");
+                    if (!path.empty())
+                    {
+                        data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
+                        data.m_saveLoadPath = path;
+                    }
+                }
 
                 ImGui::EndMenu();
             }

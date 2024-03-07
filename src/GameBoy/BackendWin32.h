@@ -13,7 +13,8 @@ public:
 	void SetWindowTitle(const char* title);
 	HWND* GetWindowHandle();
 
-	static std::string OpenFileDialog();
+	static std::string OpenFileLoadDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings);
+	static std::string OpenFileSaveDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings, const wchar_t* fileExtension);
 private:
 
 	struct WindowState

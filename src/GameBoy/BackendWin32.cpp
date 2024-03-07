@@ -116,71 +116,45 @@ namespace Win32Internal
         return hwnd;
     }
 
-    /* File Dialog Event Handler *****************************************************************************************************/
-
-    class CDialogEventHandler : public IFileDialogEvents,
-        public IFileDialogControlEvents
+    //Adapted from the Microsoft example code
+    std::string OpenFileDialog(IFileDialog* pfd, DWORD options, const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings)
     {
-    public:
-        // IUnknown methods
-        IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
-        {
-            static const QITAB qit[] = {
-                QITABENT(CDialogEventHandler, IFileDialogEvents),
-                QITABENT(CDialogEventHandler, IFileDialogControlEvents),
-                { 0 },
-    #pragma warning(suppress:4838)
-            };
-            return QISearch(this, qit, riid, ppv);
-        }
+        std::string result("");
 
-        IFACEMETHODIMP_(ULONG) AddRef()
-        {
-            return InterlockedIncrement(&_cRef);
-        }
+        // Set the options on the dialog.
+        DWORD dwFlags;
+        // Before setting, always get the options first in order not to override existing options.
+        Win32Internal::check_winapi_result(pfd->GetOptions(&dwFlags));
 
-        IFACEMETHODIMP_(ULONG) Release()
-        {
-            long cRef = InterlockedDecrement(&_cRef);
-            if (!cRef)
-                delete this;
-            return cRef;
-        }
+        // In this case, get shell items only for file system items.
+        Win32Internal::check_winapi_result(pfd->SetOptions(dwFlags | options));
 
-        // IFileDialogEvents methods
-        IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; };
-        IFACEMETHODIMP OnFolderChange(IFileDialog*) { return S_OK; };
-        IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return S_OK; };
-        IFACEMETHODIMP OnHelp(IFileDialog*) { return S_OK; };
-        IFACEMETHODIMP OnSelectionChange(IFileDialog*) { return S_OK; };
-        IFACEMETHODIMP OnShareViolation(IFileDialog*, IShellItem*, FDE_SHAREVIOLATION_RESPONSE*) { return S_OK; };
-        IFACEMETHODIMP OnTypeChange(IFileDialog* pfd) { return S_OK; };
-        IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return S_OK; };
+        // Set the file types to display only. Notice that, this is a 1-based array.
+        const COMDLG_FILTERSPEC c_rgTypes[] = { fileTypeDescription, fileTypeEndings };
+        Win32Internal::check_winapi_result(pfd->SetFileTypes(ARRAYSIZE(c_rgTypes), c_rgTypes));
 
-        // IFileDialogControlEvents methods
-        IFACEMETHODIMP OnItemSelected(IFileDialogCustomize* pfdc, DWORD dwIDCtl, DWORD dwIDItem) { return S_OK; };
-        IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize*, DWORD) { return S_OK; };
-        IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize*, DWORD, BOOL) { return S_OK; };
-        IFACEMETHODIMP OnControlActivating(IFileDialogCustomize*, DWORD) { return S_OK; };
+        // Show the dialog
+        HRESULT hr = pfd->Show(NULL);
 
-        CDialogEventHandler() : _cRef(1) { };
-    private:
-        ~CDialogEventHandler() { };
-        long _cRef;
-    };
-
-    // Instance creation helper
-    HRESULT CDialogEventHandler_CreateInstance(REFIID riid, void** ppv)
-    {
-        *ppv = NULL;
-        CDialogEventHandler* pDialogEventHandler = new (std::nothrow) CDialogEventHandler();
-        HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
         if (SUCCEEDED(hr))
         {
-            hr = pDialogEventHandler->QueryInterface(riid, ppv);
-            pDialogEventHandler->Release();
+            // Obtain the result, once the user clicks the 'Open' button.
+            // The result is an IShellItem object.
+            IShellItem* psiResult;
+            hr = pfd->GetResult(&psiResult);
+            if (SUCCEEDED(hr))
+            {
+                PWSTR pszFilePath = NULL;
+                hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                if (SUCCEEDED(hr))
+                {
+                    result = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
+                }
+                psiResult->Release();
+            }
         }
-        return hr;
+
+        return result;
     }
 }
 
@@ -225,65 +199,27 @@ HWND* BackendWin32::GetWindowHandle()
     return &m_window.m_state.m_hwnd;
 }
 
-const COMDLG_FILTERSPEC c_rgSaveTypes[] =
-{
-    {L"Rom Files (*.gb; *.rom)",    L"*.gb;*.rom"}
-};
 
-//Adapted from the Microsoft example code
-std::string BackendWin32::OpenFileDialog()
+std::string BackendWin32::OpenFileLoadDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings)
 {
-    std::string result("");
-    // CoCreate the File Open Dialog object.
     IFileDialog* pfd = NULL;
+
     Win32Internal::check_winapi_result(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
-    
-    // Create an event handling object, and hook it up to the dialog.
-    IFileDialogEvents* pfde = NULL;
-    Win32Internal::check_winapi_result(Win32Internal::CDialogEventHandler_CreateInstance(IID_PPV_ARGS(&pfde)));
-    
-    // Hook up the event handler.
-    DWORD dwCookie;
-    Win32Internal::check_winapi_result(pfd->Advise(pfde, &dwCookie));
 
-    // Set the options on the dialog.
-    DWORD dwFlags;
-    // Before setting, always get the options first in order not to override existing options.
-    Win32Internal::check_winapi_result(pfd->GetOptions(&dwFlags));
+    std::string result = Win32Internal::OpenFileDialog(pfd, FOS_FORCEFILESYSTEM, fileTypeDescription, fileTypeEndings);
+    pfd->Release();
 
-    // In this case, get shell items only for file system items.
-    Win32Internal::check_winapi_result(pfd->SetOptions(dwFlags | FOS_FORCEFILESYSTEM));
+    return result;
+}
 
-    // Set the file types to display only. Notice that, this is a 1-based array.
-    Win32Internal::check_winapi_result(pfd->SetFileTypes(ARRAYSIZE(c_rgSaveTypes), c_rgSaveTypes));
+std::string BackendWin32::OpenFileSaveDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings, const wchar_t* fileExtension)
+{
+    IFileSaveDialog* pfd = NULL;
 
-    // Set the default extension to be ".doc" file.
-    Win32Internal::check_winapi_result(pfd->SetDefaultExtension(L"gb"));
-
-    // Show the dialog
-    HRESULT hr = pfd->Show(NULL);
-
-    if (SUCCEEDED(hr))
-    {
-        // Obtain the result, once the user clicks the 'Open' button.
-        // The result is an IShellItem object.
-        IShellItem* psiResult;
-        hr = pfd->GetResult(&psiResult);
-        if (SUCCEEDED(hr))
-        {
-            // We are just going to print out the name of the file for sample sake.
-            PWSTR pszFilePath = NULL;
-            hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-            if (SUCCEEDED(hr))
-            {
-                result = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
-            }
-            psiResult->Release();
-        }
-    }
-
-    pfd->Unadvise(dwCookie);
-    pfde->Release();
+    Win32Internal::check_winapi_result(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
+    pfd->SetDefaultExtension(fileExtension);
+   
+    std::string result = Win32Internal::OpenFileDialog(pfd, NULL, fileTypeDescription, fileTypeEndings);
     pfd->Release();
 
     return result;
