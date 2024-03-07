@@ -42,7 +42,12 @@ namespace UI_Internal
                 }
                 if (ImGui::MenuItem("Load")) 
                 {
-                    Backend::OpenFileDialog();
+                    std::string path = Backend::OpenFileDialog();
+                    if (!path.empty())
+                    {
+                        data.m_gamePath = path;
+                        data.m_state = EngineData::State::RESET;
+                    }
                 }
                 if (ImGui::MenuItem("Recent")) {}
                 if (ImGui::MenuItem("Quick Save", "CTRL+1")) {}

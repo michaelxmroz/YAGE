@@ -11,6 +11,11 @@ void Audio::Terminate()
 	m_backend.Terminate();
 }
 
+void Audio::Pause()
+{
+	m_backend.Pause();
+}
+
 void Audio::Play()
 {
 	m_backend.Play();

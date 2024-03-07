@@ -67,6 +67,16 @@ void AudioPortaudio::Terminate()
     delete[] m_buffer;
 }
 
+void AudioPortaudio::Pause()
+{
+    PaError err;
+    err = Pa_StopStream(m_stream);
+    if (err != paNoError)
+    {
+        ErrorHandler(err);
+    }
+}
+
 void AudioPortaudio::Play()
 {
     m_framesConsumed = 0;

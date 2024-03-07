@@ -191,8 +191,8 @@ inline void EngineController::RunEmulatorLoop()
             m_data.m_state = EngineData::State::EXIT;
         }
 
-        std::cout << "True Frame time: " << deltaMs << std::endl;
+        //std::cout << "True Frame time: " << deltaMs << std::endl;
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }
-
+    m_audio->Pause();
 }

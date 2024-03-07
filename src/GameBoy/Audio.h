@@ -20,7 +20,7 @@ class Audio
 public:
 	void Init();
 	void Terminate();
-
+	void Pause();
 	void Play();
 
 	float* GetAudioBuffer();

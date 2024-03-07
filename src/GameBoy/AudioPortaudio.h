@@ -7,6 +7,7 @@ class AudioPortaudio
 public:
 	void Init();
 	void Terminate();
+	void Pause();
 	void Play();
 	float* GetAudioBuffer();
 	uint32_t GetAudioBufferSize();
