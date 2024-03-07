@@ -5,7 +5,7 @@ std::string EngineController::s_persistentMemoryPath;
 EngineController::EngineController(EngineData state) :
     m_data(state)
 {
-    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 3);
+    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 6);
     m_audio = new Audio();
     m_audio->Init();
     m_UI = new UI(*m_renderer);
@@ -155,24 +155,7 @@ inline void EngineController::RunEmulatorLoop()
                 frameBuffer = m_emulator->GetFrameBuffer();
             }
 
-            //TODO add to UI
-            if (m_inputHandler->m_debugSaveState)
-            {
-                std::vector<uint8_t> saveState = m_emulator->Serialize();
-                std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
-                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                FileParser::Write(saveStatePath, saveState.data(), saveState.size());
-            }
-            else if (m_inputHandler->m_debugLoadState)
-            {
-                std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
-                std::string saveStatePath = string_format("%s%u.%s", fileWithoutEnding.c_str(), 1, SAVE_STATE_FILE_ENDING);
-                std::vector<char> saveState;
-                if (FileParser::Read(saveStatePath, saveState))
-                {
-                    m_emulator->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
-                }
-            }
+            HandleSaveLoad();
 
             if (frameCount == 0)
             {
@@ -195,4 +178,35 @@ inline void EngineController::RunEmulatorLoop()
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }
     m_audio->Pause();
+}
+
+void EngineController::HandleSaveLoad()
+{
+    if (m_data.m_saveLoadState == EngineData::SaveLoadState::SAVE && m_data.m_gameLoaded)
+    {
+        std::vector<uint8_t> saveState = m_emulator->Serialize();
+        std::string saveStatePath = m_data.m_saveLoadPath;
+        if(saveStatePath.empty())
+		{
+			std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
+			saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
+		}
+
+        FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+    }
+    else if (m_data.m_saveLoadState == EngineData::SaveLoadState::LOAD)
+    {
+        std::string saveStatePath = m_data.m_saveLoadPath;
+        if (saveStatePath.empty())
+        {
+            std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
+            saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
+        }
+        std::vector<char> saveState;
+        if (FileParser::Read(saveStatePath, saveState))
+        {
+            m_emulator->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+        }
+    }
+    m_data.m_saveLoadState = EngineData::SaveLoadState::NONE;
 }

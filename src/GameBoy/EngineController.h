@@ -34,6 +34,8 @@ private:
     void CleanupEmulator();
     void RunEmulatorLoop();
 
+    void HandleSaveLoad();
+
     static std::string s_persistentMemoryPath;
 
     EngineData m_data;

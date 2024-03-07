@@ -5,6 +5,9 @@
 
 
 #if VS_OUT
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "Windows.h"
 #include "debugapi.h"
 #endif // VS_Out

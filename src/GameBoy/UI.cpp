@@ -1,10 +1,14 @@
 #include "UI.h"
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Logger.h"
 #include "Logging.h"
 #include "EngineState.h"
+#include <algorithm>
 
 static void check_vk_result(VkResult err)
 {
@@ -30,12 +34,37 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 
 namespace UI_Internal
 {
-    void DrawMainMenuBar(EngineData& data)
+    void DrawMainMenuBar(UIState& state, EngineData& data)
     {
+        ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
+        ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+        if (!data.m_gameLoaded || state.m_submenuShown || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
+        {
+            state.m_showMenuBar = true;
+        }
+        else
+        {
+            state.m_showMenuBar = false;
+        }
+
+        if (state.m_showMenuBar && state.m_menuBarAlpha < 2.0f)
+        {
+            state.m_menuBarAlpha += 0.2f;
+        }
+        else if (!state.m_showMenuBar && state.m_menuBarAlpha > 0.0f)
+        {
+            state.m_menuBarAlpha -= 0.01f;
+        }
+
+        state.m_submenuShown = false;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, std::min(1.0f,state.m_menuBarAlpha));
+
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("File"))
             {
+                state.m_submenuShown = true;
                 if (ImGui::MenuItem("Reset")) 
                 {
                 	data.m_state = EngineData::State::RESET;
@@ -50,8 +79,16 @@ namespace UI_Internal
                     }
                 }
                 if (ImGui::MenuItem("Recent")) {}
-                if (ImGui::MenuItem("Quick Save", "CTRL+1")) {}
-                if (ImGui::MenuItem("Quick Load", "CTRL+2")) {}
+                if (ImGui::MenuItem("Quick Save", "CTRL+1")) 
+                {
+                    data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
+                    data.m_saveLoadPath = "";
+                }
+                if (ImGui::MenuItem("Quick Load", "CTRL+2")) 
+                {
+                    data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
+                    data.m_saveLoadPath = "";
+                }
                 if (ImGui::MenuItem("Save state as")) {}
                 if (ImGui::MenuItem("Load state")) {}
 
@@ -59,6 +96,7 @@ namespace UI_Internal
             }
             if (ImGui::BeginMenu("Edit"))
             {
+                state.m_submenuShown = true;
                 if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
                 if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
                 ImGui::Separator();
@@ -69,6 +107,8 @@ namespace UI_Internal
             }
             ImGui::EndMainMenuBar();
         }
+
+        ImGui::PopStyleVar();
     }
 }
 
@@ -114,7 +154,7 @@ void UI::Prepare(EngineData& data)
     bool show = true;
     ImGui::ShowDemoWindow(&show);
 
-    UI_Internal::DrawMainMenuBar(data);
+    UI_Internal::DrawMainMenuBar(m_state, data);
 }
 
 void UI::Draw(RendererVulkan& renderer)

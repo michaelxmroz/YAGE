@@ -3,6 +3,9 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <Windows.h>
 #include <WinUser.h>
 
@@ -21,8 +24,6 @@ void InputHandler::Update(EmulatorInputs::InputState& state)
 		m_isPaused = !m_isPaused;
 	}
 
-	m_debugSaveState = GetKeyState('1') & 0x8000;
-	m_debugLoadState = GetKeyState('2') & 0x8000;
 	m_turbo = GetKeyState(' ') & 0x8000;
 }
 
