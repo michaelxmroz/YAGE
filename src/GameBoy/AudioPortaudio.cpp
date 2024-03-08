@@ -46,8 +46,6 @@ void AudioPortaudio::Init()
     }
 }
 
-
-
 void AudioPortaudio::Terminate()
 {
     PaError err;
@@ -85,6 +83,11 @@ void AudioPortaudio::Play()
     {
         ErrorHandler(err);
     }
+}
+
+void AudioPortaudio::SetVolume(float volume)
+{
+	m_volume = volume;
 }
 
 float* AudioPortaudio::GetAudioBuffer()
@@ -126,7 +129,7 @@ void AudioPortaudio::ErrorHandler(PaError err)
     fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(err));
 }
 
-inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
+int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
 {
     /* Cast data passed through stream to our structure. */
     AudioPortaudio* data = (AudioPortaudio*)userData;
@@ -149,8 +152,8 @@ inline int AudioPortaudio::paCallback(const void* inputBuffer, void* outputBuffe
         float* right = data->m_buffer + data->m_playbackPosition++;
 
         //scale down audio volume
-        *left *= 0.5f;
-        *right *= 0.5f;
+        *left *= data->m_volume;
+        *right *= data->m_volume;
 
 
         *out++ = *left;

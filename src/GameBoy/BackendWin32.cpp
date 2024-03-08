@@ -113,6 +113,7 @@ namespace Win32Internal
         }
 
         ShowWindow(hwnd, 1);
+        UpdateWindow(hwnd);
         return hwnd;
     }
 
@@ -150,6 +151,7 @@ namespace Win32Internal
                 {
                     result = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
                 }
+                CoTaskMemFree(pszFilePath);
                 psiResult->Release();
             }
         }
@@ -162,31 +164,35 @@ void BackendWin32::InitWindow(uint32_t width, uint32_t height)
 {
     m_window.m_state.m_width = width;
     m_window.m_state.m_height = height;
-    m_windowThread = std::thread(std::ref(m_window));
+
+    HMODULE instanceID = GetModuleHandle(nullptr);
+    m_window.m_state.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID);
+
+    //m_windowThread = std::thread(std::ref(m_window));
 }
 
 void BackendWin32::CleanupWindow()
 {
     m_window.m_state.m_run = false;
-    m_windowThread.join();
+    //m_windowThread.join();
     m_window.CleanupWindow();
+}
+
+void BackendWin32::CreateSurface(VkInstance instance, VkSurfaceKHR& surface, HWND& hwnd)
+{
+VkWin32SurfaceCreateInfoKHR surfaceInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+	HMODULE instanceID = GetModuleHandle(nullptr);
+	surfaceInfo.hwnd = hwnd;
+	surfaceInfo.hinstance = instanceID;
+
+	if (vkCreateWin32SurfaceKHR(instance, &surfaceInfo, nullptr, &surface) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create window surface!");
+	};
 }
 
 void BackendWin32::CreateSurface(VkInstance instance, VkSurfaceKHR& surface)
 {
-    VkWin32SurfaceCreateInfoKHR surfaceInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
-    HMODULE instanceID = GetModuleHandle(nullptr);
-    surfaceInfo.hwnd = m_window.m_state.m_hwnd;
-    surfaceInfo.hinstance = instanceID;
-
-    if (vkCreateWin32SurfaceKHR(instance, &surfaceInfo, nullptr, &surface) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create window surface!");
-    };
-}
-
-bool BackendWin32::RequestQuit() const
-{
-    return !m_window.m_state.m_run;
+    BackendWin32::CreateSurface(instance, surface, m_window.m_state.m_hwnd);
 }
 
 void BackendWin32::SetWindowTitle(const char* title)
@@ -225,6 +231,15 @@ std::string BackendWin32::OpenFileSaveDialog(const wchar_t* fileTypeDescription,
     return result;
 }
 
+std::string BackendWin32::GetPersistentDataPath()
+{
+    PWSTR pszFilePath = NULL;
+    SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &pszFilePath);
+    std::string path = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
+    CoTaskMemFree(pszFilePath);
+    return path;
+}
+
 void BackendWin32::Window::operator()()
 {
     m_state.m_run = true;
@@ -245,4 +260,19 @@ void BackendWin32::Window::operator()()
 void BackendWin32::Window::CleanupWindow()
 {
     DestroyWindow(m_state.m_hwnd);
+}
+
+bool BackendWin32::ProcessEvents()
+{
+    MSG msg = {};
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+    {
+        if (msg.message == WM_QUIT) {
+            return false;
+        }
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return true;
 }

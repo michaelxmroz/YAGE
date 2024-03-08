@@ -5,9 +5,11 @@ std::string EngineController::s_persistentMemoryPath;
 EngineController::EngineController(EngineData state) :
     m_data(state)
 {
-    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, 6);
+
+    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, m_data.m_userSettings.GetGraphicsScalingFactor());
     m_audio = new Audio();
     m_audio->Init();
+    m_audio->SetVolume(m_data.m_userSettings.GetAudioVolume());
     m_UI = new UI(*m_renderer);
     m_inputHandler = new InputHandler();
     m_emulator = nullptr;
@@ -142,6 +144,12 @@ inline void EngineController::RunEmulatorLoop()
             deltaMs = m_preferredFrameTime;
         }
 
+        if (!m_renderer->ProcessEvents())
+        {
+			m_data.m_state = EngineData::State::EXIT;
+			break;
+        }
+
         m_UI->Prepare(m_data);
 
         EmulatorInputs::InputState inputState;
@@ -169,12 +177,7 @@ inline void EngineController::RunEmulatorLoop()
         m_UI->Draw(*m_renderer);
         m_renderer->EndDraw();
 
-        if (m_renderer->RequestExit())
-        {
-            m_data.m_state = EngineData::State::EXIT;
-        }
-
-        //std::cout << "True Frame time: " << deltaMs << std::endl;
+        std::cout << "True Frame time: " << deltaMs << std::endl;
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }
     m_audio->Pause();

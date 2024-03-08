@@ -1154,6 +1154,11 @@ void RendererVulkan::Init()
 }
 
 
+bool RendererVulkan::ProcessEvents()
+{
+	return m_backend.ProcessEvents();
+}
+
 void RendererVulkan::BeginDraw(const void* renderedImage)
 {
 	uint32_t imageIndex;
@@ -1263,10 +1268,5 @@ void RendererVulkan::EndDraw()
 void RendererVulkan::WaitForIdle()
 {
 	vkDeviceWaitIdle(m_logicalDevice);
-}
-
-bool RendererVulkan::RequestExit()
-{
-	return m_backend.RequestQuit();
 }
 

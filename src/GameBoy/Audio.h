@@ -23,6 +23,8 @@ public:
 	void Pause();
 	void Play();
 
+	void SetVolume(float volume);
+
 	float* GetAudioBuffer();
 	uint32_t GetAudioBufferSize();
 	uint32_t GetSampleRate();

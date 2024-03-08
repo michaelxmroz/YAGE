@@ -30,10 +30,11 @@ public:
 	RendererVulkan(const RendererVulkan& other) = delete;
 	RendererVulkan operator= (const RendererVulkan& other) = delete;
 
+
+	bool ProcessEvents();
 	void BeginDraw(const void* renderedImage);
 	void EndDraw();
 	void WaitForIdle();
-	bool RequestExit();
 
 	void* GetWindowHandle()
 	{

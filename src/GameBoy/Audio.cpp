@@ -21,6 +21,11 @@ void Audio::Play()
 	m_backend.Play();
 }
 
+void Audio::SetVolume(float volume)
+{
+	m_backend.SetVolume(volume);
+}
+
 float* Audio::GetAudioBuffer()
 {
 	return m_backend.GetAudioBuffer();

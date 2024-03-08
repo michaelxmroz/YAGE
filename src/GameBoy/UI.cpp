@@ -19,6 +19,15 @@ static void check_vk_result(VkResult err)
         abort();
 }
 
+static int ImGui_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
+{
+    VkSurfaceKHR surface;
+    HWND windowHandle = static_cast<HWND>(viewport->PlatformHandleRaw);
+    Backend::CreateSurface((VkInstance)vk_instance, surface, windowHandle);
+    *out_vk_surface = (ImU64)surface;
+    return 0;
+}
+
 #ifdef _DEBUG
 #define APP_USE_VULKAN_DEBUG_REPORT
 #endif
@@ -65,7 +74,7 @@ namespace UI_Internal
             if (ImGui::BeginMenu("File"))
             {
                 state.m_submenuShown = true;
-                if (ImGui::MenuItem("Reset")) 
+                if (ImGui::MenuItem("Reset", 0, false, data.m_gameLoaded))
                 {
                 	data.m_state = EngineData::State::RESET;
                 }
@@ -79,17 +88,17 @@ namespace UI_Internal
                     }
                 }
                 if (ImGui::MenuItem("Recent")) {}
-                if (ImGui::MenuItem("Quick Save", "CTRL+1")) 
+                if (ImGui::MenuItem("Quick Save", "CTRL+1", false, data.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
                     data.m_saveLoadPath = "";
                 }
-                if (ImGui::MenuItem("Quick Load", "CTRL+2")) 
+                if (ImGui::MenuItem("Quick Load", "CTRL+2", false, data.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
                     data.m_saveLoadPath = "";
                 }
-                if (ImGui::MenuItem("Save state as")) 
+                if (ImGui::MenuItem("Save state as", 0, false, data.m_gameLoaded))
                 {
                     std::string path = Backend::OpenFileSaveDialog(L"Save state files (*.ssf)", L"*.ssf", L"ssf");
                     if (!path.empty())
@@ -98,7 +107,7 @@ namespace UI_Internal
                         data.m_saveLoadPath = path;
                     }
                 }
-                if (ImGui::MenuItem("Load state")) 
+                if (ImGui::MenuItem("Load state", 0, false, data.m_gameLoaded))
                 {
                     std::string path = Backend::OpenFileLoadDialog(L"Save state files (*.ssf)", L"*.ssf");
                     if (!path.empty())
@@ -110,15 +119,14 @@ namespace UI_Internal
 
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Edit"))
+            if (ImGui::BeginMenu("Options"))
             {
                 state.m_submenuShown = true;
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                if (ImGui::MenuItem("Graphics")) {}
+                if (ImGui::MenuItem("Audio")) {}
+                if (ImGui::MenuItem("Controls")) {}
+                if (ImGui::MenuItem("Debug")) {}
+
                 ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -134,9 +142,11 @@ UI::UI(RendererVulkan& renderer)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+    
+    ImGui::GetPlatformIO().Platform_CreateVkSurface = ImGui_CreateVkSurface;
+    
     HWND* windowHandle = static_cast<HWND*>(renderer.GetWindowHandle());
     ImGui_ImplWin32_Init(*windowHandle);
 
@@ -176,6 +186,10 @@ void UI::Prepare(EngineData& data)
 void UI::Draw(RendererVulkan& renderer)
 {
     ImGui::Render();
+
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), renderer.m_commandBuffers[renderer.m_commandBufferIndex]);
 }
 

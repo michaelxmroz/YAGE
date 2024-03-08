@@ -9,6 +9,9 @@ public:
 	void Terminate();
 	void Pause();
 	void Play();
+
+	void SetVolume(float volume);
+
 	float* GetAudioBuffer();
 	uint32_t GetAudioBufferSize();
 	uint32_t GetSampleRate();
@@ -21,6 +24,8 @@ private:
 	uint32_t m_writePosition;
 	uint32_t m_playbackPosition;
 	PaStream* m_stream;
+
+	float m_volume;
 
 	uint32_t m_framesConsumed;
 
