@@ -19,7 +19,7 @@ class EngineController
 {
 public:
 
-    explicit EngineController(EngineData state);
+    explicit EngineController(EngineData& state);
 	void Run();
     ~EngineController();
 
@@ -38,7 +38,7 @@ private:
 
     static std::string s_persistentMemoryPath;
 
-    EngineData m_data;
+    EngineData& m_data;
     Renderer* m_renderer;
     Audio* m_audio;
     UI* m_UI;

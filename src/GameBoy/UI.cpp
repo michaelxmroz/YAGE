@@ -43,6 +43,47 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 
 namespace UI_Internal
 {
+    void ShowAudioOptions(UIState& state, EngineData& data)
+	{
+        if (state.m_activeWindow == UIState::ActiveWindow::AUDIO)
+        {
+			ImGui::OpenPopup("Audio Options");
+			state.m_activeWindow = UIState::ActiveWindow::NONE; 
+            
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        }
+        // Always center this window when appearing
+
+        if (ImGui::BeginPopupModal("Audio Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            state.m_submenuShown = true;
+
+            ImGui::Text("Audio Options");
+            ImGui::Separator();
+
+            int volume = static_cast<int>(data.m_userSettings.m_audioVolume.GetValue() * 100.0f);
+            ImGui::Text("Master Volume");
+            ImGui::SliderInt("##", &volume, 0, 100, "%d", ImGuiSliderFlags_None);
+
+            data.m_userSettings.m_audioVolume.SetValue(static_cast<float>(volume) / 100.0f);
+
+            if (ImGui::Button("Save", ImVec2(120, 0))) 
+            { 
+                data.m_userSettings.Save();
+                ImGui::CloseCurrentPopup(); 
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            { 
+                data.m_userSettings.DiscardChanges();
+                ImGui::CloseCurrentPopup(); 
+            }
+            ImGui::EndPopup();
+        }
+	}
+
     void DrawMainMenuBar(UIState& state, EngineData& data)
     {
         ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
@@ -76,7 +117,7 @@ namespace UI_Internal
                 state.m_submenuShown = true;
                 if (ImGui::MenuItem("Reset", 0, false, data.m_gameLoaded))
                 {
-                	data.m_state = EngineData::State::RESET;
+                	data.m_engineState.SetState(StateMachine::EngineState::RESET);
                 }
                 if (ImGui::MenuItem("Load")) 
                 {
@@ -84,7 +125,7 @@ namespace UI_Internal
                     if (!path.empty())
                     {
                         data.m_gamePath = path;
-                        data.m_state = EngineData::State::RESET;
+                        data.m_engineState.SetState(StateMachine::EngineState::RESET);
                     }
                 }
                 if (ImGui::MenuItem("Recent")) {}
@@ -123,7 +164,10 @@ namespace UI_Internal
             {
                 state.m_submenuShown = true;
                 if (ImGui::MenuItem("Graphics")) {}
-                if (ImGui::MenuItem("Audio")) {}
+                if (ImGui::MenuItem("Audio")) 
+                {
+                    state.m_activeWindow = UIState::ActiveWindow::AUDIO;
+                }
                 if (ImGui::MenuItem("Controls")) {}
                 if (ImGui::MenuItem("Debug")) {}
 
@@ -133,6 +177,8 @@ namespace UI_Internal
         }
 
         ImGui::PopStyleVar();
+
+        ShowAudioOptions(state, data);
     }
 }
 
@@ -178,9 +224,18 @@ void UI::Prepare(EngineData& data)
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     bool show = true;
-    ImGui::ShowDemoWindow(&show);
+    //ImGui::ShowDemoWindow(&show);
 
     UI_Internal::DrawMainMenuBar(m_state, data);
+
+    if (m_state.m_submenuShown && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
+    {
+        data.m_engineState.SetState(StateMachine::EngineState::PAUSED);
+    }
+    else if (!m_state.m_submenuShown && data.m_engineState.GetState() == StateMachine::EngineState::PAUSED)
+    {
+        data.m_engineState.SetState(StateMachine::EngineState::RUNNING);
+    }
 }
 
 void UI::Draw(RendererVulkan& renderer)

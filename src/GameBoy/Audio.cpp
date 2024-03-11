@@ -26,6 +26,19 @@ void Audio::SetVolume(float volume)
 	m_backend.SetVolume(volume);
 }
 
+void Audio::RegisterOptionsCallbacks(UserSettings& userSettings)
+{
+	userSettings.m_audioVolume.RegisterCallback(std::bind(&Audio::SetVolume, this, std::placeholders::_1));
+
+	SetVolume(userSettings.m_audioVolume.GetValue());
+}
+
+void Audio::RegisterEngineStateChangeCallbacks(StateMachine& stateMachine)
+{
+	stateMachine.RegisterStateChangeCallback(StateMachine::EngineState::RUNNING, StateMachine::EngineState::PAUSED, std::bind(&Audio::Pause, this));
+	stateMachine.RegisterStateChangeCallback(StateMachine::EngineState::PAUSED, StateMachine::EngineState::RUNNING, std::bind(&Audio::Play, this));
+}
+
 float* Audio::GetAudioBuffer()
 {
 	return m_backend.GetAudioBuffer();

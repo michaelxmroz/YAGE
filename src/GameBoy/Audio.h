@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "EngineState.h"
 
 #define WIN32_AUDIO 0
 #define PORTAUDIO_BACKEND 1
@@ -24,6 +25,8 @@ public:
 	void Play();
 
 	void SetVolume(float volume);
+	void RegisterOptionsCallbacks(UserSettings& userSettings);
+	void RegisterEngineStateChangeCallbacks(StateMachine& stateMachine);
 
 	float* GetAudioBuffer();
 	uint32_t GetAudioBufferSize();

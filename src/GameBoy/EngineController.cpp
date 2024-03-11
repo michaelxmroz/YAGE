@@ -2,14 +2,16 @@
 
 std::string EngineController::s_persistentMemoryPath;
 
-EngineController::EngineController(EngineData state) :
+EngineController::EngineController(EngineData& state) :
     m_data(state)
 {
 
-    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, m_data.m_userSettings.GetGraphicsScalingFactor());
+    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, m_data.m_userSettings.m_graphicsScalingFactor.GetValue());
     m_audio = new Audio();
     m_audio->Init();
-    m_audio->SetVolume(m_data.m_userSettings.GetAudioVolume());
+    m_audio->RegisterOptionsCallbacks(m_data.m_userSettings);
+    m_audio->RegisterEngineStateChangeCallbacks(m_data.m_engineState);
+
     m_UI = new UI(*m_renderer);
     m_inputHandler = new InputHandler();
     m_emulator = nullptr;
@@ -17,11 +19,11 @@ EngineController::EngineController(EngineData state) :
 
 void EngineController::Run()
 {
-    while (m_data.m_state != EngineData::State::EXIT)
+    while (m_data.m_engineState.GetState() != StateMachine::EngineState::EXIT)
     {
-        if (m_data.m_state == EngineData::State::RESET)
+        if (m_data.m_engineState.GetState() == StateMachine::EngineState::RESET)
         {
-            m_data.m_state = EngineData::State::RUNNING;
+            m_data.m_engineState.SetState(StateMachine::EngineState::RUNNING);
         }
 
         std::vector<char> romBlob;
@@ -125,7 +127,8 @@ inline void EngineController::RunEmulatorLoop()
     clock.Start();
     int64_t previousFrameUs = clock.Query();
 
-    while (m_data.m_state == EngineData::State::RUNNING)
+    while (m_data.m_engineState.GetState() == StateMachine::EngineState::RUNNING 
+        || m_data.m_engineState.GetState() == StateMachine::EngineState::PAUSED)
     {
         int64_t currentFrameUs = clock.Query();
         int64_t deltaUs = currentFrameUs - previousFrameUs;
@@ -146,7 +149,7 @@ inline void EngineController::RunEmulatorLoop()
 
         if (!m_renderer->ProcessEvents())
         {
-			m_data.m_state = EngineData::State::EXIT;
+			m_data.m_engineState.SetState(StateMachine::EngineState::EXIT);
 			break;
         }
 
@@ -157,7 +160,7 @@ inline void EngineController::RunEmulatorLoop()
 
         if (m_data.m_gameLoaded)
         {
-            if (!m_inputHandler->IsPaused())
+            if (m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED)
             {
                 m_emulator->Step(inputState, deltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
@@ -173,11 +176,12 @@ inline void EngineController::RunEmulatorLoop()
 
             frameCount++;
         }
+
         m_renderer->BeginDraw(frameBuffer);
         m_UI->Draw(*m_renderer);
         m_renderer->EndDraw();
 
-        std::cout << "True Frame time: " << deltaMs << std::endl;
+        //std::cout << "True Frame time: " << deltaMs << std::endl;
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }
     m_audio->Pause();
