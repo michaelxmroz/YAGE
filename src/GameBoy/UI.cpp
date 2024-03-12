@@ -59,9 +59,6 @@ namespace UI_Internal
         {
             state.m_submenuShown = true;
 
-            ImGui::Text("Audio Options");
-            ImGui::Separator();
-
             int volume = static_cast<int>(data.m_userSettings.m_audioVolume.GetValue() * 100.0f);
             ImGui::Text("Master Volume");
             ImGui::SliderInt("##", &volume, 0, 100, "%d", ImGuiSliderFlags_None);
@@ -86,9 +83,9 @@ namespace UI_Internal
 
     void ShowSystemOptions(UIState& state, EngineData& data)
     {
-        if (state.m_activeWindow == UIState::ActiveWindow::AUDIO)
+        if (state.m_activeWindow == UIState::ActiveWindow::SYSTEM)
         {
-            ImGui::OpenPopup("Audio Options");
+            ImGui::OpenPopup("System Options");
             state.m_activeWindow = UIState::ActiveWindow::NONE;
 
             ImVec2 center = ImGui::GetMainViewport()->GetCenter();
@@ -96,18 +93,33 @@ namespace UI_Internal
         }
         // Always center this window when appearing
 
-        if (ImGui::BeginPopupModal("Audio Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("System Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             state.m_submenuShown = true;
 
-            ImGui::Text("Audio Options");
-            ImGui::Separator();
+            bool check = data.m_userSettings.m_systemUseBootrom.GetValue();
+            ImGui::Checkbox("Use Bootrom", &check);
+            data.m_userSettings.m_systemUseBootrom.SetValue(check);
 
-            int volume = static_cast<int>(data.m_userSettings.m_audioVolume.GetValue() * 100.0f);
-            ImGui::Text("Master Volume");
-            ImGui::SliderInt("##", &volume, 0, 100, "%d", ImGuiSliderFlags_None);
+            ImGui::Text("Bootrom Path");
 
-            data.m_userSettings.m_audioVolume.SetValue(static_cast<float>(volume) / 100.0f);
+            std::string path = data.m_userSettings.m_systemBootromPath.GetValue();
+
+            ImGui::PushID("##TextBox");
+            //We're not going to write into the buffer as the box will always be read-only
+            ImGui::InputText("", const_cast<char*>(path.c_str()), ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopID();
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Select"))
+            {
+                path = Backend::OpenFileLoadDialog(L"Rom Files (*.gb; *.rom; *.bin)", L"*.gb;*.rom;*.bin");
+                if (!path.empty())
+                {
+                    data.m_userSettings.m_systemBootromPath.SetValue(path);
+                }
+            }
 
             if (ImGui::Button("Save", ImVec2(120, 0)))
             {

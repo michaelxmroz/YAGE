@@ -36,11 +36,15 @@ void EngineController::Run()
         }
 
         std::vector<char> bootromBlob;
-        if (!m_data.m_bootromPath.empty())
+        if (m_data.m_userSettings.m_systemUseBootrom.GetValue())
         {
-            if (!FileParser::Read(m_data.m_bootromPath, bootromBlob))
+            m_data.m_bootromPath = m_data.m_userSettings.m_systemBootromPath.GetValue();
+            if (!m_data.m_bootromPath.empty())
             {
-                LOG_ERROR("Could not read bootrom file");
+                if (!FileParser::Read(m_data.m_bootromPath, bootromBlob))
+                {
+                    LOG_ERROR("Could not read bootrom file");
+                }
             }
         }
 

@@ -83,12 +83,14 @@ public:
 	ConfigurableValue(RegisteredTypes* typeManager, const char* name, T value)
 		: IConfigurableValue(typeManager, name)
 		, m_value(value) 
+		, m_oldValue(value)
 	{
 	}
 
 	ConfigurableValue(const char* name, T value)
 		: IConfigurableValue(name)
 		, m_value(value)
+		, m_oldValue(value)
 	{
 	}
 
@@ -173,14 +175,7 @@ public:
 
 	std::string ToString() const override
 	{
-		if constexpr (std::is_same<T, std::string>())
-		{
-			return m_value;
-		}
-		else
-		{
-			return std::to_string(m_value);
-		}
+		return FileParser::ToString(m_value);
 	}
 
 	void FromString(const std::string& value) override
@@ -214,6 +209,8 @@ public:
 
 	void AddRecentFile(const std::string& file);
 
+	ConfigurableValue<bool> m_systemUseBootrom;
+	ConfigurableValue<std::string> m_systemBootromPath;
 	ConfigurableValue<uint32_t> m_graphicsScalingFactor;
 	ConfigurableValue<float> m_audioVolume;
 	std::vector<ConfigurableValue<std::string>> m_recentFiles;

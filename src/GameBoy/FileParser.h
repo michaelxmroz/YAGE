@@ -73,7 +73,17 @@ namespace FileParser
     template <> uint32_t FromString<uint32_t>(const std::string& str);
     template <> int32_t FromString<int32_t>(const std::string& str);
     template <> float FromString<float>(const std::string& str);
+    template <> bool FromString<bool>(const std::string& str);
     template <> std::string FromString<std::string>(const std::string& str);
+
+    template<typename T>
+    std::string ToString(const T& value)
+	{
+        return std::to_string(value);
+	}
+
+    template <> std::string ToString<std::string>(const std::string& value);
+    template <> std::string ToString<bool>(const bool& value);
 
 	std::string StripPath(const char* path);
 	std::string StripFileEnding(const char* name);

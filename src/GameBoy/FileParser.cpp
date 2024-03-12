@@ -145,7 +145,23 @@ template <> float FileParser::FromString<float>(const std::string& str)
 	return std::stof(str);
 }
 
+template <> bool FileParser::FromString<bool>(const std::string& str)
+{
+	return str.size() == 1 && str[0] == '1';
+}
+
 template <> std::string FileParser::FromString<std::string>(const std::string& str)
 {
 	return str;
+}
+
+template<> std::string FileParser::ToString(const std::string& value)
+{
+	return value;
+}
+
+template<>
+std::string FileParser::ToString(const bool& value)
+{
+	return value ? "1" : "0";
 }

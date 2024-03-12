@@ -8,9 +8,11 @@ const char LINE_ENDING = '\n';
 const char LINE_SEPARATOR = ':';
 const uint32_t MAX_RECENT_FILES = 5;
 
-UserSettings::UserSettings() 
+UserSettings::UserSettings()
 	: m_types()
 	, m_filePath()
+	, m_systemUseBootrom(&m_types, "System.UseBootrom", false)
+	, m_systemBootromPath(&m_types, "System.BootromPath", "")
 	, m_graphicsScalingFactor(&m_types, "Graphics.ScalingFactor", 3)
 	, m_audioVolume(&m_types, "Audio.MasterVolume", 1.0f)
 	, m_recentFilesIndex(0)
