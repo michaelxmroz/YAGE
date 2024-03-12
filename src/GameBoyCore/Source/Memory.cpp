@@ -156,6 +156,11 @@ void Memory::ClearVRAM()
 
 void Memory::MapROM(Serializer* serializer, const char* rom, uint32_t size)
 {
+	if (size <= HEADER_RAM_SIZE)
+	{
+		LOG_ERROR("ROM size is too small to be a proper ROM file");
+		return;
+	}
 	m_romMemory = new uint8_t[size];
 	memcpy(m_romMemory, rom, size);
 

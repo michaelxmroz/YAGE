@@ -13,7 +13,7 @@ namespace TimerWin32Internal
     }
 }
 
-TimerWin32::TimerWin32()
+TimerWin32::TimerWin32() : m_elapsedMicroseconds(), m_endingTime(), m_frequency(), m_previous(), m_startTime()
 {
 }
 

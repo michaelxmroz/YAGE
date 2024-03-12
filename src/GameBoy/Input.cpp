@@ -23,8 +23,6 @@ void InputHandler::Update(EmulatorInputs::InputState& state)
 	{
 		m_isPaused = !m_isPaused;
 	}
-
-	m_turbo = GetKeyState(' ') & 0x8000;
 }
 
 void InputHandler::UpdateEmulatorInputs(EmulatorInputs::InputState& state)

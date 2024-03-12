@@ -9,9 +9,6 @@
 
 #define EI_OPCODE 0xFB
 
-#if _DEBUG
-#define CPU_STATE_LOGGING 0
-#endif
 
 #if CPU_STATE_LOGGING
 
@@ -624,7 +621,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 7 A", 2, 2, &InstructionFunctions::SET_7_A }
 }
 {
-#if CPU_STATE_LOGGING == 1
+#if CPU_STATE_LOGGING
 	uint32_t templateLength = strlen(DEBUG_LogTemplate) + 1;
 	DEBUG_CPUInstructionLog = new char[templateLength]();
 	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
@@ -633,7 +630,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 
 CPU::~CPU()
 {
-#if CPU_STATE_LOGGING == 1
+#if CPU_STATE_LOGGING
 	delete[] DEBUG_CPUInstructionLog;
 #endif
 }

@@ -42,6 +42,18 @@ struct ChannelData
 		, m_sampleBuffer(0)
 		, m_triggered(false)
 		, m_lengthTimerBits(lengthTimerBits)
+		, m_currentVolume()
+		, m_dutyStep()
+		, m_enabled()
+		, m_envelopeIncrease()
+		, m_envelopePeriod()
+		, m_frequencyTimer()
+		, m_lengthCounter()
+		, m_periodTimer()
+		, m_sweepTimer()
+		, m_shadowFrequency()
+		, m_sweepEnabled()
+		, m_lfsr()
 	{
 	};
 

@@ -74,11 +74,11 @@ void EngineController::Run()
 
 EngineController::~EngineController()
 {
-    CleanupEmulator();
     delete m_inputHandler;
     delete m_UI;
     delete m_audio;
     delete m_renderer;
+    CleanupEmulator();
 }
 
 void EngineController::SavePersistentMemory(const void* data, uint32_t size)

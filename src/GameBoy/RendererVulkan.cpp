@@ -408,6 +408,10 @@ namespace RendererVulkanInternal
 			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
+		else 
+		{
+			throw std::invalid_argument("unsupported layout transition!");
+		}
 
 
 		vkCmdPipelineBarrier(

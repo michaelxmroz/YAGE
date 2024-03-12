@@ -263,6 +263,8 @@ struct EngineData
 		, m_bootromPath("")
 		, m_gamePath("") 
 		, m_saveLoadPath("")
+		, m_baseWidth(0)
+		, m_baseHeight(0)
 	{}
 
 	StateMachine m_engineState;

@@ -20,7 +20,7 @@
 class FileWriteTimer
 {
 public:
-    FileWriteTimer()
+    FileWriteTimer() : m_startTime(), m_endingTime(), m_frequency()
     {
         QueryPerformanceFrequency(&m_frequency);
         timeBeginPeriod(1);

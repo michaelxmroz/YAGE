@@ -9,8 +9,6 @@ public:
 	void Update(EmulatorInputs::InputState& state);
 	bool IsPaused();
 
-	bool m_turbo;
-
 private:
 	void UpdateEmulatorInputs(EmulatorInputs::InputState& state);
 

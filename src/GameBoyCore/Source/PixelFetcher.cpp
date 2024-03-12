@@ -40,7 +40,16 @@ uint8_t GetColorForTilePixel(uint8_t index, uint8_t low, uint8_t high)
 	return (((high >> index) & 0x1) << 1) | ((low >> index) & 0x1);
 }
 
-PixelFetcher::PixelFetcher(bool spriteMode) : m_spriteMode(spriteMode)
+PixelFetcher::PixelFetcher(bool spriteMode) 
+	: m_spriteMode(spriteMode)
+	, m_spriteAttributes(nullptr)
+	, m_state(FetcherState::GetTile)
+	, m_tileAddr(0)
+	, m_tileDataHigh(0)
+	, m_tileDataLow(0)
+	, m_window(false)
+	, m_x(0)
+	, m_y(0)
 {
 }
 
