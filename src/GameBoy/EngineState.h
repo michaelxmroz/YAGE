@@ -70,7 +70,10 @@ public:
 	IConfigurableValue* GetType(const std::string& name);
 
 private:
-	std::unordered_map<uint32_t, IConfigurableValue*> m_types;
+
+	IConfigurableValue* GetValueByKey(uint32_t key);
+	bool GetIndex(uint32_t key, uint32_t& index);
+	std::vector<std::pair<uint32_t, IConfigurableValue*>> m_types;
 };
 
 template <typename T>

@@ -100,16 +100,21 @@ void UserSettings::ReorderRecentFiles()
 void RegisteredTypes::RegisterType(IConfigurableValue* type)
 {
 	type->m_isRegistered = true;
-	m_types[FileParser::Crc32(type->GetName())] = type;
+	uint32_t key = FileParser::Crc32(type->GetName());
+	if (GetValueByKey(FileParser::Crc32(type->GetName())) == nullptr)
+	{
+		m_types.push_back({ key,type });
+	}
 }
 
 void RegisteredTypes::DeregisterType(IConfigurableValue* type)
 {
-	auto it = m_types.find(FileParser::Crc32(type->GetName()));
-	if (it != m_types.end())
+	uint32_t key = FileParser::Crc32(type->GetName());
+	uint32_t index = 0;
+	if (GetIndex(key, index))
 	{
 		type->m_isRegistered = false;
-		m_types.erase(it);
+		m_types.erase(m_types.begin() + index);
 	}
 }
 
@@ -166,8 +171,11 @@ void RegisteredTypes::Load(const std::string& data)
 		if (!name.empty() && !value.empty())
 		{
 			uint32_t typeHash = FileParser::Crc32(name);
-			IConfigurableValue* type = m_types[typeHash];
-			type->FromString(value);
+			IConfigurableValue* type = GetValueByKey(typeHash);
+			if (type != nullptr)
+			{
+				type->FromString(value);
+			}
 		}
 	}
 }
@@ -180,14 +188,34 @@ for (auto& type : m_types)
 	}
 }
 
-inline IConfigurableValue* RegisteredTypes::GetType(const std::string& name)
+IConfigurableValue* RegisteredTypes::GetType(const std::string& name)
 {
-	auto it = m_types.find(FileParser::Crc32(name));
-	if (it != m_types.end())
+	return GetValueByKey(FileParser::Crc32(name));
+}
+
+IConfigurableValue* RegisteredTypes::GetValueByKey(uint32_t key) 
+{
+	for (const auto& pair : m_types) 
 	{
-		return it->second;
+		if (pair.first == key) 
+		{
+			return pair.second;
+		}
 	}
 	return nullptr;
+}
+
+bool RegisteredTypes::GetIndex(uint32_t key, uint32_t& index)
+{
+	for (uint32_t i = 0; i < m_types.size(); ++i) 
+	{
+		if (m_types[i].first == key) 
+		{
+			index = i;
+			return true;
+		}
+	}
+	return false;
 }
 
 IConfigurableValue::IConfigurableValue(RegisteredTypes* typeManager, std::string name) 

@@ -7,6 +7,7 @@ struct UIState
 	enum class ActiveWindow : uint32_t
 	{
 		NONE = 0,
+		SYSTEM,
 		GRAPHICS,
 		AUDIO
 	};
