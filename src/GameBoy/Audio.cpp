@@ -4,6 +4,7 @@
 void Audio::Init()
 {
 	m_backend.Init();
+	m_state = AudioState::STOPPED;
 }
 
 void Audio::Terminate()
@@ -13,12 +14,20 @@ void Audio::Terminate()
 
 void Audio::Pause()
 {
-	m_backend.Pause();
+	if(m_state != AudioState::STOPPED)
+	{
+		m_state = AudioState::STOPPED;
+		m_backend.Pause();
+	}
 }
 
 void Audio::Play()
 {
-	m_backend.Play();
+	if (m_state != AudioState::PLAYING)
+	{
+		m_backend.Play();
+		m_state = AudioState::PLAYING;
+	}
 }
 
 void Audio::SetVolume(float volume)

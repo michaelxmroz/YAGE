@@ -82,6 +82,7 @@ namespace FileParser
 	bool Write(std::string path, const void* data, size_t size);
     bool Write(std::string path, const std::string& data);
 	bool CreateDirectory(std::string path);
-    void SplitString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
+    bool SplitString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
+    bool SplitStringOnce(const std::string& str, std::string& substr1, std::string& substr2, const char delimiter);
 };
 

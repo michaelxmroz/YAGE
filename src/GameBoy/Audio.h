@@ -19,6 +19,12 @@ typedef AudioPortaudio AudioBackend;
 class Audio
 {
 public:
+	enum class AudioState : uint32_t
+	{
+		PLAYING = 0,
+		STOPPED
+	};
+
 	void Init();
 	void Terminate();
 	void Pause();
@@ -35,7 +41,9 @@ public:
 
 	uint32_t GetFramesConsumed();
 	void ResetFramesConsumed();
+
 private:
 	AudioBackend m_backend;
+	AudioState m_state;
 };
 

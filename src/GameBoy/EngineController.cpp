@@ -66,9 +66,9 @@ void EngineController::Run()
 
 EngineController::~EngineController()
 {
+    delete m_UI;
     delete m_renderer;
     delete m_audio;
-    delete m_UI;
     delete m_inputHandler;
     CleanupEmulator();
 }
@@ -164,15 +164,10 @@ inline void EngineController::RunEmulatorLoop()
             {
                 m_emulator->Step(inputState, deltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
+                m_audio->Play();
             }
 
             HandleSaveLoad();
-
-            if (frameCount == 0)
-            {
-                //Start playing audio after buffer has been filled for the first frame
-                m_audio->Play();
-            }
 
             frameCount++;
         }

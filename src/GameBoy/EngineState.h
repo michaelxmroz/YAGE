@@ -4,7 +4,8 @@
 #include <unordered_map>
 #include <functional>
 #include "FileParser.h"
-
+#include "logging.h"
+#include "logger.h"
 
 class RegisteredTypes;
 
@@ -13,6 +14,23 @@ class IConfigurableValue
 {
 public:
 	IConfigurableValue(RegisteredTypes* typeManager,std::string name);
+	IConfigurableValue(std::string name);
+
+	IConfigurableValue(const IConfigurableValue& other)
+		: m_name(other.m_name)
+		, m_isDirty(other.m_isDirty)
+		, m_isRegistered(other.m_isRegistered)
+	{
+#if _DEBUG
+		if (m_isRegistered)
+		{
+			LOG_ERROR(string_format("ConfigurableValue: %s trying to copy construct registered value. Please use the non-registering constructor instead and register them later.", m_name.c_str()).c_str());
+			assert(false);
+		}
+#endif
+	}
+
+	IConfigurableValue& operator=(const IConfigurableValue& other) = delete;
 
 	virtual ~IConfigurableValue() {}
 	bool IsDirty() const { return m_isDirty; }
@@ -23,8 +41,11 @@ public:
 	virtual std::string ToString() const = 0;
 	virtual void FromString(const std::string& value) = 0;
 protected:
+	friend class RegisteredTypes;
+
 	std::string m_name;
 	bool m_isDirty;
+	bool m_isRegistered;
 };
 
 class RegisteredTypes
@@ -35,6 +56,7 @@ public:
 	}
 
 	void RegisterType(IConfigurableValue* type);
+	void DeregisterType(IConfigurableValue* type);
 
 	bool IsDirty() const;
 	void ResetDirtyFlag();
@@ -61,6 +83,43 @@ public:
 	{
 	}
 
+	ConfigurableValue(const char* name, T value)
+		: IConfigurableValue(name)
+		, m_value(value)
+	{
+	}
+
+	~ConfigurableValue() override {}
+
+	ConfigurableValue(const ConfigurableValue& other) 
+		: IConfigurableValue(other)
+		, m_value(other.m_value)
+		, m_oldValue(other.m_oldValue)
+		, m_callback(other.m_callback)
+	{
+	}
+
+	ConfigurableValue& operator=(const ConfigurableValue& other)
+	{
+		if (this != &other)
+		{
+#if _DEBUG
+			if (m_isRegistered)
+			{
+				LOG_ERROR(string_format("ConfigurableValue: %s trying to assign registered value. Please use the non-registering constructor instead and register them later.", m_name.c_str()).c_str());
+				assert(false);
+			}
+#endif
+			m_name = other.m_name;
+			m_isDirty = other.m_isDirty;
+			m_isRegistered = other.m_isRegistered;
+			m_value = other.m_value;
+			m_oldValue = other.m_oldValue;
+			m_callback = other.m_callback;
+		}
+		return *this;
+	}
+
 	void RegisterCallback(std::function<void(T)> callback) 
 	{
 		m_callback = callback;
@@ -68,11 +127,25 @@ public:
 
 	T GetValue() const 
 	{
+#if _DEBUG
+		if (!m_isRegistered)
+		{
+			LOG_ERROR(string_format("ConfigurableValue: %s is not registered", m_name.c_str()).c_str());
+			assert(false);
+		}
+#endif
 		return m_value; 
 	}
 
 	void SetValue(const T& value) 
 	{ 
+#if _DEBUG
+		if (!m_isRegistered)
+		{
+			LOG_ERROR(string_format("ConfigurableValue: %s is not registered", m_name.c_str()).c_str());
+			assert(false);
+		}
+#endif
 		m_value = value; 
 	}
 
@@ -97,7 +170,14 @@ public:
 
 	std::string ToString() const override
 	{
-		return std::to_string(m_value);
+		if constexpr (std::is_same<T, std::string>())
+		{
+			return m_value;
+		}
+		else
+		{
+			return std::to_string(m_value);
+		}
 	}
 
 	void FromString(const std::string& value) override
@@ -112,7 +192,6 @@ private:
 	T m_oldValue;
 	std::function<void(T)> m_callback;
 };
-
 
 class UserSettings
 {
@@ -130,11 +209,17 @@ public:
 		return m_types.GetType(name);
 	}
 
+	void AddRecentFile(const std::string& file);
+
 	ConfigurableValue<uint32_t> m_graphicsScalingFactor;
 	ConfigurableValue<float> m_audioVolume;
+	std::vector<ConfigurableValue<std::string>> m_recentFiles;
+	uint32_t m_recentFilesIndex;
 
 private:
 	std::string m_filePath;
+
+	void ReorderRecentFiles();
 };
 
 class StateMachine

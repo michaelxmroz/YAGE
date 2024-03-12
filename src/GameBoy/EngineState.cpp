@@ -6,14 +6,27 @@
 const uint32_t INITIAL_STR_BUFFER_SIZE = 2048;
 const char LINE_ENDING = '\n';
 const char LINE_SEPARATOR = ':';
+const uint32_t MAX_RECENT_FILES = 5;
 
 UserSettings::UserSettings() 
 	: m_types()
 	, m_filePath()
 	, m_graphicsScalingFactor(&m_types, "Graphics.ScalingFactor", 3)
 	, m_audioVolume(&m_types, "Audio.MasterVolume", 1.0f)
+	, m_recentFilesIndex(0)
 
 {
+	for(uint32_t i = 0; i < MAX_RECENT_FILES; ++i)
+	{
+		std::string name = "Files.Recent" + std::to_string(i);
+		m_recentFiles.push_back(ConfigurableValue<std::string>(name.c_str(), ""));
+	}
+
+	for (uint32_t i = 0; i < MAX_RECENT_FILES; ++i)
+	{
+		m_types.RegisterType(&m_recentFiles[i]);
+	}
+
 	const char* defaultFileName = "usersettings.ini";
 
 	m_filePath = defaultFileName;
@@ -26,6 +39,8 @@ void UserSettings::Save()
 	m_types.Apply();
 	if (m_types.IsDirty())
 	{	
+		ReorderRecentFiles();
+
 		std::string serializedData = m_types.Save();
 		FileParser::Write(m_filePath, serializedData.c_str(), serializedData.length());
 		m_types.ResetDirtyFlag();
@@ -51,9 +66,51 @@ void UserSettings::DiscardChanges()
 	m_types.DiscardChanges();
 }
 
+void UserSettings::AddRecentFile(const std::string& file)
+{
+	m_recentFiles[m_recentFilesIndex].SetValue(file);
+	m_recentFilesIndex = (m_recentFilesIndex + 1) % MAX_RECENT_FILES;
+}
+
+void UserSettings::ReorderRecentFiles()
+{
+	std::vector<std::string> tmp;
+	for (auto& file : m_recentFiles)
+	{
+		if (!file.GetValue().empty())
+		{
+			tmp.push_back(file.GetValue());
+		}
+	}
+	std::rotate(tmp.begin(), tmp.begin() + m_recentFilesIndex, tmp.end());
+	
+	for(uint32_t i = 0; i < MAX_RECENT_FILES; ++i)
+	{
+		if (i < tmp.size())
+		{
+			m_recentFiles[i].SetValue(tmp[i]);
+		}
+		else
+		{
+			m_recentFiles[i].SetValue("");
+		}
+	}
+}
+
 void RegisteredTypes::RegisterType(IConfigurableValue* type)
 {
+	type->m_isRegistered = true;
 	m_types[FileParser::Crc32(type->GetName())] = type;
+}
+
+void RegisteredTypes::DeregisterType(IConfigurableValue* type)
+{
+	auto it = m_types.find(FileParser::Crc32(type->GetName()));
+	if (it != m_types.end())
+	{
+		type->m_isRegistered = false;
+		m_types.erase(it);
+	}
 }
 
 bool RegisteredTypes::IsDirty() const
@@ -103,13 +160,14 @@ void RegisteredTypes::Load(const std::string& data)
 
 	for (auto& line : lines)
 	{
-		std::vector<std::string> parts;
-		FileParser::SplitString(line, parts, LINE_SEPARATOR);
-		if (parts.size() == 2)
+		std::string name;
+		std::string value;
+		FileParser::SplitStringOnce(line, name, value, LINE_SEPARATOR);
+		if (!name.empty() && !value.empty())
 		{
-			uint32_t typeHash = FileParser::Crc32(parts[0]);
+			uint32_t typeHash = FileParser::Crc32(name);
 			IConfigurableValue* type = m_types[typeHash];
-			type->FromString(parts[1]);
+			type->FromString(value);
 		}
 	}
 }
@@ -132,9 +190,19 @@ inline IConfigurableValue* RegisteredTypes::GetType(const std::string& name)
 	return nullptr;
 }
 
-IConfigurableValue::IConfigurableValue(RegisteredTypes* typeManager, std::string name) : m_name(name), m_isDirty(false)
+IConfigurableValue::IConfigurableValue(RegisteredTypes* typeManager, std::string name) 
+	: m_name(name)
+	, m_isDirty(false)
+	, m_isRegistered(false)
 {
 	typeManager->RegisterType(this);
+}
+
+IConfigurableValue::IConfigurableValue(std::string name) 
+	: m_name(name)
+	, m_isDirty(false)
+	, m_isRegistered(false)
+{
 }
 
 StateMachine::StateMachine() : m_state(EngineState::RUNNING)

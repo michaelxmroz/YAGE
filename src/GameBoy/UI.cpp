@@ -125,10 +125,39 @@ namespace UI_Internal
                     if (!path.empty())
                     {
                         data.m_gamePath = path;
+                        data.m_userSettings.AddRecentFile(path);
                         data.m_engineState.SetState(StateMachine::EngineState::RESET);
+                        data.m_userSettings.Save();
                     }
                 }
-                if (ImGui::MenuItem("Recent")) {}
+                if (ImGui::BeginMenu("Load Recent"))
+                {
+                    bool hasAtLeastOne = false;
+                    for(uint32_t i = 0; i < data.m_userSettings.m_recentFiles.size(); i++)
+					{
+                        const std::string path = data.m_userSettings.m_recentFiles[i].GetValue();
+
+                        if (data.m_userSettings.m_recentFiles[i].GetValue().empty())
+                        {
+                            continue;
+                        }
+
+						if (ImGui::MenuItem(path.c_str()))
+						{
+							data.m_gamePath = path;
+							data.m_engineState.SetState(StateMachine::EngineState::RESET);
+						}
+
+                        hasAtLeastOne = true;
+					}
+
+                    if(!hasAtLeastOne)
+					{
+						ImGui::MenuItem("No recent files");
+					}
+
+                    ImGui::EndMenu();
+                }
                 if (ImGui::MenuItem("Quick Save", "CTRL+1", false, data.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::SAVE;

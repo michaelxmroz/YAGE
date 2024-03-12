@@ -101,17 +101,34 @@ bool FileParser::CreateDirectory(std::string path)
 	return false;
 }
 
-void FileParser::SplitString(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
+bool FileParser::SplitString(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
 {
 	std::string token;
 	std::stringstream tokenStream(str);
+	bool hasSplit = false;
 	while (std::getline(tokenStream, token, delimiter))
 	{
 		tokens.push_back(token);
+		hasSplit = true;
 	}
+	return hasSplit;
 }
 
-
+bool FileParser::SplitStringOnce(const std::string& str, std::string& substr1, std::string& substr2, const char delimiter)
+{
+	std::string token;
+	std::stringstream tokenStream(str);
+	if (std::getline(tokenStream, token, delimiter))
+	{
+		substr1 = token;
+		if (std::getline(tokenStream, token, '\n'))
+		{
+			substr2 = token;
+			return true;
+		}
+	}
+	return false;
+}
 
 template <> uint32_t FileParser::FromString<uint32_t>(const std::string& str)
 {
