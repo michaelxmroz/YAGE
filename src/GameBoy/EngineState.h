@@ -272,6 +272,9 @@ struct EngineData
 	std::string m_bootromPath;
 	std::string m_gamePath;
 	std::string m_saveLoadPath;
+
+	uint32_t m_baseWidth;
+	uint32_t m_baseHeight;
 private:
     EngineData(const EngineData&) = delete;
 	EngineData& operator=(const EngineData&) = delete;

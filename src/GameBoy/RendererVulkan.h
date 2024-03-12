@@ -18,28 +18,31 @@
 #include "BackendWin32.h"
 #endif
 #include "MiniMath.h"
+#include "EngineState.h"
 
 class UI;
 
 class RendererVulkan
 {
 public:
-	RendererVulkan(uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale);
+	RendererVulkan(StateMachine& stateMachine, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale);
 	~RendererVulkan();
 
 	RendererVulkan(const RendererVulkan& other) = delete;
 	RendererVulkan operator= (const RendererVulkan& other) = delete;
 
+	void RegisterOptionsCallbacks(UserSettings& userSettings);
+
+	void SetScale(uint32_t scale);
+	bool PauseRendering();
+	bool ResumeRendering();
 
 	bool ProcessEvents();
-	void BeginDraw(const void* renderedImage);
+	bool BeginDraw(const void* renderedImage);
 	void EndDraw();
 	void WaitForIdle();
 
-	void* GetWindowHandle()
-	{
-		return m_backend.GetWindowHandle();
-	}
+	void* GetWindowHandle();
 
 private:
 
@@ -63,6 +66,9 @@ private:
 	void CreateTextureImage();
 	void CreateTextureImageView();
 	void CreateTextureSampler();
+
+	void CleanupSwapChain();
+	void RecreateSwapChain();
 
 	void CreateCommandBuffers();
 	void CreateSemaphores();
@@ -123,6 +129,9 @@ private:
 	uint32_t m_sourceHeight;
 	uint32_t m_scaledWidth;
 	uint32_t m_scaledHeight;
+	bool m_shouldResize;
+	bool m_shouldRender;
+	StateMachine& m_stateMachine;
 };
 
 typedef RendererVulkan Renderer;

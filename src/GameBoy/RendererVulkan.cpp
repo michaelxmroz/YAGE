@@ -25,6 +25,20 @@
 #define VK_CHECK(x) { x; }
 #endif
 
+
+void ResizeWindowProcHandler(void* userData, bool isMinimizing)
+{
+	RendererVulkan* renderer = static_cast<RendererVulkan*>(userData);
+	if (isMinimizing)
+	{
+		renderer->PauseRendering();
+	}
+	else
+	{
+		renderer->ResumeRendering();
+	}
+}
+
 namespace RendererVulkanInternal
 {
 	struct SwapChainSupportDetails 
@@ -437,7 +451,7 @@ namespace RendererVulkanInternal
 	}
 }
 
-RendererVulkan::RendererVulkan(uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale)
+RendererVulkan::RendererVulkan(StateMachine& stateMachine, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t scale)
 	: m_instance(VK_NULL_HANDLE)
 	, m_physicalDevice(VK_NULL_HANDLE)
 	, m_logicalDevice(VK_NULL_HANDLE)
@@ -450,6 +464,9 @@ RendererVulkan::RendererVulkan(uint32_t sourceWidth, uint32_t sourceHeight, uint
 	, m_sourceHeight(sourceHeight)
 	, m_scaledWidth(sourceWidth * scale)
 	, m_scaledHeight(sourceHeight * scale)
+	, m_shouldResize(false)
+	, m_shouldRender(true)
+	, m_stateMachine(stateMachine)
 	, m_mainShaderName("main.glsl")
 	, m_fullscreenQuadVertices {{{-1,-1,0},{0,0}}, {{1,1,0},{1,1}}, {{-1,1,0},{0,1}}, {{1,-1,0},{1,0}} }
 	, m_fullscreenQuadIndices {0, 1, 2, 0, 3, 1}
@@ -478,10 +495,7 @@ RendererVulkan::~RendererVulkan()
 
 	vkDestroyCommandPool(m_logicalDevice, m_commandPool, nullptr);
 
-	for (auto framebuffer : m_swapChainFramebuffers) 
-	{
-		vkDestroyFramebuffer(m_logicalDevice, framebuffer, nullptr);
-	}
+
 
 	vkDestroyPipeline(m_logicalDevice, m_graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(m_logicalDevice, m_pipelineLayout, nullptr);
@@ -490,12 +504,8 @@ RendererVulkan::~RendererVulkan()
 
 	vkDestroyRenderPass(m_logicalDevice, m_renderPass, nullptr);
 
-	for (auto imageView : m_swapChainImageViews) 
-	{
-		vkDestroyImageView(m_logicalDevice, imageView, nullptr);
-	}
+	CleanupSwapChain();
 
-	vkDestroySwapchainKHR(m_logicalDevice, m_swapChain, nullptr);
 	vkDestroyDevice(m_logicalDevice, nullptr);
 
 #if VALIDATION_LAYERS
@@ -1050,6 +1060,42 @@ void RendererVulkan::CreateTextureSampler()
 	VK_CHECK(vkCreateSampler(m_logicalDevice, &samplerInfo, nullptr, &m_textureSampler));
 }
 
+void RendererVulkan::CleanupSwapChain()
+{
+	for (auto framebuffer : m_swapChainFramebuffers)
+	{
+		vkDestroyFramebuffer(m_logicalDevice, framebuffer, nullptr);
+	}
+
+	for (auto imageView : m_swapChainImageViews)
+	{
+		vkDestroyImageView(m_logicalDevice, imageView, nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_logicalDevice, m_swapChain, nullptr);
+}
+
+void RendererVulkan::RecreateSwapChain()
+{
+	uint32_t width = 0, height = 0;
+	m_backend.GetWindowSize(width, height);
+	while (width == 0 || height == 0)
+	{
+		m_backend.GetWindowSize(width, height);
+		m_backend.ProcessEvents();
+	}
+
+	vkDeviceWaitIdle(m_logicalDevice);
+
+	m_shouldResize = false;
+
+	CleanupSwapChain();
+
+	CreateSwapChain();
+	CreateImageViews();
+	CreateFramebuffers();
+}
+
 void RendererVulkan::CreateDescriptorSetLayout()
 {
 	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
@@ -1126,7 +1172,7 @@ void RendererVulkan::CreateIndexBuffer()
 
 void RendererVulkan::Init()
 {
-	m_backend.InitWindow(m_scaledWidth, m_scaledHeight);
+	m_backend.InitWindow(m_scaledWidth, m_scaledHeight, this);
     CreateInstance();
 #if VALIDATION_LAYERS
 	RendererVulkanInternal::InitValidationCallback(m_instance, m_debugMessenger);
@@ -1154,16 +1200,66 @@ void RendererVulkan::Init()
 }
 
 
+void RendererVulkan::RegisterOptionsCallbacks(UserSettings& userSettings)
+{
+	userSettings.m_graphicsScalingFactor.RegisterCallback(std::bind(&RendererVulkan::SetScale, this, std::placeholders::_1));
+}
+
+void RendererVulkan::SetScale(uint32_t scale)
+{
+    m_scaledWidth = m_sourceWidth * scale;
+	m_scaledHeight = m_sourceHeight * scale;
+	m_backend.ResizeWindow(m_scaledWidth, m_scaledHeight);
+	m_shouldResize = true;
+}
+
+bool RendererVulkan::PauseRendering()
+{
+	if (m_shouldRender)
+	{
+		m_shouldRender = false;
+		m_stateMachine.SetState(StateMachine::EngineState::PAUSED);
+		return true;
+	}
+	return false;
+}
+
+bool RendererVulkan::ResumeRendering()
+{
+	if (!m_shouldRender)
+	{
+		m_shouldRender = true;
+		m_stateMachine.SetState(StateMachine::EngineState::RUNNING);
+		return true;
+	}
+	return false;
+}
+
 bool RendererVulkan::ProcessEvents()
 {
 	return m_backend.ProcessEvents();
 }
 
-void RendererVulkan::BeginDraw(const void* renderedImage)
+bool RendererVulkan::BeginDraw(const void* renderedImage)
 {
+	if(!m_shouldRender)
+	{
+		return false;
+	}
+
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(m_logicalDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 	
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_shouldResize)
+	{
+		RecreateSwapChain();
+		return false;
+	}
+	else if (result != VK_SUCCESS) 
+	{
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
+
 	m_commandBufferIndex = imageIndex;
 	
 	if (renderedImage != nullptr)
@@ -1226,6 +1322,7 @@ void RendererVulkan::BeginDraw(const void* renderedImage)
 
 	vkCmdDrawIndexed(activeBuffer, static_cast<uint32_t>(6), 1, 0, 0, 0);
 	
+	return true;
 }
 
 void RendererVulkan::EndDraw()
@@ -1268,5 +1365,10 @@ void RendererVulkan::EndDraw()
 void RendererVulkan::WaitForIdle()
 {
 	vkDeviceWaitIdle(m_logicalDevice);
+}
+
+void* RendererVulkan::GetWindowHandle()
+{
+	return m_backend.GetWindowHandle();
 }
 

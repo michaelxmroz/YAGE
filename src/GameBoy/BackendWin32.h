@@ -5,10 +5,11 @@
 class BackendWin32
 {
 public:
-	void InitWindow(uint32_t width, uint32_t height);
+	void InitWindow(uint32_t width, uint32_t height, void* userData);
 	void CleanupWindow();
 
 	void ResizeWindow(uint32_t width, uint32_t height);
+	void GetWindowSize(uint32_t& width, uint32_t& height);
 
 	static void CreateSurface(VkInstance instance, VkSurfaceKHR& surface, HWND& hwnd);
 	void CreateSurface(VkInstance instance, VkSurfaceKHR& surface);

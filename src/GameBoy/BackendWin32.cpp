@@ -28,6 +28,7 @@
 
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern void ResizeWindowProcHandler(void* userData, bool isMinimizing);
 
 namespace Win32Internal
 {
@@ -63,16 +64,47 @@ namespace Win32Internal
         if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
             return true;
 
+        void* userData = reinterpret_cast<void*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
         switch (uMsg)
         {
         case WM_CLOSE:
             PostQuitMessage(0);
             return 0;
+        case WM_CREATE:
+        {
+            // Get the CREATESTRUCT from lParam
+            CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
+
+            // Extract the user data pointer from the CREATESTRUCT
+            void* userData = reinterpret_cast<void*>(createStruct->lpCreateParams);
+
+            // Store the user data pointer with the window
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(userData));
+        }
+        return 0;
+        case WM_SIZE:
+        {
+            if (userData != nullptr)
+            {
+                // Check if the window is being minimized
+                if (wParam == SIZE_MINIMIZED)
+                {
+                    ResizeWindowProcHandler(userData, true);
+                }
+                else
+                {
+                    ResizeWindowProcHandler(userData, false);
+                }
+            }
+        }
+        return 0;
+
         }
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
 
-    HWND CreateWin32Window(uint32_t width, uint32_t height, HMODULE& instanceID)
+    HWND CreateWin32Window(uint32_t width, uint32_t height, HMODULE& instanceID, void* userData)
     {
         const wchar_t CLASS_NAME[] = L"GB Window Class";
 
@@ -104,7 +136,7 @@ namespace Win32Internal
             NULL,       // Parent window    
             NULL,       // Menu
             instanceID,  // Instance handle
-            NULL        // Additional application data
+            userData        // Additional application data
         );
 
         if (hwnd == NULL)
@@ -112,7 +144,7 @@ namespace Win32Internal
             return 0;
         }
 
-        ::SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SIZEBOX);
+        ::SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX);
 
         ShowWindow(hwnd, 1);
         UpdateWindow(hwnd);
@@ -162,13 +194,13 @@ namespace Win32Internal
     }
 }
 
-void BackendWin32::InitWindow(uint32_t width, uint32_t height)
+void BackendWin32::InitWindow(uint32_t width, uint32_t height, void* userData)
 {
     m_window.m_width = width;
     m_window.m_height = height;
 
     HMODULE instanceID = GetModuleHandle(nullptr);
-    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID);
+    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID, userData);
 }
 
 
@@ -177,14 +209,21 @@ void BackendWin32::CleanupWindow()
     DestroyWindow(m_window.m_hwnd);
 }
 
+void BackendWin32::GetWindowSize(uint32_t& width, uint32_t& height)
+{
+    RECT rect;
+	::GetWindowRect(m_window.m_hwnd, &rect);
+	width = rect.right - rect.left;
+	height = rect.bottom - rect.top;
+
+}
+
 void BackendWin32::ResizeWindow(uint32_t width, uint32_t height)
 {
     m_window.m_width = width;
     m_window.m_height = height;
     RECT rect;
     ::GetWindowRect(m_window.m_hwnd, &rect);
-    rect.left = 100;
-    rect.top = 100;
     rect.right = rect.left + width;
     rect.bottom = rect.top + height;
 

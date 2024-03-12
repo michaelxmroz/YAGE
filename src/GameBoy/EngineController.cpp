@@ -5,8 +5,12 @@ std::string EngineController::s_persistentMemoryPath;
 EngineController::EngineController(EngineData& state) :
     m_data(state)
 {
+    m_data.m_baseWidth = EmulatorConstants::SCREEN_WIDTH;
+    m_data.m_baseHeight = EmulatorConstants::SCREEN_HEIGHT;
 
-    m_renderer = new RendererVulkan(EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, m_data.m_userSettings.m_graphicsScalingFactor.GetValue());
+    m_renderer = new RendererVulkan(m_data.m_engineState, EmulatorConstants::SCREEN_WIDTH, EmulatorConstants::SCREEN_HEIGHT, m_data.m_userSettings.m_graphicsScalingFactor.GetValue());
+    m_renderer->RegisterOptionsCallbacks(m_data.m_userSettings);
+    
     m_audio = new Audio();
     m_audio->Init();
     m_audio->RegisterOptionsCallbacks(m_data.m_userSettings);
@@ -157,8 +161,6 @@ inline void EngineController::RunEmulatorLoop()
 			break;
         }
 
-        m_UI->Prepare(m_data);
-
         EmulatorInputs::InputState inputState;
         m_inputHandler->Update(inputState);
 
@@ -176,10 +178,12 @@ inline void EngineController::RunEmulatorLoop()
             frameCount++;
         }
 
-        m_renderer->BeginDraw(frameBuffer);
-        m_UI->Draw(*m_renderer);
-        m_renderer->EndDraw();
-
+        if (m_renderer->BeginDraw(frameBuffer))
+        {
+            m_UI->Prepare(m_data);
+            m_UI->Draw(*m_renderer);
+            m_renderer->EndDraw();
+        }
         //std::cout << "True Frame time: " << deltaMs << std::endl;
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }

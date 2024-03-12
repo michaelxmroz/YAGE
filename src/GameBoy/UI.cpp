@@ -81,6 +81,46 @@ namespace UI_Internal
         }
 	}
 
+    void ShowGraphicsOptions(UIState& state, EngineData& data)
+    {
+        if (state.m_activeWindow == UIState::ActiveWindow::GRAPHICS)
+        {
+            ImGui::OpenPopup("Graphics Options");
+            state.m_activeWindow = UIState::ActiveWindow::NONE;
+
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        }
+
+        if (ImGui::BeginPopupModal("Graphics Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            state.m_submenuShown = true;
+
+            int scale = static_cast<int>(data.m_userSettings.m_graphicsScalingFactor.GetValue());
+            ImGui::Text("Resolution Scale");
+            ImGui::SliderInt("##", &scale, 1, 25, "%d", ImGuiSliderFlags_None);
+            data.m_userSettings.m_graphicsScalingFactor.SetValue(static_cast<uint32_t>(scale));
+
+            ImGui::SameLine();
+
+            ImGui::LabelText("##", "%sx%s",FileParser::ToString(data.m_baseWidth * scale).c_str(), FileParser::ToString(data.m_baseHeight * scale).c_str());
+
+            if (ImGui::Button("Save", ImVec2(120, 0)))
+            {
+                data.m_userSettings.Save();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                data.m_userSettings.DiscardChanges();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     void ShowSystemOptions(UIState& state, EngineData& data)
     {
         if (state.m_activeWindow == UIState::ActiveWindow::SYSTEM)
@@ -249,7 +289,10 @@ namespace UI_Internal
                 {
                     state.m_activeWindow = UIState::ActiveWindow::SYSTEM;
                 }
-                if (ImGui::MenuItem("Graphics")) {}
+                if (ImGui::MenuItem("Graphics")) 
+                {
+                    state.m_activeWindow = UIState::ActiveWindow::GRAPHICS;
+                }
                 if (ImGui::MenuItem("Audio")) 
                 {
                     state.m_activeWindow = UIState::ActiveWindow::AUDIO;
@@ -314,6 +357,7 @@ void UI::Prepare(EngineData& data)
     UI_Internal::DrawMainMenuBar(m_state, data);
 
     UI_Internal::ShowSystemOptions(m_state, data);
+    UI_Internal::ShowGraphicsOptions(m_state, data);
     UI_Internal::ShowAudioOptions(m_state, data);
 
     if (m_state.m_submenuShown && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
