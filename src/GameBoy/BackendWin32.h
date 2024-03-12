@@ -1,12 +1,14 @@
 #pragma once
 #include "vulkan/vulkan.h"
-#include <thread>
+#include <string>
 
 class BackendWin32
 {
 public:
 	void InitWindow(uint32_t width, uint32_t height);
 	void CleanupWindow();
+
+	void ResizeWindow(uint32_t width, uint32_t height);
 
 	static void CreateSurface(VkInstance instance, VkSurfaceKHR& surface, HWND& hwnd);
 	void CreateSurface(VkInstance instance, VkSurfaceKHR& surface);
@@ -20,25 +22,15 @@ public:
 
 	static std::string GetPersistentDataPath();
 private:
-
-	struct WindowState
-	{
-		uint32_t m_width;
-		uint32_t m_height;
-		bool m_run;
-		HWND m_hwnd;
-	};
-
 	class Window
 	{
 	public:
-		void operator()();
-		void CleanupWindow();
-		WindowState m_state;
+		uint32_t m_width;
+		uint32_t m_height;
+		HWND m_hwnd;
 	};
 
 	Window m_window;
-	std::thread m_windowThread;
 };
 
 typedef BackendWin32 Backend;

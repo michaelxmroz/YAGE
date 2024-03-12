@@ -112,6 +112,8 @@ namespace Win32Internal
             return 0;
         }
 
+        ::SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SIZEBOX);
+
         ShowWindow(hwnd, 1);
         UpdateWindow(hwnd);
         return hwnd;
@@ -162,21 +164,34 @@ namespace Win32Internal
 
 void BackendWin32::InitWindow(uint32_t width, uint32_t height)
 {
-    m_window.m_state.m_width = width;
-    m_window.m_state.m_height = height;
+    m_window.m_width = width;
+    m_window.m_height = height;
 
     HMODULE instanceID = GetModuleHandle(nullptr);
-    m_window.m_state.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID);
-
-    //m_windowThread = std::thread(std::ref(m_window));
+    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID);
 }
+
 
 void BackendWin32::CleanupWindow()
 {
-    m_window.m_state.m_run = false;
-    //m_windowThread.join();
-    m_window.CleanupWindow();
+    DestroyWindow(m_window.m_hwnd);
 }
+
+void BackendWin32::ResizeWindow(uint32_t width, uint32_t height)
+{
+    m_window.m_width = width;
+    m_window.m_height = height;
+    RECT rect;
+    ::GetWindowRect(m_window.m_hwnd, &rect);
+    rect.left = 100;
+    rect.top = 100;
+    rect.right = rect.left + width;
+    rect.bottom = rect.top + height;
+
+    AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, 0, 0);
+    SetWindowPos(m_window.m_hwnd, HWND_TOP, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
+}
+
 
 void BackendWin32::CreateSurface(VkInstance instance, VkSurfaceKHR& surface, HWND& hwnd)
 {
@@ -192,19 +207,34 @@ VkWin32SurfaceCreateInfoKHR surfaceInfo{ VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_
 
 void BackendWin32::CreateSurface(VkInstance instance, VkSurfaceKHR& surface)
 {
-    BackendWin32::CreateSurface(instance, surface, m_window.m_state.m_hwnd);
+    BackendWin32::CreateSurface(instance, surface, m_window.m_hwnd);
 }
 
 void BackendWin32::SetWindowTitle(const char* title)
 {
-    SetWindowTextA(m_window.m_state.m_hwnd, title);
+    SetWindowTextA(m_window.m_hwnd, title);
 }
 
 HWND* BackendWin32::GetWindowHandle()
 {
-    return &m_window.m_state.m_hwnd;
+    return &m_window.m_hwnd;
 }
 
+
+bool BackendWin32::ProcessEvents()
+{
+    MSG msg = {};
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+    {
+        if (msg.message == WM_QUIT) {
+            return false;
+        }
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+    return true;
+}
 
 std::string BackendWin32::OpenFileLoadDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings)
 {
@@ -224,7 +254,7 @@ std::string BackendWin32::OpenFileSaveDialog(const wchar_t* fileTypeDescription,
 
     Win32Internal::check_winapi_result(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
     pfd->SetDefaultExtension(fileExtension);
-   
+
     std::string result = Win32Internal::OpenFileDialog(pfd, NULL, fileTypeDescription, fileTypeEndings);
     pfd->Release();
 
@@ -238,41 +268,4 @@ std::string BackendWin32::GetPersistentDataPath()
     std::string path = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
     CoTaskMemFree(pszFilePath);
     return path;
-}
-
-void BackendWin32::Window::operator()()
-{
-    m_state.m_run = true;
-
-    HMODULE instanceID = GetModuleHandle(nullptr);
-    m_state.m_hwnd = Win32Internal::CreateWin32Window(m_state.m_width, m_state.m_height, instanceID);
-
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0) > 0 && m_state.m_run)
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    m_state.m_run = false;
-}
-
-void BackendWin32::Window::CleanupWindow()
-{
-    DestroyWindow(m_state.m_hwnd);
-}
-
-bool BackendWin32::ProcessEvents()
-{
-    MSG msg = {};
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
-    {
-        if (msg.message == WM_QUIT) {
-            return false;
-        }
-
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    return true;
 }
