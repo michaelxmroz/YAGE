@@ -1086,7 +1086,8 @@ void RendererVulkan::RecreateSwapChain()
 	while (width == 0 || height == 0)
 	{
 		m_backend.GetWindowSize(width, height);
-		m_backend.ProcessEvents();
+		KeyBindRequest dummy;
+		m_backend.ProcessEvents(dummy);
 	}
 
 	vkDeviceWaitIdle(m_logicalDevice);
@@ -1206,7 +1207,7 @@ void RendererVulkan::Init()
 
 void RendererVulkan::RegisterOptionsCallbacks(UserSettings& userSettings)
 {
-	userSettings.m_graphicsScalingFactor.RegisterCallback(std::bind(&RendererVulkan::SetScale, this, std::placeholders::_1));
+	userSettings.m_graphicsScalingFactor.RegisterCallback(std::bind(&RendererVulkan::SetScale, this, std::placeholders::_2));
 }
 
 void RendererVulkan::SetScale(uint32_t scale)
@@ -1239,9 +1240,14 @@ bool RendererVulkan::ResumeRendering()
 	return false;
 }
 
-bool RendererVulkan::ProcessEvents()
+bool RendererVulkan::ProcessEvents(KeyBindRequest& keyBindRequest)
 {
-	return m_backend.ProcessEvents();
+	return m_backend.ProcessEvents(keyBindRequest);
+}
+
+const std::unordered_map<uint32_t, bool>& RendererVulkan::GetInputEventMap()
+{
+	return m_backend.GetInputEventMap();
 }
 
 bool RendererVulkan::BeginDraw(const void* renderedImage)

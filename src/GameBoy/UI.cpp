@@ -9,6 +9,7 @@
 #include "Logging.h"
 #include "EngineState.h"
 #include <algorithm>
+#include "Input.h"
 
 static void check_vk_result(VkResult err)
 {
@@ -57,7 +58,7 @@ namespace UI_Internal
 
         if (ImGui::BeginPopupModal("Audio Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            state.m_submenuShown = true;
+            state.m_submenuState.Update(true);
 
             int volume = static_cast<int>(data.m_userSettings.m_audioVolume.GetValue() * 100.0f);
             ImGui::Text("Master Volume");
@@ -94,7 +95,7 @@ namespace UI_Internal
 
         if (ImGui::BeginPopupModal("Graphics Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            state.m_submenuShown = true;
+            state.m_submenuState.Update(true);
 
             int scale = static_cast<int>(data.m_userSettings.m_graphicsScalingFactor.GetValue());
             ImGui::Text("Resolution Scale");
@@ -105,19 +106,19 @@ namespace UI_Internal
 
             ImGui::LabelText("##", "%sx%s",FileParser::ToString(data.m_baseWidth * scale).c_str(), FileParser::ToString(data.m_baseHeight * scale).c_str());
 
-            if (ImGui::Button("Save", ImVec2(120, 0)))
-            {
-                data.m_userSettings.Save();
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(120, 0)))
-            {
-                data.m_userSettings.DiscardChanges();
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
+if (ImGui::Button("Save", ImVec2(120, 0)))
+{
+    data.m_userSettings.Save();
+    ImGui::CloseCurrentPopup();
+}
+ImGui::SetItemDefaultFocus();
+ImGui::SameLine();
+if (ImGui::Button("Cancel", ImVec2(120, 0)))
+{
+    data.m_userSettings.DiscardChanges();
+    ImGui::CloseCurrentPopup();
+}
+ImGui::EndPopup();
         }
     }
 
@@ -135,7 +136,7 @@ namespace UI_Internal
 
         if (ImGui::BeginPopupModal("System Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            state.m_submenuShown = true;
+            state.m_submenuState.Update(true);
 
             bool check = data.m_userSettings.m_systemUseBootrom.GetValue();
             ImGui::Checkbox("Use Bootrom", &check);
@@ -177,11 +178,118 @@ namespace UI_Internal
         }
     }
 
+    void ShowInputOptions(UIState& state, EngineData& data)
+    {
+        if (state.m_activeWindow == UIState::ActiveWindow::INPUTS)
+        {
+            ImGui::OpenPopup("Input Options");
+            state.m_activeWindow = UIState::ActiveWindow::NONE;
+
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        }
+
+        bool openKeyBindingPopup = false;
+
+        if (ImGui::BeginPopupModal("Input Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            state.m_submenuState.Update(true);
+
+            ImGui::Text("Keybindings");
+            std::string assignedKey(" ");
+            
+            if (ImGui::BeginTable("KeybindingsTable", 2))
+            {
+                for (uint32_t i = 0; i < data.m_userSettings.m_keyBindings.size(); i++)
+                {
+                    ImGui::TableNextRow();
+                    const char* uiName = InputActionNames[i];
+                    auto& keyBinding = data.m_userSettings.m_keyBindings[i];
+
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text(uiName);
+
+                    uint32_t boundValue = keyBinding.GetValue();
+                    if (boundValue != 0)
+                    {
+                        assignedKey = Backend::ConvertVirtualKeyToString(boundValue);
+                    }
+                    else
+                    {
+                        assignedKey[0] = ' ';
+                    }
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::PushID("##KeybindButton");
+                    if (ImGui::Button(assignedKey.c_str(), ImVec2(40, 0)))
+                    {
+                        state.m_keybindingTitle = "Binding " + std::string(uiName);
+
+						openKeyBindingPopup = true;
+						state.m_keybindingIndex = i;
+                    }
+                    ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+            }    
+            
+            if (openKeyBindingPopup)
+            {
+                ImGui::OpenPopup(state.m_keybindingTitle.c_str());
+                data.m_keyBindRequest.m_status = KeyBindRequest::Status::REQUESTED;
+            }
+
+            //bool unused_open = true;
+            if (ImGui::BeginPopupModal(state.m_keybindingTitle.c_str()))
+            {
+                std::string bindingText = "Press any button to bind as:";
+                ImGui::Text(bindingText.c_str());
+                
+                float windowWidth = ImGui::GetWindowSize().x;
+                float textWidth = ImGui::CalcTextSize(InputActionNames[state.m_keybindingIndex]).x;
+                float centerX = (windowWidth - textWidth) * 0.5f;
+                ImGui::SetCursorPosX(centerX);
+                ImGui::Text(InputActionNames[state.m_keybindingIndex]);
+
+                ImGui::SetCursorPosX((windowWidth - 120) * 0.5f);
+                if (ImGui::Button("Cancel", ImVec2(120, 0)))
+                {
+                    data.m_keyBindRequest.m_status = KeyBindRequest::Status::NONE;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if(data.m_keyBindRequest.m_status == KeyBindRequest::Status::CONFIRMED)
+				{
+                    data.m_userSettings.m_keyBindings[state.m_keybindingIndex].SetValue(data.m_keyBindRequest.m_keyCode);
+					data.m_keyBindRequest.m_status = KeyBindRequest::Status::NONE;
+                    ImGui::CloseCurrentPopup();
+				}
+
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::Button("Save", ImVec2(120, 0)))
+            {
+                data.m_userSettings.Save();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                data.m_userSettings.DiscardChanges();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     void DrawMainMenuBar(UIState& state, EngineData& data)
     {
         ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
         ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
-        if (!data.m_gameLoaded || state.m_submenuShown || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
+        if (!data.m_gameLoaded || state.m_submenuState.IsOpen() || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
         {
             state.m_showMenuBar = true;
         }
@@ -199,7 +307,7 @@ namespace UI_Internal
             state.m_menuBarAlpha -= 0.01f;
         }
 
-        state.m_submenuShown = false;
+        state.m_submenuState.Update(false);
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, std::min(1.0f,state.m_menuBarAlpha));
 
@@ -207,7 +315,7 @@ namespace UI_Internal
         {
             if (ImGui::BeginMenu("File"))
             {
-                state.m_submenuShown = true;
+                state.m_submenuState.Update(true);
                 if (ImGui::MenuItem("Reset", 0, false, data.m_gameLoaded))
                 {
                 	data.m_engineState.SetState(StateMachine::EngineState::RESET);
@@ -284,7 +392,7 @@ namespace UI_Internal
             }
             if (ImGui::BeginMenu("Options"))
             {
-                state.m_submenuShown = true;
+                state.m_submenuState.Update(true);
                 if (ImGui::MenuItem("System")) 
                 {
                     state.m_activeWindow = UIState::ActiveWindow::SYSTEM;
@@ -297,7 +405,10 @@ namespace UI_Internal
                 {
                     state.m_activeWindow = UIState::ActiveWindow::AUDIO;
                 }
-                if (ImGui::MenuItem("Controls")) {}
+                if (ImGui::MenuItem("Inputs")) 
+                {
+					state.m_activeWindow = UIState::ActiveWindow::INPUTS;
+                }
                 if (ImGui::MenuItem("Debug")) {}
 
                 ImGui::EndMenu();
@@ -359,15 +470,17 @@ void UI::Prepare(EngineData& data)
     UI_Internal::ShowSystemOptions(m_state, data);
     UI_Internal::ShowGraphicsOptions(m_state, data);
     UI_Internal::ShowAudioOptions(m_state, data);
+    UI_Internal::ShowInputOptions(m_state, data);
 
-    if (m_state.m_submenuShown && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
+    if (m_state.m_submenuState.HasOpened() && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
     {
         data.m_engineState.SetState(StateMachine::EngineState::PAUSED);
     }
-    else if (!m_state.m_submenuShown && data.m_engineState.GetState() == StateMachine::EngineState::PAUSED)
+    else if (m_state.m_submenuState.HasClosed() && data.m_engineState.GetState() == StateMachine::EngineState::PAUSED)
     {
         data.m_engineState.SetState(StateMachine::EngineState::RUNNING);
     }
+    m_state.m_submenuState.EndFrame();
 }
 
 void UI::Draw(RendererVulkan& renderer)

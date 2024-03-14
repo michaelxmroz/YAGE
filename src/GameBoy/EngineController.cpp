@@ -17,7 +17,10 @@ EngineController::EngineController(EngineData& state) :
     m_audio->RegisterEngineStateChangeCallbacks(m_data.m_engineState);
 
     m_UI = new UI(*m_renderer);
+
     m_inputHandler = new InputHandler();
+    m_inputHandler->RegisterOptionsCallbacks(m_data.m_userSettings);
+
     m_emulator = nullptr;
 }
 
@@ -155,14 +158,14 @@ inline void EngineController::RunEmulatorLoop()
             deltaMs = m_preferredFrameTime;
         }
 
-        if (!m_renderer->ProcessEvents())
+        if (!m_renderer->ProcessEvents(m_data.m_keyBindRequest))
         {
 			m_data.m_engineState.SetState(StateMachine::EngineState::EXIT);
 			break;
         }
 
         EmulatorInputs::InputState inputState;
-        m_inputHandler->Update(inputState);
+        m_inputHandler->Update(m_data, m_renderer->GetInputEventMap(), inputState);
 
         if (m_data.m_gameLoaded)
         {

@@ -9,6 +9,8 @@
 
 class RegisteredTypes;
 
+const char PAIR_SEPARATOR = '=';
+
 //Overengineerd types for user settings to facilitate UI <--> Engine communication through callbacks and serialization/deserialization
 class IConfigurableValue
 {
@@ -125,7 +127,7 @@ public:
 		return *this;
 	}
 
-	void RegisterCallback(std::function<void(T)> callback) 
+	void RegisterCallback(std::function<void(T, T)> callback) 
 	{
 		m_callback = callback;
 	}
@@ -158,12 +160,12 @@ public:
 	{ 
 		if(m_value != m_oldValue)
 		{
-			m_oldValue = m_value;
-			m_isDirty = true;
 			if(m_callback)
 			{
-				m_callback(m_value);
+				m_callback(m_oldValue, m_value);
 			}
+			m_oldValue = m_value;
+			m_isDirty = true;
 		}
 		else
 		{
@@ -188,7 +190,7 @@ public:
 private:
 	T m_value;
 	T m_oldValue;
-	std::function<void(T)> m_callback;
+	std::function<void(T, T)> m_callback;
 };
 
 class UserSettings
@@ -214,6 +216,7 @@ public:
 	ConfigurableValue<uint32_t> m_graphicsScalingFactor;
 	ConfigurableValue<float> m_audioVolume;
 	std::vector<ConfigurableValue<std::string>> m_recentFiles;
+	std::vector<ConfigurableValue<uint32_t>> m_keyBindings;
 	uint32_t m_recentFilesIndex;
 
 private:
@@ -246,6 +249,20 @@ private:
 	std::vector<std::vector<std::vector<std::function<void()>>>> m_stateChangeCallbacks;
 };
 
+struct KeyBindRequest
+{
+	enum class Status : uint32_t
+	{
+		NONE = 0,
+		REQUESTED,
+		CONFIRMED,
+		COUNT
+	};
+
+	Status m_status = Status::NONE;
+	uint32_t m_keyCode = 0;
+};
+
 struct EngineData
 {
 	enum class SaveLoadState : uint8_t
@@ -274,6 +291,8 @@ struct EngineData
 	std::string m_bootromPath;
 	std::string m_gamePath;
 	std::string m_saveLoadPath;
+
+	KeyBindRequest m_keyBindRequest;
 
 	uint32_t m_baseWidth;
 	uint32_t m_baseHeight;

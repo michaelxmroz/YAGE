@@ -1,6 +1,8 @@
 #pragma once
 #include "vulkan/vulkan.h"
 #include <string>
+#include <vector>
+#include "Input.h"
 
 class BackendWin32
 {
@@ -13,7 +15,9 @@ public:
 
 	static void CreateSurface(VkInstance instance, VkSurfaceKHR& surface, HWND& hwnd);
 	void CreateSurface(VkInstance instance, VkSurfaceKHR& surface);
-	bool ProcessEvents();
+	bool ProcessEvents(KeyBindRequest& keyBindingRequest);
+
+	const std::unordered_map<uint32_t, bool>& GetInputEventMap();
 
 	void SetWindowTitle(const char* title);
 	HWND* GetWindowHandle();
@@ -22,6 +26,11 @@ public:
 	static std::string OpenFileSaveDialog(const wchar_t* fileTypeDescription, const wchar_t* fileTypeEndings, const wchar_t* fileExtension);
 
 	static std::string GetPersistentDataPath();
+
+	static void GetDefaultInputMapping(std::unordered_map<uint32_t, InputActions>& inputMapping);
+
+	static std::string ConvertVirtualKeyToString(uint32_t virtualKey);
+	static uint32_t ConvertCharToVirtualKey(char c);
 private:
 	class Window
 	{
@@ -32,7 +41,7 @@ private:
 	};
 
 	Window m_window;
+	std::unordered_map<uint32_t, bool> m_rawInputEvents;
+	uint32_t m_nextKeyDown;
 };
-
-typedef BackendWin32 Backend;
 

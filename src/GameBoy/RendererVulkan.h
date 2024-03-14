@@ -5,18 +5,13 @@
 #include "vulkan/vulkan.h"
 #include <vector>
 
-#define WIN32_BACKEND 1
-
 #if _DEBUG
 #define VALIDATION_LAYERS 1
 #else
 #define VALIDATION_LAYERS 0
 #endif
 
-
-#if WIN32_BACKEND
-#include "BackendWin32.h"
-#endif
+#include "Backend.h"
 #include "MiniMath.h"
 #include "EngineState.h"
 
@@ -37,7 +32,9 @@ public:
 	bool PauseRendering();
 	bool ResumeRendering();
 
-	bool ProcessEvents();
+	bool ProcessEvents(KeyBindRequest& keyBindingRequest);
+	const std::unordered_map<uint32_t, bool>& GetInputEventMap();
+
 	bool BeginDraw(const void* renderedImage);
 	void EndDraw();
 	void WaitForIdle();

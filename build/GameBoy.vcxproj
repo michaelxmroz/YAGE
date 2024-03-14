@@ -139,6 +139,7 @@
     <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\src\GameBoy\Audio.h" />
     <ClInclude Include="..\src\GameBoy\AudioPortaudio.h" />
+    <ClInclude Include="..\src\GameBoy\Backend.h" />
     <ClInclude Include="..\src\GameBoy\BackendWin32.h" />
     <ClInclude Include="..\src\GameBoy\Debugging.h" />
     <ClInclude Include="..\src\GameBoy\EngineController.h" />

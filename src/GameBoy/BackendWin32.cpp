@@ -27,6 +27,8 @@
 #include <codecvt>
 
 
+#define GET_SCAN_CODE(lParam) ((lParam >> 16) & 0x1FF)
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern void ResizeWindowProcHandler(void* userData, bool isMinimizing);
 
@@ -196,6 +198,8 @@ namespace Win32Internal
 
 void BackendWin32::InitWindow(uint32_t width, uint32_t height, void* userData)
 {
+    m_rawInputEvents.reserve(250);
+
     m_window.m_width = width;
     m_window.m_height = height;
 
@@ -203,6 +207,11 @@ void BackendWin32::InitWindow(uint32_t width, uint32_t height, void* userData)
     m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID, userData);
 }
 
+
+const std::unordered_map<uint32_t, bool>& BackendWin32::GetInputEventMap()
+{
+    return m_rawInputEvents;
+}
 
 void BackendWin32::CleanupWindow()
 {
@@ -260,15 +269,29 @@ HWND* BackendWin32::GetWindowHandle()
 }
 
 
-bool BackendWin32::ProcessEvents()
+bool BackendWin32::ProcessEvents(KeyBindRequest& keyBindRequest)
 {
     MSG msg = {};
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
     {
-        if (msg.message == WM_QUIT) {
+        if (msg.message == WM_QUIT) 
+        {
             return false;
         }
 
+        if (msg.message == WM_KEYDOWN)
+        {
+            if(keyBindRequest.m_status == KeyBindRequest::Status::REQUESTED)
+			{
+                keyBindRequest.m_keyCode = GET_SCAN_CODE(msg.lParam);
+                keyBindRequest.m_status = KeyBindRequest::Status::CONFIRMED;
+			}
+            m_rawInputEvents[GET_SCAN_CODE(msg.lParam)] = true;
+        }
+        if (msg.message == WM_KEYUP)
+        {
+            m_rawInputEvents[GET_SCAN_CODE(msg.lParam)] = false;
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -307,4 +330,48 @@ std::string BackendWin32::GetPersistentDataPath()
     std::string path = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
     CoTaskMemFree(pszFilePath);
     return path;
+}
+
+void BackendWin32::GetDefaultInputMapping(std::unordered_map<uint32_t, InputActions>& inputMapping)
+{
+    inputMapping[ConvertCharToVirtualKey('W')] = InputActions::Up;
+	inputMapping[ConvertCharToVirtualKey('S')] = InputActions::Down;
+	inputMapping[ConvertCharToVirtualKey('A')] = InputActions::Left;
+	inputMapping[ConvertCharToVirtualKey('D')] = InputActions::Right;
+	inputMapping[ConvertCharToVirtualKey('N')] = InputActions::A;
+	inputMapping[ConvertCharToVirtualKey('M')] = InputActions::B;
+	inputMapping[ConvertCharToVirtualKey('J')] = InputActions::Start;
+	inputMapping[ConvertCharToVirtualKey('K')] = InputActions::Select;
+    inputMapping[ConvertCharToVirtualKey('1')] = InputActions::QuickSave;
+    inputMapping[ConvertCharToVirtualKey('2')] = InputActions::QuickLoad;
+    inputMapping[ConvertCharToVirtualKey('P')] = InputActions::Pause;
+}
+
+std::string BackendWin32::ConvertVirtualKeyToString(uint32_t virtualKey)
+{
+    char keyName[256];
+    std::string retString("");
+
+    if (GetKeyNameTextA(virtualKey << 16, keyName, 256) != 0)
+    {
+        retString = keyName;
+    }
+    else {
+        LOG_ERROR("Failed to get key name");
+    }
+    return retString;
+}
+
+uint32_t BackendWin32::ConvertCharToVirtualKey(char c)
+{
+    SHORT virtualKeyCode = VkKeyScan(c);
+    BYTE virtualKey = LOBYTE(virtualKeyCode);
+
+    if (virtualKey != -1) 
+    {
+        // Map virtual key to scan code
+        int scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
+        return scanCode;
+    }
+    return 0;
 }

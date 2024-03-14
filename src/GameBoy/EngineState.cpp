@@ -2,6 +2,7 @@
 #include "FileParser.h"
 #include "Logging.h"
 #include "BackendWin32.h"
+#include "Input.h"
 
 const uint32_t INITIAL_STR_BUFFER_SIZE = 2048;
 const char LINE_ENDING = '\n';
@@ -18,15 +19,20 @@ UserSettings::UserSettings()
 	, m_recentFilesIndex(0)
 
 {
+	m_recentFiles.reserve(MAX_RECENT_FILES);
 	for(uint32_t i = 0; i < MAX_RECENT_FILES; ++i)
 	{
 		std::string name = "Files.Recent" + std::to_string(i);
 		m_recentFiles.push_back(ConfigurableValue<std::string>(name.c_str(), ""));
+		m_types.RegisterType(&m_recentFiles[i]);
 	}
 
-	for (uint32_t i = 0; i < MAX_RECENT_FILES; ++i)
+	m_keyBindings.reserve(static_cast<uint32_t>(InputActions::Count));
+	for(uint32_t i = 0; i < static_cast<uint32_t>(InputActions::Count); ++i)
 	{
-		m_types.RegisterType(&m_recentFiles[i]);
+		std::string name = "Input.KeyBindings." + std::string(InputActionNames[i]);
+		m_keyBindings.push_back(ConfigurableValue<uint32_t>(name.c_str(), 0));
+		m_types.RegisterType(&m_keyBindings[i]);
 	}
 
 	const char* defaultFileName = "usersettings.ini";

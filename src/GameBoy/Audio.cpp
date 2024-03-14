@@ -37,7 +37,7 @@ void Audio::SetVolume(float volume)
 
 void Audio::RegisterOptionsCallbacks(UserSettings& userSettings)
 {
-	userSettings.m_audioVolume.RegisterCallback(std::bind(&Audio::SetVolume, this, std::placeholders::_1));
+	userSettings.m_audioVolume.RegisterCallback(std::bind(&Audio::SetVolume, this, std::placeholders::_2));
 
 	SetVolume(userSettings.m_audioVolume.GetValue());
 }
