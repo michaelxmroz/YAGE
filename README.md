@@ -4,7 +4,7 @@ YAGE is a classic (DMG) GameBoy emulator. It is written in C++ and consists of a
 
 ## Features
 YAGE aims to be a medium-accuracy emulator. For the exact workings of the original GameBoy hardware that this project is trying to emulate please consult the [Pandocs](https://gbdev.io/pandocs/) as this would go beyond the scope of this readme. In it's current state YAGE emulates all GameBoy systems except for the serial data connection.
-The [Portaudio](https://portaudio.com/) library is used for plattform-indepentent audio playback.
+The [Portaudio](https://portaudio.com/) library is used for plattform-indepentent audio playback and [Dear imgui](https://github.com/ocornut/imgui) for the UI.
 Furthermore full game-state serialization is supported for save-states.
 
 ## Build
@@ -21,18 +21,17 @@ The unit tests require the [Google Test](https://github.com/google/googletest) f
 
 ## Usage
 
-The executable should be started with the -file "x" command line parameter, where x is a valid path to a *.rom file. A second supported parameter is -bootrom "x" to provide a [bootrom](https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM) to the emulator, but it is not strictly necessary.
+All operations can be performed from the main bar UI, but the executable can also be started with the -file "x" command line parameter, where x is a valid path to a *.rom file. A second supported parameter is -bootrom "x" to provide a [bootrom](https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM) to the emulator, but it is not strictly necessary.
 
 ## Controls
-Currently the controls are hard-coded.
+Currently the default control scheme is as follows, but this can be remapped through the options menu.
 
 - w, a, s, d - Arrow keys
 - n, m - A, B
-- k, l - Start, Select
+- j, k - Start, Select
 - p - Pause
 - 1 - Save Gamestate
 - 2 - Load Gamestate
 
 ## Todo's
-- GUI
 - Multi-platform front-ends
