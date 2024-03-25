@@ -15,6 +15,7 @@ UserSettings::UserSettings()
 	, m_systemUseBootrom(&m_types, "System.UseBootrom", false)
 	, m_systemBootromPath(&m_types, "System.BootromPath", "")
 	, m_graphicsScalingFactor(&m_types, "Graphics.ScalingFactor", 3)
+	, m_systemTurboSpeed(&m_types, "System.TurboSpeed", 1.0f)
 	, m_audioVolume(&m_types, "Audio.MasterVolume", 1.0f)
 	, m_recentFilesIndex(0)
 

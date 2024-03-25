@@ -213,6 +213,7 @@ public:
 
 	ConfigurableValue<bool> m_systemUseBootrom;
 	ConfigurableValue<std::string> m_systemBootromPath;
+	ConfigurableValue<float> m_systemTurboSpeed;
 	ConfigurableValue<uint32_t> m_graphicsScalingFactor;
 	ConfigurableValue<float> m_audioVolume;
 	std::vector<ConfigurableValue<std::string>> m_recentFiles;
@@ -282,6 +283,7 @@ struct EngineData
 		, m_saveLoadPath("")
 		, m_baseWidth(0)
 		, m_baseHeight(0)
+		, m_turbo(false)
 	{}
 
 	StateMachine m_engineState;
@@ -296,6 +298,8 @@ struct EngineData
 
 	uint32_t m_baseWidth;
 	uint32_t m_baseHeight;
+
+	bool m_turbo;
 private:
     EngineData(const EngineData&) = delete;
 	EngineData& operator=(const EngineData&) = delete;

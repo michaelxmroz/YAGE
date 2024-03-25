@@ -13,7 +13,7 @@ public:
 	void Init(Memory& memory);
 	void SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset);
 
-	uint32_t Update(Memory& memory, const uint32_t& cyclesPassed);
+	uint32_t Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed);
 
 private:
 

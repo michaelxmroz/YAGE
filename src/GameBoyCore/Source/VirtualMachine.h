@@ -32,6 +32,8 @@ public:
 	virtual std::vector<uint8_t> Serialize() const override;
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) override;
 
+	virtual void SetTurboSpeed(float speed) override;
+
 #if _DEBUG
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback) override;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) override;
@@ -57,6 +59,7 @@ private:
 	uint32_t m_samplesGenerated;
 	bool m_frameRendered;
 	double m_stepDuration;
+	float m_turbospeed;
 
 };
 

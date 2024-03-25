@@ -75,6 +75,8 @@ public:
 	virtual std::vector<uint8_t> Serialize() const = 0;
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
 
+	virtual void SetTurboSpeed(float speed) = 0;
+
 #if _DEBUG
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback) = 0;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) = 0;

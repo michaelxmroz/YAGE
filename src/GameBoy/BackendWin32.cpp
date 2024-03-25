@@ -345,6 +345,7 @@ void BackendWin32::GetDefaultInputMapping(std::unordered_map<uint32_t, InputActi
     inputMapping[ConvertCharToVirtualKey('1')] = InputActions::QuickSave;
     inputMapping[ConvertCharToVirtualKey('2')] = InputActions::QuickLoad;
     inputMapping[ConvertCharToVirtualKey('P')] = InputActions::Pause;
+    inputMapping[ConvertCharToVirtualKey('T')] = InputActions::Turbo;
 }
 
 std::string BackendWin32::ConvertVirtualKeyToString(uint32_t virtualKey)

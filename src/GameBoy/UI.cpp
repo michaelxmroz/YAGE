@@ -138,6 +138,30 @@ ImGui::EndPopup();
         {
             state.m_submenuState.Update(true);
 
+            ImGui::Checkbox("Use Turbo", &data.m_turbo);
+
+            ImGui::BeginDisabled(!data.m_turbo);
+            float turbo  = static_cast<float>(data.m_userSettings.m_systemTurboSpeed.GetValue());
+            float turboValues[10] = { 0.25f, 0.5f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
+
+            int index = 0;
+            if (turbo < 0.5f)
+            {
+				index = 0;
+			}
+            else if (turbo < 1.0f)
+            {
+				index = 1;
+			}
+            else
+            {
+				index = static_cast<int>(turbo) + 1;
+			}
+
+            ImGui::SliderInt("##", &index, 0, 9, std::to_string(turboValues[index]).c_str());
+            data.m_userSettings.m_systemTurboSpeed.SetValue(turboValues[index]);
+            ImGui::EndDisabled();
+
             bool check = data.m_userSettings.m_systemUseBootrom.GetValue();
             ImGui::Checkbox("Use Bootrom", &check);
             data.m_userSettings.m_systemUseBootrom.SetValue(check);

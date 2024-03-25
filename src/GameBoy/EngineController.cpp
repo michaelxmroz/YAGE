@@ -171,6 +171,7 @@ inline void EngineController::RunEmulatorLoop()
         {
             if (m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED)
             {
+                m_emulator->SetTurboSpeed(m_data.m_turbo ? m_data.m_userSettings.m_systemTurboSpeed.GetValue() : 1.0f);
                 m_emulator->Step(inputState, deltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();

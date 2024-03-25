@@ -22,6 +22,7 @@ InputHandler::InputHandler()
 	m_buttonStates[InputActions::Pause] = ButtonState();
 	m_buttonStates[InputActions::QuickSave] = ButtonState();
 	m_buttonStates[InputActions::QuickLoad] = ButtonState();
+	m_buttonStates[InputActions::Turbo] = ButtonState();
 }
 
 void InputHandler::RegisterOptionsCallbacks(UserSettings& userSettings)
@@ -104,6 +105,9 @@ void InputHandler::Update(EngineData& data, const std::unordered_map<uint32_t, b
 				break;
 			case InputActions::QuickLoad:
 				data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
+				break;
+			case InputActions::Turbo:
+				data.m_turbo = !data.m_turbo;
 				break;
 			}
 		}

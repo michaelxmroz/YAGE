@@ -14,6 +14,7 @@ VirtualMachine::VirtualMachine()
 	, m_ppu(&m_serializer)
 	, m_apu(&m_serializer)
 	, m_samplesGenerated(0)
+	, m_turbospeed(1)
 {
 }
 
@@ -63,10 +64,10 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
 		uint32_t cyclesPassed = m_cpu.Step(m_memory);
 		m_clock.Increment(cyclesPassed, m_memory);
 		m_ppu.Render(cyclesPassed, m_memory);
-		m_samplesGenerated += m_apu.Update(m_memory,cyclesPassed);
+		m_samplesGenerated += m_apu.Update(m_memory, cyclesPassed, m_turbospeed);
 
 		m_totalCycles += cyclesPassed;
-		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / static_cast<double>(CPU_FREQUENCY);
+		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
 		m_stepDuration += cycleDurationS * 1000.0;
 	}
 	m_stepDuration -= deltaMs;
@@ -104,6 +105,11 @@ std::vector<uint8_t> VirtualMachine::Serialize() const
 void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
 {
 	m_serializer.Deserialize(buffer, size, m_memory.GetHeaderChecksum());
+}
+
+void VirtualMachine::SetTurboSpeed(float speed)
+{
+	m_turbospeed = speed;
 }
 
 
