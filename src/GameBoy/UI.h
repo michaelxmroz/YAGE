@@ -50,6 +50,8 @@ struct UIState
 	std::string m_keybindingTitle = "##";
 	uint32_t m_keybindingIndex = 0;
 	ActiveWindow m_activeWindow = ActiveWindow::NONE;
+	uint32_t m_lastMessageIndex = 0;
+	bool m_showLogWindow = false;
 };
 
 class UI

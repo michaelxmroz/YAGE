@@ -112,41 +112,6 @@ void Logger::Logging_Helpers::AppendNextDateTimeTemplateElement(char*& buffer, u
     buffer += ConstLen(GetDateTimeTemplate(index));
 }
 
-Logger::Logging_Helpers::LocklessRingBuffer::LocklessRingBuffer()
-{
-    for (unsigned int i = 0; i < FILE_MESSAGE_BUFFER_SIZE; ++i)
-    {
-        m_readable[i].store(false);
-    }
-    m_writeIndex.store(0);
-    m_readIndex = 0;
-}
-
-void Logger::Logging_Helpers::LocklessRingBuffer::Push(const EzString& message)
-{
-    unsigned int writeIndex = m_writeIndex.fetch_add(1) % FILE_MESSAGE_BUFFER_SIZE;
-
-    m_buffer[writeIndex] = message;
-    bool oldVal = false;
-    if (!m_readable[writeIndex].compare_exchange_strong(oldVal, true))
-    {
-        assert(((void)"File message buffer overflow in logging system. Consider increasing buffer size", false));
-    }
-}
-
-bool Logger::Logging_Helpers::LocklessRingBuffer::PopIfPossible(EzString& messageOut)
-{
-    unsigned int readIndex = m_readIndex % FILE_MESSAGE_BUFFER_SIZE;
-    if (!m_readable[readIndex])
-    {
-        return false;
-    }
-    messageOut = m_buffer[readIndex];
-    m_readIndex++;
-    m_readable[readIndex].store(false);
-    return true;
-}
-
 #if VS_OUT
 void Logger::Logging_Helpers::VSDebugOut(const char* message)
 {
@@ -174,6 +139,9 @@ unsigned int Logger::Logging_Helpers::GetDigits(int value)
     if (value > 9) return 2;
     return 1;
 }
+
+std::unique_ptr<Logger::GlobalLogBuffer> Logger::GlobalLogBuffer::m_instance;
+std::once_flag Logger::GlobalLogBuffer::m_onceFlag;
 
 std::unique_ptr<Logger::FileOutput> Logger::FileOutput::m_instance;
 std::once_flag Logger::FileOutput::m_onceFlag;
@@ -221,4 +189,71 @@ void Logger::FileOutput::Writer::operator()()
             }
         }
     }
+}
+
+void Logger::GlobalLogBuffer::Add(const EzString& message, LogLevel level)
+{
+    if (!m_instance)
+    {
+        Init();
+    }
+
+    m_instance.get()->Push(message, level);
+}
+
+unsigned int Logger::GlobalLogBuffer::GetMessageCount()
+{
+    if (!m_instance)
+    {
+        return 0;
+    }
+
+    return m_instance.get()->m_addedMessages;
+}
+
+void Logger::GlobalLogBuffer::GetLogMessage(EzString& message, LogLevel& level, unsigned int index)
+{
+    if (!m_instance)
+    {
+        return;
+    }
+
+    m_instance.get()->PeekAtPosition(message, level, index);
+}
+
+unsigned int Logger::GlobalLogBuffer::GetCurrentMessageIndex()
+{
+    if (!m_instance)
+    {
+        return 0;
+    }
+
+    return m_instance.get()->m_writeIndex;
+}
+
+void Logger::GlobalLogBuffer::Init()
+{
+    std::call_once(m_onceFlag,
+        [] {
+            m_instance.reset(new GlobalLogBuffer());
+        });
+}
+
+Logger::GlobalLogBuffer::GlobalLogBuffer() : m_writeIndex(0), m_logLevelBuffer() {}
+
+void Logger::GlobalLogBuffer::Push(const std::string& message, LogLevel level)
+{
+    if (m_addedMessages < BUFFER_SIZE) m_addedMessages++;
+
+    unsigned int writeIndex = m_writeIndex.fetch_add(1) % BUFFER_SIZE;
+
+    m_messageBuffer[writeIndex] = message;
+    m_logLevelBuffer[writeIndex] = level;
+}
+
+void Logger::GlobalLogBuffer::PeekAtPosition(EzString& messageOut, LogLevel& level, unsigned int n)
+{
+    unsigned int readIndex = (m_writeIndex - 1 - n) % BUFFER_SIZE;
+    messageOut = m_messageBuffer[readIndex];
+    level = m_logLevelBuffer[readIndex];
 }

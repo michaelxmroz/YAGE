@@ -42,8 +42,73 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 }
 #endif // APP_USE_VULKAN_DEBUG_REPORT
 
+const ImVec4 logMessageColors[3] = 
+{
+	ImVec4(1.0f, 1.0f, 1.0f, 1.0f), //INFO
+	ImVec4(1.0f, 1.0f, 0.0f, 1.0f), //WARNING
+	ImVec4(1.0f, 0.0f, 0.0f, 1.0f)  //ERROR
+};
+
 namespace UI_Internal
 {
+
+    ImVec4 GetColorForLogLevel(Logger::LogLevel level)
+    {
+        switch (level)
+        {
+		case Logger::LogLevel::Info:
+			return logMessageColors[0];
+		case Logger::LogLevel::Warning:
+			return logMessageColors[1];
+		case Logger::LogLevel::Error:
+			return logMessageColors[2];
+		default:
+			return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+
+    void DrawLogWindow(UIState& state)
+    {
+        if (state.m_showLogWindow)
+        {
+			ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
+            if (!ImGui::Begin("Log", &state.m_showLogWindow))
+            {
+				ImGui::End();
+				return;
+			}
+
+			ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+            uint32_t messageCount = Logger::GlobalLogBuffer::GetMessageCount();
+            std::string message;
+            Logger::LogLevel level;
+            for (uint32_t i = 0; i < messageCount; i++)
+            {
+                uint32_t reverseIndex = messageCount - i - 1;
+                Logger::GlobalLogBuffer::GetLogMessage(message, level, reverseIndex);
+                ImVec4 color = GetColorForLogLevel(level);
+
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
+                ImGui::TextUnformatted(message.c_str());
+                ImGui::PopStyleColor();
+            }
+
+            uint32_t newMessageIndex = Logger::GlobalLogBuffer::GetCurrentMessageIndex();
+
+            if (newMessageIndex != state.m_lastMessageIndex)
+            {
+                state.m_lastMessageIndex = newMessageIndex;
+				ImGui::SetScrollHereY(1.0f);
+			}
+
+			ImGui::PopStyleVar();
+			ImGui::EndChild();
+			ImGui::End();
+		}
+	}
+
     void ShowAudioOptions(UIState& state, EngineData& data)
 	{
         if (state.m_activeWindow == UIState::ActiveWindow::AUDIO)
@@ -106,19 +171,19 @@ namespace UI_Internal
 
             ImGui::LabelText("##", "%sx%s",FileParser::ToString(data.m_baseWidth * scale).c_str(), FileParser::ToString(data.m_baseHeight * scale).c_str());
 
-if (ImGui::Button("Save", ImVec2(120, 0)))
-{
-    data.m_userSettings.Save();
-    ImGui::CloseCurrentPopup();
-}
-ImGui::SetItemDefaultFocus();
-ImGui::SameLine();
-if (ImGui::Button("Cancel", ImVec2(120, 0)))
-{
-    data.m_userSettings.DiscardChanges();
-    ImGui::CloseCurrentPopup();
-}
-ImGui::EndPopup();
+            if (ImGui::Button("Save", ImVec2(120, 0)))
+            {
+                data.m_userSettings.Save();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                data.m_userSettings.DiscardChanges();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
         }
     }
 
@@ -433,7 +498,15 @@ ImGui::EndPopup();
                 {
 					state.m_activeWindow = UIState::ActiveWindow::INPUTS;
                 }
-                if (ImGui::MenuItem("Debug")) {}
+                if (ImGui::BeginMenu("Debug"))
+                {
+                    if (ImGui::MenuItem("Log Window"))
+                    {
+                        state.m_showLogWindow = !state.m_showLogWindow;
+                    }
+
+                    ImGui::EndMenu();
+                }
 
                 ImGui::EndMenu();
             }
@@ -490,6 +563,8 @@ void UI::Prepare(EngineData& data)
     //ImGui::ShowDemoWindow(&show);
 
     UI_Internal::DrawMainMenuBar(m_state, data);
+
+    UI_Internal::DrawLogWindow(m_state);
 
     UI_Internal::ShowSystemOptions(m_state, data);
     UI_Internal::ShowGraphicsOptions(m_state, data);

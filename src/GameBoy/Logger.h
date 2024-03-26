@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <mutex>
+#include <cassert>
 
 //This can be your custom string type, as long as it supports .c_str()
 #define EzString std::string
@@ -71,16 +72,61 @@ namespace Logger
 #pragma warning( pop )
 
         //Ringbuffer for multi-threaded writing and single-threaded reading
+        template <int ARRAY_SIZE>
         class LocklessRingBuffer
         {
         public:
-            LocklessRingBuffer();
-            void Push(const EzString& message);
-            bool PopIfPossible(EzString& messageOut);
+            LocklessRingBuffer()
+            {
+                for (unsigned int i = 0; i < ARRAY_SIZE; ++i)
+                {
+                    m_readable[i].store(false);
+                }
+                m_writeIndex.store(0);
+                m_readIndex = 0;
+            }
+            void Push(const EzString& message)
+            {
+                unsigned int writeIndex = m_writeIndex.fetch_add(1) % ARRAY_SIZE;
+
+                m_buffer[writeIndex] = message;
+                bool oldVal = false;
+                if (!m_readable[writeIndex].compare_exchange_strong(oldVal, true))
+                {
+                    assert(((void)"Message buffer overflow in logging system. Consider increasing buffer size", false));
+                }
+            }
+            bool PopIfPossible(EzString& messageOut)
+            {
+                unsigned int readIndex = m_readIndex % ARRAY_SIZE;
+                if (!m_readable[readIndex])
+                {
+                    return false;
+                }
+                messageOut = m_buffer[readIndex];
+                m_readIndex++;
+                m_readable[readIndex].store(false);
+                return true;
+            }
+
+            void Peek(EzString& messageOut)
+            {
+				unsigned int readIndex = m_readIndex % ARRAY_SIZE;
+                if (!m_readable[readIndex])
+                {
+					return;
+				}
+				messageOut = m_buffer[readIndex];
+			}
+
+            unsigned int GetCurrentMessageIndex()
+            {
+				return m_writeIndex;
+			}
 
         private:
-            std::atomic<bool> m_readable[FILE_MESSAGE_BUFFER_SIZE];
-            EzString m_buffer[FILE_MESSAGE_BUFFER_SIZE];
+            std::atomic<bool> m_readable[ARRAY_SIZE];
+            EzString m_buffer[ARRAY_SIZE];
 
             std::atomic<unsigned int> m_writeIndex;
             unsigned int m_readIndex;
@@ -93,7 +139,7 @@ namespace Logger
     {
         Info = 1,
         Warning = 2,
-        Error = 4,
+        Error = 4
     };
 
     constexpr LogLevel operator|(LogLevel a, LogLevel b)
@@ -153,6 +199,38 @@ namespace Logger
     }
 
 
+    class GlobalLogBuffer
+    {
+    public:
+
+        static void Add(const EzString& message, LogLevel level);;
+
+        static unsigned int GetMessageCount();
+
+        static void GetLogMessage(EzString& message, LogLevel& level, unsigned int index);
+
+        static unsigned int GetCurrentMessageIndex();
+
+    private:
+        static void Init();
+
+        static std::unique_ptr<GlobalLogBuffer> m_instance;
+        static std::once_flag m_onceFlag;
+
+        GlobalLogBuffer();
+
+        void Push(const std::string& message, LogLevel level);
+
+        void PeekAtPosition(EzString& messageOut, LogLevel& level, unsigned int n);
+
+        static const int BUFFER_SIZE = 1024;
+        EzString m_messageBuffer[BUFFER_SIZE];
+        LogLevel m_logLevelBuffer[BUFFER_SIZE];
+        unsigned int m_addedMessages = 0;
+        std::atomic<unsigned int> m_writeIndex;
+    };
+
+
 //Output Controllers
 //----------------------------------//
 #if VS_OUT
@@ -174,6 +252,16 @@ namespace Logger
         static void Output(const EzString& message)
         {
             Logging_Helpers::ConsoleOut(message.c_str());
+        };
+    };
+
+    class LogBufferOutput
+    {
+    public:
+        template<LogLevel level>
+        static void Output(const EzString& message)
+        {
+            GlobalLogBuffer::Add(message, level);
         };
     };
 
@@ -212,7 +300,7 @@ namespace Logger
             Writer() {}
             void operator()();
             std::unique_ptr<std::fstream> m_fileHandle;
-            Logging_Helpers::LocklessRingBuffer m_buffer;
+            Logging_Helpers::LocklessRingBuffer<FILE_MESSAGE_BUFFER_SIZE> m_buffer;
             bool m_isRunning = true;
         };
 
@@ -355,10 +443,11 @@ namespace Logger
     typedef SubLogger<LogSeverity::All, LogVerbosity::All, VSDebugOutput> VSLogger;
     typedef SubLogger<LogSeverity::All, LogVerbosity::All, ConsoleOutput> ConsoleLogger;
     typedef SubLogger<LogSeverity::Errors, LogVerbosity::All, FileOutput> FileLogger;
+    typedef SubLogger<LogSeverity::All, LogVerbosity::All, LogBufferOutput> GlobalBufferLogger;
 
     typedef SubLogger<LogSeverity::All, LogVerbosity::Minimal, FileOutput> FileLoggerMinimal;
 
-    typedef CompoundLogger<ConsoleLogger> DefaultLogger;
+    typedef CompoundLogger<GlobalBufferLogger> DefaultLogger;
     typedef CompoundLogger<FileLoggerMinimal> MinimalLogger;
 }
 
