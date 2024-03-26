@@ -123,6 +123,7 @@ inline void EngineController::CreateEmulator(const std::vector<char>& bootromBlo
 inline void EngineController::CleanupEmulator()
 {
     Emulator::Delete(m_emulator);
+    m_emulator = nullptr;
 }
 
 inline void EngineController::RunEmulatorLoop()

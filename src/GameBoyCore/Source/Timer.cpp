@@ -2,8 +2,6 @@
 #include "Helpers.h"
 #include "Interrupts.h"
 
-#define DIVIDER_MCYCLES 64
-
 #define DIVIDER_REGISTER 0xFF04
 #define TIMA_REGISTER 0xFF05
 #define TMA_REGISTER 0xFF06
