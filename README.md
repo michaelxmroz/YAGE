@@ -1,5 +1,7 @@
 # Yet another GameBoy Emulator
 
+![YAGE running the open-source game Demon3](yage.png "YAGE running the open-source game Demon3")
+
 YAGE is a classic (DMG) GameBoy emulator. It is written in C++ and consists of a platform-independent backend and a minimal WinAPI & Vulkan frontend for windowing, input & rendering.
 
 ## Features
@@ -32,6 +34,8 @@ Currently the default control scheme is as follows, but this can be remapped thr
 - p - Pause
 - 1 - Save Gamestate
 - 2 - Load Gamestate
+- T - Turbo
 
-## Todo's
+## Roadmap
+- GBC
 - Multi-platform front-ends
