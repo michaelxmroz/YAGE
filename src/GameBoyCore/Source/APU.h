@@ -56,6 +56,8 @@ private:
 	HighPassFilter m_HPFLeft;
 	HighPassFilter m_HPFRight;
 
+	uint32_t m_accumulatedCycles;
+
 	// Inherited via ISerializable
 	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;

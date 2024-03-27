@@ -140,6 +140,7 @@ void APU::Init(Memory& memory)
 	APU_Internal::ResetAudioRegisters(memory);
 
 	m_previousFrameSequencerStep = FRAME_SEQUENCER_NO_TICK;
+	m_accumulatedCycles = 0;
 }
 
 void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
@@ -160,11 +161,20 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 	uint32_t cyclesToStep = cyclesPassed * MCYCLES_TO_CYCLES;
 
 	m_externalAudioBuffer.samplesToGenerate += (static_cast<double>(cyclesToStep) * m_externalAudioBuffer.resampleRate) * (1.0 / static_cast<double>(turboSpeed));
-	uint32_t samplesgenerated = static_cast<uint32_t>(m_externalAudioBuffer.samplesToGenerate);
 	
+	m_accumulatedCycles += cyclesToStep;
+	
+	uint32_t samplesgenerated = static_cast<uint32_t>(m_externalAudioBuffer.samplesToGenerate);
+
+	if (m_externalAudioBuffer.samplesToGenerate < 1.0f)
+	{
+		return samplesgenerated;
+	}
+
 	Sample sample;
 	if ((memory[AUDIO_MASTER_CONTROL_REGISTER] & APU_ON_OFF_BIT) == 0)
 	{
+		m_accumulatedCycles = 0;
 		GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 		return samplesgenerated;
 	}
@@ -174,10 +184,12 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 	frameSequencerStep = frameSequencerStep != m_previousFrameSequencerStep ? frameSequencerStep : FRAME_SEQUENCER_NO_TICK;
 	m_previousFrameSequencerStep = frameSequencerStepTmp;
 	
-	Channel1::Synthesize(m_channels[0], memory, cyclesToStep, frameSequencerStep, sample);
-	Channel2::Synthesize(m_channels[1], memory, cyclesToStep, frameSequencerStep, sample);
-	Channel3::Synthesize(m_channels[2], memory, cyclesToStep, frameSequencerStep, sample);
-	Channel4::Synthesize(m_channels[3], memory, cyclesToStep, frameSequencerStep, sample);
+	Channel1::Synthesize(m_channels[0], memory, m_accumulatedCycles, frameSequencerStep, sample);
+	Channel2::Synthesize(m_channels[1], memory, m_accumulatedCycles, frameSequencerStep, sample);
+	Channel3::Synthesize(m_channels[2], memory, m_accumulatedCycles, frameSequencerStep, sample);
+	Channel4::Synthesize(m_channels[3], memory, m_accumulatedCycles, frameSequencerStep, sample);
+
+	m_accumulatedCycles = 0;
 
 	//TODO is this necessary when we have a HPF?
 	if (sample.m_activeChannels != 0)
@@ -309,6 +321,7 @@ void APU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 	WriteAndMove(rawData, &m_HPFLeft, sizeof(HighPassFilter));
 	WriteAndMove(rawData, &m_HPFRight, sizeof(HighPassFilter));
 	WriteAndMove(rawData, &m_previousFrameSequencerStep, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_accumulatedCycles, sizeof(uint32_t));
 }
 
 void APU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
@@ -329,6 +342,7 @@ void APU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 	ReadAndMove(data, &m_HPFLeft, sizeof(HighPassFilter));
 	ReadAndMove(data, &m_HPFRight, sizeof(HighPassFilter));
 	ReadAndMove(data, &m_previousFrameSequencerStep, sizeof(uint32_t));
+	ReadAndMove(data, &m_accumulatedCycles, sizeof(uint32_t));
 }
 
 APU::HighPassFilter::HighPassFilter() :

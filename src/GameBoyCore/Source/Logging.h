@@ -23,7 +23,7 @@ if(Logger_Helpers::loggerCallback != nullptr) \
 }
 #endif
 
-#if _DEBUG
+#if _LOGGING
 
 #define LOG_INFO(message) \
 { \
