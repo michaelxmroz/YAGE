@@ -24,19 +24,6 @@
 #define SPRITE_SINGLE_SIZE 8
 #define SPRITE_DOUBLE_SIZE 16
 
-struct RGBA
-{
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
-	 
-	bool operator==(const RGBA& other)
-	{
-		return r == other.r && g == other.g && b == other.b && a == other.a;
-	}
-};
-
 const RGBA SCREEN_COLORS[4]
 {
 	{0xE0, 0xF8, 0xD8, 0xFF},
@@ -128,6 +115,9 @@ PPU::~PPU()
 
 void PPU::Init(Memory& memory)
 {
+	memory.RegisterCallback(BGP_REGISTER, CacheBackgroundPalette, this);
+	memory.RegisterCallback(LCDC_REGISTER, CacheBackgroundEnableFlag, this);
+
 	memory.Write(LCDC_REGISTER, 0x91);
 	memory.Write(STAT_REGISTER, 0x00);
 	memory.Write(LYC_REGISTER, 0x00);
@@ -405,9 +395,10 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 void PPU::RenderNextPixel(Memory& memory)
 {
 	Pixel bgPixel = data.m_backgroundFIFO.Pop();
-	RGBA pixelColor = PPUHelpers::ResolvePixelColor(bgPixel.m_color, BGP_REGISTER, memory);
 
-	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::BgEnable, memory) && data.m_windowState != WindowState::Draw)
+	RGBA pixelColor = data.m_cachedBackgroundColors[bgPixel.m_color];
+
+	if (!data.m_cachedBackgroundEnabled && data.m_windowState != WindowState::Draw)
 	{
 		pixelColor = SCREEN_COLORS[0];
 	}
@@ -459,6 +450,22 @@ bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 		}
 	}
 	return false;
+}
+
+void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
+{
+	PPU* ppu = reinterpret_cast<PPU*>(userData);
+	for (uint32_t i = 0; i < 4; ++i)
+	{
+		uint32_t colorIndex = (newValue >> (i * 2)) & 0x3;
+		ppu->data.m_cachedBackgroundColors[i] = SCREEN_COLORS[colorIndex];
+	}
+}
+
+void PPU::CacheBackgroundEnableFlag(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
+{
+	PPU* ppu = reinterpret_cast<PPU*>(userData);
+	ppu->data.m_cachedBackgroundEnabled = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::BgEnable))) > 0;
 }
 
 void PPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& serializationData)

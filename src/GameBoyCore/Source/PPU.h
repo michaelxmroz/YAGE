@@ -7,6 +7,19 @@
 
 typedef void (*RenderFunc)(const void* image);
 
+struct RGBA
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
+
+	bool operator==(const RGBA& other)
+	{
+		return r == other.r && g == other.g && b == other.b && a == other.a;
+	}
+};
+
 class PPU : ISerializable
 {
 public:
@@ -52,6 +65,10 @@ private:
 
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
+	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
+	static void CacheBackgroundEnableFlag(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
+
+
 	struct PPUData
 	{
 		PPUData()
@@ -68,6 +85,7 @@ private:
 			, m_spritePrefetchLine(0)
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
+			, m_cachedBackgroundColors()
 		{}
 
 		uint32_t m_totalCycles;
@@ -90,10 +108,12 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
+
+		bool m_cachedBackgroundEnabled;
+		RGBA m_cachedBackgroundColors[4];
 	} data;
 	void* m_activeFrame;
 	void* m_backBuffer;
-
 
 
 	// Inherited via ISerializable
