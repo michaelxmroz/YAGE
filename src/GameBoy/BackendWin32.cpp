@@ -129,7 +129,11 @@ namespace Win32Internal
         HWND hwnd = CreateWindowEx(
             0,                              // Optional window styles.
             CLASS_NAME,                     // Window class
-            L"GameBoy",    // Window text
+#if _DEBUG
+			L"YAGE - DEBUG",    // Window text
+#else
+            L"YAGE",    // Window text
+#endif
             WS_OVERLAPPEDWINDOW,            // Window style
 
             // Size and position

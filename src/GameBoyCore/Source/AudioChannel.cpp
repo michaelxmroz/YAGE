@@ -333,7 +333,7 @@ uint32_t AudioProcessors::AudioChannel_Internal::GetFrequency(const Memory& memo
 void AudioProcessors::AudioChannel_Internal::SetFrequency(Memory& memory, const uint16_t& frequencyHighRegister, const uint16_t& frequencyLowRegister, uint32_t frequency)
 {
 	const uint8_t FREQUENCY_HIGH_BITS = 0x07;
-	const uint8_t FREQUENCY_LOW_BITS = 0x0F;
+	const uint8_t FREQUENCY_LOW_BITS = 0xFF;
 	memory.Write(frequencyLowRegister, frequency & FREQUENCY_LOW_BITS);
 	uint8_t highRegisterOther = memory[frequencyHighRegister] & ~FREQUENCY_HIGH_BITS;
 	memory.Write(frequencyHighRegister, highRegisterOther | ((frequency >> 8) & FREQUENCY_HIGH_BITS));

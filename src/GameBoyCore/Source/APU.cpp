@@ -118,8 +118,6 @@ APU::APU(Serializer* serializer) : ISerializable(serializer)
 
 void APU::Init(Memory& memory)
 {
-	memory.Write(AUDIO_MASTER_CONTROL_REGISTER, 0xF1);
-
 	memory.RegisterCallback(AUDIO_MASTER_CONTROL_REGISTER, CheckForReset, this);
 	memory.RegisterCallback(CHANNEL1_LENGTH_DUTY_REGISTER, AdjustTimer, this);
 	memory.RegisterCallback(CHANNEL2_LENGTH_DUTY_REGISTER, AdjustTimer, this);
@@ -130,6 +128,8 @@ void APU::Init(Memory& memory)
 	memory.RegisterCallback(CHANNEL2_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 	memory.RegisterCallback(CHANNEL4_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 
+	APU_Internal::ResetAudioRegisters(memory);
+
 	memory.RegisterCallback(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
 	memory.RegisterCallback(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
 	memory.RegisterCallback(CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
@@ -137,7 +137,6 @@ void APU::Init(Memory& memory)
 
 	memory.RegisterCallback(CHANNEL3_ON_OFF_REGISTER, SetChannel3DACActive, this);
 
-	APU_Internal::ResetAudioRegisters(memory);
 
 	m_previousFrameSequencerStep = FRAME_SEQUENCER_NO_TICK;
 	m_accumulatedCycles = 0;
@@ -150,8 +149,8 @@ void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRa
 	m_externalAudioBuffer.sampleRate = sampleRate;
 	m_externalAudioBuffer.currentPosition = startOffset;
 
-	m_HPFLeft.SetParams(100.0f, static_cast<float>(sampleRate));
-	m_HPFRight.SetParams(100.0f, static_cast<float>(sampleRate));
+	m_HPFLeft.SetParams(1000.0f, static_cast<float>(sampleRate));
+	m_HPFRight.SetParams(1000.0f, static_cast<float>(sampleRate));
 
 	m_externalAudioBuffer.resampleRate = static_cast<double>(m_externalAudioBuffer.sampleRate) / CPU_FREQUENCY;
 }
