@@ -1,4 +1,5 @@
 #include "EngineController.h"
+#include "Debugging.h"
 
 std::string EngineController::s_persistentMemoryPath;
 
@@ -128,9 +129,12 @@ inline void EngineController::CleanupEmulator()
 
 inline void EngineController::RunEmulatorLoop()
 {
-    //Debug stops
-    //emu->SetPCCallback(0xC1B9, &Debugging::TriggerBreakpoint);
-    //emu->SetInstructionCountCallback(166644, &Debugging::TriggerBreakpoint);
+    if (m_emulator != nullptr)
+    {
+        //Debug stops
+        //m_emulator->SetPCCallback(0xC201, &Debugging::TriggerBreakpoint);
+        //m_emulator->SetInstructionCountCallback(594925, &Debugging::TriggerBreakpoint);
+    }
 
     uint32_t frameCount = 0;
     const void* frameBuffer = nullptr;

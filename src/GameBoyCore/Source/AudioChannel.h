@@ -197,11 +197,13 @@ public:
 	{
 		using namespace AudioProcessors;
 		bool isTriggered = AudioChannel_Internal::CheckForTrigger(memory, data);
+
+		LengthProcessor::UpdateLength(memory, data, frameSequencerStep, isTriggered);
 		if (data.m_enabled)
 		{
 			SweepProcessor::UpdateSweep(memory, data, frameSequencerStep, isTriggered);
 			FrequencyProcessor::UpdateFrequency(memory, data, cyclesToStep, isTriggered);
-			LengthProcessor::UpdateLength(memory, data, frameSequencerStep, isTriggered);
+
 			if (data.m_enabled)
 			{
 				VolumeProcessor::UpdateVolume(memory, data, frameSequencerStep, isTriggered);
@@ -209,6 +211,12 @@ public:
 				AudioChannel_Internal::Pan(memory, amplitude, data.m_channelId, sampleOut.m_left, sampleOut.m_right);
 				sampleOut.m_activeChannels++;
 			}
+		}
+		else if (data.m_DACEnabled)
+		{
+			float amplitude = AudioChannel_Internal::DAC(0);
+			AudioChannel_Internal::Pan(memory, amplitude, data.m_channelId, sampleOut.m_left, sampleOut.m_right);
+			sampleOut.m_activeChannels++;
 		}
 	}
 };

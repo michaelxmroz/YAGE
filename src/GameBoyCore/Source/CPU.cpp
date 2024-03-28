@@ -48,7 +48,7 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 	HexToString(memory[registers.PC], strBuffer + offsets[10]);
 	HexToString(memory[registers.PC + 1], strBuffer + offsets[11]);
 	HexToString(memory[registers.PC + 2], strBuffer + offsets[12]);
-	HexToString(memory[registers.PC + 3], strBuffer + offsets[13]);
+	HexToString(memory[0xFF26], strBuffer + offsets[13]);
 
 	LOG_CPU_STATE(strBuffer);
 }

@@ -209,9 +209,9 @@ void AudioProcessors::Length::UpdateLength(Memory& memory, ChannelData& channel,
 	const uint8_t SOUND_LENGTH_TICK_RATE = 2;
 	const uint8_t SOUND_LENGTH_ENABLE_BIT = 0x40;
 
-	if (isTriggered)
+	if (isTriggered && channel.m_lengthCounter == 0)
 	{
-		channel.m_lengthCounter = channel.m_initialLength - (memory.ReadIO(channel.m_timerRegister) & channel.m_lengthTimerBits);
+		channel.m_lengthCounter = channel.m_initialLength;
 	}
 
 	if (frameSequencerStep % SOUND_LENGTH_TICK_RATE == 0)
