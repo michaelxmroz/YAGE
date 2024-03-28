@@ -3,6 +3,9 @@
 #include "Logging.h"
 #include "AudioChannel.h"
 
+#define APU_REGISTERS_BEGIN 0xFF10
+#define APU_REGISTERS_END 0xFF2F
+
 #define CHANNEL1_MASTER_CONTROL_ON_OFF_BIT 0x00
 #define CHANNEL1_SWEEP_REGISTER 0xFF10
 #define CHANNEL1_LENGTH_DUTY_REGISTER 0xFF11
@@ -11,6 +14,7 @@
 #define CHANNEL1_CONTROL_FREQ_HIGH_REGISTER 0xFF14
 
 #define CHANNEL2_MASTER_CONTROL_ON_OFF_BIT 0x01
+#define CHANNEL2_UNUSED_REGISTER 0xFF15
 #define CHANNEL2_LENGTH_DUTY_REGISTER 0xFF16
 #define CHANNEL2_ENVELOPE_REGISTER 0xFF17
 #define CHANNEL2_FREQUENCY_LOW_REGISTER 0xFF18
@@ -24,6 +28,7 @@
 #define CHANNEL3_CONTROL_FREQ_HIGH_REGISTER 0xFF1E
 
 #define CHANNEL4_MASTER_CONTROL_ON_OFF_BIT 0x04
+#define CHANNEL4_UNUSED_REGISTER 0xFF1F
 #define CHANNEL4_LENGTH_REGISTER 0xFF20
 #define CHANNEL4_ENVELOPE_REGISTER 0xFF21
 #define CHANNEL4_FREQUENCY_CLOCK_REGISTER 0xFF22
@@ -54,38 +59,88 @@ typedef AudioChannel<NoSweep, NoiseFrequency, Length, Envelope, NoiseAmplitude> 
 namespace APU_Internal
 {
 
-	void ResetAudioRegisters(Memory& memory)
+	void SetupRegisterBitsOverrides(Memory& memory)
 	{
-		memory.Write(AUDIO_MASTER_CONTROL_REGISTER, 0xF1);
-		memory.Write(MASTER_VOLUME_REGISTER, 0x77);
-		memory.Write(SOUND_PANNING_REGISTER, 0xF3);
+		memory.AddIOUnusedBitsOverride(CHANNEL1_SWEEP_REGISTER, 0b10000000);
+		memory.AddIOUnusedBitsOverride(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, 0b00111000);
 
-		memory.Write(CHANNEL1_SWEEP_REGISTER, 0x80);
-		memory.Write(CHANNEL1_LENGTH_DUTY_REGISTER, 0xBF);
-		memory.Write(CHANNEL1_ENVELOPE_REGISTER, 0xF3);
-		memory.Write(CHANNEL1_FREQUENCY_LOW_REGISTER, 0xFF);
-		memory.Write(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+		memory.AddIOUnusedBitsOverride(CHANNEL2_UNUSED_REGISTER, 0b11111111);
+		memory.AddIOUnusedBitsOverride(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, 0b00111000);
 
-		memory.Write(CHANNEL2_LENGTH_DUTY_REGISTER, 0x3F);
-		memory.Write(CHANNEL2_ENVELOPE_REGISTER, 0x00);
-		memory.Write(CHANNEL2_FREQUENCY_LOW_REGISTER, 0xFF);
-		memory.Write(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+		memory.AddIOUnusedBitsOverride(CHANNEL3_ON_OFF_REGISTER, 0b01111111);
+		memory.AddIOUnusedBitsOverride(CHANNEL3_VOLUME_REGISTER, 0b10011111);
+		memory.AddIOUnusedBitsOverride(CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, 0b00111000);
 
-		memory.Write(CHANNEL3_ON_OFF_REGISTER, 0x7F);
-		memory.Write(CHANNEL3_LENGTH_REGISTER, 0xFF);
-		memory.Write(CHANNEL3_VOLUME_REGISTER, 0x9F);
-		memory.Write(CHANNEL3_FREQUENCY_LOW_REGISTER, 0xFF);
-		memory.Write(CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+		memory.AddIOUnusedBitsOverride(CHANNEL4_UNUSED_REGISTER, 0b11111111);
+		memory.AddIOUnusedBitsOverride(CHANNEL4_LENGTH_REGISTER, 0b11000000);
+		memory.AddIOUnusedBitsOverride(CHANNEL4_CONTROL_REGISTER, 0b00111111);
 
-		memory.Write(CHANNEL4_LENGTH_REGISTER, 0xFF);
-		memory.Write(CHANNEL4_ENVELOPE_REGISTER, 0x00);
-		memory.Write(CHANNEL4_FREQUENCY_CLOCK_REGISTER, 0x00);
-		memory.Write(CHANNEL4_CONTROL_REGISTER, 0xBF);
+		memory.AddIOUnusedBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b01110000);
+		//Unused IO registers
+		memory.AddIOUnusedBitsOverride(0xFF27, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF28, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF29, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2A, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2B, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2C, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2D, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2E, 0b11111111);
+		memory.AddIOUnusedBitsOverride(0xFF2F, 0b11111111);
+
+
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL1_LENGTH_DUTY_REGISTER, 0b00111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL1_FREQUENCY_LOW_REGISTER, 0b11111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, 0b10000111);
+
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL2_LENGTH_DUTY_REGISTER, 0b00111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL2_FREQUENCY_LOW_REGISTER, 0b11111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, 0b10000111);
+
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL3_LENGTH_REGISTER, 0b11111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL3_FREQUENCY_LOW_REGISTER, 0b11111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, 0b10000111);
+
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL4_LENGTH_REGISTER, 0b00111111);
+		memory.AddIOWriteOnlyBitsOverride(CHANNEL4_CONTROL_REGISTER, 0b10000000);
+
+
+		memory.AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
+
+		//TODO wave ram read/write blocking while channel is playing
+	}
+
+	void ResetAudioRegistersToBootValues(Memory& memory)
+	{
+		memory.WriteIO(AUDIO_MASTER_CONTROL_REGISTER, 0xF1);
+		memory.WriteIO(MASTER_VOLUME_REGISTER, 0x77);
+		memory.WriteIO(SOUND_PANNING_REGISTER, 0xF3);
+
+		memory.WriteIO(CHANNEL1_SWEEP_REGISTER, 0x80);
+		memory.WriteIO(CHANNEL1_LENGTH_DUTY_REGISTER, 0xBF);
+		memory.WriteIO(CHANNEL1_ENVELOPE_REGISTER, 0xF3);
+		memory.WriteIO(CHANNEL1_FREQUENCY_LOW_REGISTER, 0xFF);
+		memory.WriteIO(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+
+		memory.WriteIO(CHANNEL2_LENGTH_DUTY_REGISTER, 0x3F);
+		memory.WriteIO(CHANNEL2_ENVELOPE_REGISTER, 0x00);
+		memory.WriteIO(CHANNEL2_FREQUENCY_LOW_REGISTER, 0xFF);
+		memory.WriteIO(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+
+		memory.WriteIO(CHANNEL3_ON_OFF_REGISTER, 0x7F);
+		memory.WriteIO(CHANNEL3_LENGTH_REGISTER, 0xFF);
+		memory.WriteIO(CHANNEL3_VOLUME_REGISTER, 0x9F);
+		memory.WriteIO(CHANNEL3_FREQUENCY_LOW_REGISTER, 0xFF);
+		memory.WriteIO(CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, 0xBF);
+
+		memory.WriteIO(CHANNEL4_LENGTH_REGISTER, 0xFF);
+		memory.WriteIO(CHANNEL4_ENVELOPE_REGISTER, 0x00);
+		memory.WriteIO(CHANNEL4_FREQUENCY_CLOCK_REGISTER, 0x00);
+		memory.WriteIO(CHANNEL4_CONTROL_REGISTER, 0xBF);
 	}
 
 	void UpdateMasterVolume(Memory& memory, Sample& sample)
 	{
-		uint8_t rawMasterVolume = memory[MASTER_VOLUME_REGISTER];
+		uint8_t rawMasterVolume = memory.ReadIO(MASTER_VOLUME_REGISTER);
 		uint8_t volRight = rawMasterVolume & MASTER_VOLUME_RIGHT_BITS;
 		uint8_t volLeft = (rawMasterVolume & MASTER_VOLUME_LEFT_BITS) >> MASTER_VOLUME_LEFT_SHIFT;
 		volRight += 1;
@@ -118,6 +173,8 @@ APU::APU(Serializer* serializer) : ISerializable(serializer)
 
 void APU::Init(Memory& memory)
 {
+	APU_Internal::SetupRegisterBitsOverrides(memory);
+
 	memory.RegisterCallback(AUDIO_MASTER_CONTROL_REGISTER, CheckForReset, this);
 	memory.RegisterCallback(CHANNEL1_LENGTH_DUTY_REGISTER, AdjustTimer, this);
 	memory.RegisterCallback(CHANNEL2_LENGTH_DUTY_REGISTER, AdjustTimer, this);
@@ -128,7 +185,7 @@ void APU::Init(Memory& memory)
 	memory.RegisterCallback(CHANNEL2_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 	memory.RegisterCallback(CHANNEL4_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 
-	APU_Internal::ResetAudioRegisters(memory);
+	APU_Internal::ResetAudioRegistersToBootValues(memory);
 
 	memory.RegisterCallback(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
 	memory.RegisterCallback(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
@@ -171,14 +228,14 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 	}
 
 	Sample sample;
-	if ((memory[AUDIO_MASTER_CONTROL_REGISTER] & APU_ON_OFF_BIT) == 0)
+	if ((memory.ReadIO(AUDIO_MASTER_CONTROL_REGISTER) & APU_ON_OFF_BIT) == 0)
 	{
 		m_accumulatedCycles = 0;
 		GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 		return samplesgenerated;
 	}
 
-	uint8_t frameSequencerStep = (memory[DIVIDER_REGISTER] / 32) % 8;
+	uint8_t frameSequencerStep = (memory.ReadIO(DIVIDER_REGISTER) / 32) % 8;
 	uint32_t frameSequencerStepTmp = frameSequencerStep;
 	frameSequencerStep = frameSequencerStep != m_previousFrameSequencerStep ? frameSequencerStep : FRAME_SEQUENCER_NO_TICK;
 	m_previousFrameSequencerStep = frameSequencerStepTmp;
@@ -231,15 +288,22 @@ void APU::WriteToAudioBuffer(ExternalAudioBuffer* buffer, float leftSample, floa
 
 void APU::CheckForReset(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
-	if ((newValue & APU_ON_OFF_BIT) != 0 && (prevValue & APU_ON_OFF_BIT) == 0)
+	if ((prevValue & APU_ON_OFF_BIT) != 0 && (newValue & APU_ON_OFF_BIT) == 0)
 	{
-		APU_Internal::ResetAudioRegisters(*memory);
 		APU* apu = static_cast<APU*>(userData);
 
 		for (uint32_t i = 0; i < 4; ++i)
 		{
-			apu->m_channels[i].m_enabled = false;
+			AudioProcessors::SetChannelActive(*memory, apu->m_channels[i], false);
 		}
+		memory->ClearRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
+		memory->AddIOReadOnlyRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
+		memory->AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
+	}
+	else if ((prevValue & APU_ON_OFF_BIT) == 0 && (newValue & APU_ON_OFF_BIT) != 0)
+	{
+		memory->RemoveIOReadOnlyRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
+		memory->AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
 	}
 }
 

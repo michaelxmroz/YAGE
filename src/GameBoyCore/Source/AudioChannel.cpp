@@ -11,13 +11,13 @@ void AudioProcessors::Sweep::UpdateSweep(Memory& memory, ChannelData& channel, u
 	if (isTriggered)
 	{
 		channel.m_shadowFrequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
-		uint8_t sweepShift = memory[channel.m_sweepRegister] & SWEEP_SHIFT_BITS;
+		uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
 		bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
 		channel.m_sweepEnabled = !periodIsZero || sweepShift > 0;
 		if (sweepShift > 0)
 		{
-			bool isDecreasing = memory[channel.m_sweepRegister] & SWEEP_DIRECTION_BIT;
-			CalculateNewSweepFrequency(channel.m_enabled, channel.m_shadowFrequency, sweepShift, isDecreasing);
+			bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
+			CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
 		}
 	}
 	if ((frameSequencerStep + 2) % FREQUENCY_SWEEP_TICK_RATE == 0)
@@ -32,17 +32,17 @@ void AudioProcessors::Sweep::UpdateSweep(Memory& memory, ChannelData& channel, u
 
 				if (channel.m_sweepEnabled && !periodIsZero)
 				{
-					uint8_t sweepShift = memory[channel.m_sweepRegister] & SWEEP_SHIFT_BITS;
+					uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
 
-					bool isDecreasing = memory[channel.m_sweepRegister] & SWEEP_DIRECTION_BIT;
+					bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
 
-					uint32_t newFrequency = CalculateNewSweepFrequency(channel.m_enabled, channel.m_shadowFrequency, sweepShift, isDecreasing);
+					uint32_t newFrequency = CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
 
 					if (newFrequency <= Sweep::SWEEP_FREQUENCY_MAX_VALUE && sweepShift > 0)
 					{
 						AudioChannel_Internal::SetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister, newFrequency);
 						channel.m_shadowFrequency = newFrequency;
-						CalculateNewSweepFrequency(channel.m_enabled, channel.m_shadowFrequency, sweepShift, isDecreasing);
+						CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
 					}
 				}
 			}
@@ -54,7 +54,7 @@ void AudioProcessors::Sweep::UpdateSweep(Memory& memory, ChannelData& channel, u
 bool AudioProcessors::Sweep::ReloadSweepTimer(const Memory& memory, uint32_t& sweepTimer, uint16_t sweepRegister, uint8_t sweepPeriodBits, uint8_t sweepPeriodOffset)
 {
 	const uint32_t SWEEP_PERIOD_DEFAULT_VALUE = 8;
-	sweepTimer = (memory[sweepRegister] & sweepPeriodBits) >> sweepPeriodOffset;
+	sweepTimer = (memory.ReadIO(sweepRegister) & sweepPeriodBits) >> sweepPeriodOffset;
 	if (sweepTimer == 0)
 	{
 		sweepTimer = SWEEP_PERIOD_DEFAULT_VALUE;
@@ -63,7 +63,7 @@ bool AudioProcessors::Sweep::ReloadSweepTimer(const Memory& memory, uint32_t& sw
 	return false;
 }
 
-uint32_t AudioProcessors::Sweep::CalculateNewSweepFrequency(bool& channelActive, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing)
+uint32_t AudioProcessors::Sweep::CalculateNewSweepFrequency(Memory& memory, ChannelData& channel, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing)
 {
 	uint32_t newFrequency = shadowFrequency >> sweepShift;
 
@@ -79,7 +79,7 @@ uint32_t AudioProcessors::Sweep::CalculateNewSweepFrequency(bool& channelActive,
 	// overflow check
 	if (newFrequency > SWEEP_FREQUENCY_MAX_VALUE)
 	{
-		channelActive = false;
+		SetChannelActive(memory, channel, true);
 	}
 
 	return newFrequency;
@@ -133,7 +133,7 @@ void AudioProcessors::WaveFrequency::UpdateFrequency(Memory& memory, ChannelData
 	{
 		uint16_t sampleIndex = channel.m_dutyStep / 2;
 		bool sampleLowerNibble = static_cast<bool>(channel.m_dutyStep % 2);
-		uint8_t doubleSample = memory[WAVE_PATTERN_RAM_BEGIN + sampleIndex];
+		uint8_t doubleSample = memory.ReadIO(WAVE_PATTERN_RAM_BEGIN + sampleIndex);
 		channel.m_sampleBuffer = sampleLowerNibble ? (doubleSample & 0x0F) : (doubleSample >> 4);
 	}
 }
@@ -146,7 +146,7 @@ void AudioProcessors::NoiseFrequency::UpdateFrequency(Memory& memory, ChannelDat
 	if (isTriggered)
 	{
 		channel.m_lfsr = 0;
-		channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory[channel.m_frequencyRegister]);
+		channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory.ReadIO(channel.m_frequencyRegister));
 	}
 
 	uint32_t remainingSteps = cyclesToStep;
@@ -165,14 +165,14 @@ void AudioProcessors::NoiseFrequency::UpdateFrequency(Memory& memory, ChannelDat
 
 		if (channel.m_frequencyTimer == 0)
 		{
-			channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory[channel.m_frequencyRegister]);
+			channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory.ReadIO(channel.m_frequencyRegister));
 
 			uint16_t shiftRegister = channel.m_lfsr;
 			uint16_t bit1 = shiftRegister & 0x1;
 			uint16_t bit2 = (shiftRegister >> 1) & 0x1;
 			uint16_t nXorResult = ~(bit1 ^ bit2);
 
-			bool shortWidth = (memory[channel.m_frequencyRegister] & LFSR_WIDTH_BITS) >> LFSR_WIDTH_OFFSET;
+			bool shortWidth = (memory.ReadIO(channel.m_frequencyRegister) & LFSR_WIDTH_BITS) >> LFSR_WIDTH_OFFSET;
 
 			if (shortWidth)
 			{
@@ -211,12 +211,12 @@ void AudioProcessors::Length::UpdateLength(Memory& memory, ChannelData& channel,
 
 	if (isTriggered)
 	{
-		channel.m_lengthCounter = channel.m_initialLength - (memory[channel.m_timerRegister] & channel.m_lengthTimerBits);
+		channel.m_lengthCounter = channel.m_initialLength - (memory.ReadIO(channel.m_timerRegister) & channel.m_lengthTimerBits);
 	}
 
 	if (frameSequencerStep % SOUND_LENGTH_TICK_RATE == 0)
 	{
-		bool useLength = (memory[channel.m_controlRegister] & SOUND_LENGTH_ENABLE_BIT) > 0;
+		bool useLength = (memory.ReadIO(channel.m_controlRegister) & SOUND_LENGTH_ENABLE_BIT) > 0;
 		if (useLength)
 		{
 			channel.m_lengthCounter--;
@@ -239,15 +239,15 @@ void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channe
 
 	if (isTriggered)
 	{
-		uint8_t period = memory[channel.m_volumeEnvelopeRegister] & ENVELOPE_PACE_BITS;
+		uint8_t period = memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_PACE_BITS;
 		/*if (period == 0)
 		{
 			period = ENVELOPE_PERIOD_DEFAULT_VALUE;
 		}*/
 		channel.m_envelopePeriod = period;
 		channel.m_periodTimer = period;
-		channel.m_envelopeIncrease = (memory[channel.m_volumeEnvelopeRegister] & ENVELOPE_DIRECTION_BITS) > 0;
-		uint8_t volume = (memory[channel.m_volumeEnvelopeRegister] & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
+		channel.m_envelopeIncrease = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_DIRECTION_BITS) > 0;
+		uint8_t volume = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
 		channel.m_currentVolume = volume;
 	}
 
@@ -287,7 +287,7 @@ float AudioProcessors::PulseAmplitude::UpdateAmplitude(const Memory& memory, con
 	};
 	const uint8_t DUTY_MASK = 0xC0;
 	const uint8_t DUTY_OFFSET = 0x06;
-	uint8_t duty = (memory[channel.m_timerRegister] & DUTY_MASK) >> DUTY_OFFSET;
+	uint8_t duty = (memory.ReadIO(channel.m_timerRegister) & DUTY_MASK) >> DUTY_OFFSET;
 	uint8_t waveform = DUTY_WAVEFORMS[duty];
 	uint8_t waveOut = (waveform >> channel.m_dutyStep) & 0x01;
 
@@ -296,7 +296,7 @@ float AudioProcessors::PulseAmplitude::UpdateAmplitude(const Memory& memory, con
 
 float AudioProcessors::WaveAmplitude::UpdateAmplitude(const Memory& memory, const ChannelData& channel)
 {
-	uint8_t encodedVolume = memory[channel.m_volumeEnvelopeRegister] >> 5;
+	uint8_t encodedVolume = memory.ReadIO(channel.m_volumeEnvelopeRegister) >> 5;
 	uint8_t volume = (encodedVolume + 3) % 4;
 	if (volume == 3) volume++;
 	return AudioChannel_Internal::DAC(channel.m_sampleBuffer >> volume);
@@ -317,8 +317,8 @@ float AudioProcessors::AudioChannel_Internal::DAC(uint8_t amplitude)
 void AudioProcessors::AudioChannel_Internal::Pan(Memory& memory, float amplitude, uint8_t panRegisterOffset, float& mixedAmplitudeLeft, float& mixedAmplitudeRight)
 {
 	const uint16_t PAN_REGISTER = 0xFF25;
-	bool hasRight = ((memory[PAN_REGISTER] >> panRegisterOffset) & 0x01) > 0;
-	bool hasLeft = ((memory[PAN_REGISTER] >> (panRegisterOffset + 4)) & 0x01) > 0;
+	bool hasRight = ((memory.ReadIO(PAN_REGISTER) >> panRegisterOffset) & 0x01) > 0;
+	bool hasLeft = ((memory.ReadIO(PAN_REGISTER) >> (panRegisterOffset + 4)) & 0x01) > 0;
 
 	mixedAmplitudeLeft += hasLeft ? amplitude : 0.0f;
 	mixedAmplitudeRight += hasRight ? amplitude : 0.0f;
@@ -327,16 +327,16 @@ void AudioProcessors::AudioChannel_Internal::Pan(Memory& memory, float amplitude
 uint32_t AudioProcessors::AudioChannel_Internal::GetFrequency(const Memory& memory, const uint16_t& frequencyHighRegister, const uint16_t& frequencyLowRegister)
 {
 	const uint8_t FREQUENCY_HIGH_BITS = 0x07;
-	return ((static_cast<uint32_t>(memory[frequencyHighRegister]) & FREQUENCY_HIGH_BITS) << 8) | memory[frequencyLowRegister];
+	return ((static_cast<uint32_t>(memory.ReadIO(frequencyHighRegister)) & FREQUENCY_HIGH_BITS) << 8) | memory.ReadIO(frequencyLowRegister);
 }
 
 void AudioProcessors::AudioChannel_Internal::SetFrequency(Memory& memory, const uint16_t& frequencyHighRegister, const uint16_t& frequencyLowRegister, uint32_t frequency)
 {
 	const uint8_t FREQUENCY_HIGH_BITS = 0x07;
 	const uint8_t FREQUENCY_LOW_BITS = 0xFF;
-	memory.Write(frequencyLowRegister, frequency & FREQUENCY_LOW_BITS);
-	uint8_t highRegisterOther = memory[frequencyHighRegister] & ~FREQUENCY_HIGH_BITS;
-	memory.Write(frequencyHighRegister, highRegisterOther | ((frequency >> 8) & FREQUENCY_HIGH_BITS));
+	memory.WriteIO(frequencyLowRegister, frequency & FREQUENCY_LOW_BITS);
+	uint8_t highRegisterOther = memory.ReadIO(frequencyHighRegister) & ~FREQUENCY_HIGH_BITS;
+	memory.WriteIO(frequencyHighRegister, highRegisterOther | ((frequency >> 8) & FREQUENCY_HIGH_BITS));
 }
 
 bool AudioProcessors::AudioChannel_Internal::CheckForTrigger(Memory& memory, ChannelData& channel)
@@ -354,13 +354,13 @@ void AudioProcessors::SetChannelActive(Memory& memory, ChannelData& channel, boo
 {
 	const uint16_t AUDIO_MASTER_CONTROL_REGISTER = 0xFF26;
 	channel.m_enabled = active;
-	uint8_t regVal = memory[AUDIO_MASTER_CONTROL_REGISTER];
+	uint8_t regVal = memory.ReadIO(AUDIO_MASTER_CONTROL_REGISTER);
 	if (active)
 	{
-		memory.Write(AUDIO_MASTER_CONTROL_REGISTER, regVal | channel.m_masterControlOnOffBit);
+		memory.WriteIO(AUDIO_MASTER_CONTROL_REGISTER, regVal | channel.m_masterControlOnOffBit);
 	}
 	else
 	{
-		memory.Write(AUDIO_MASTER_CONTROL_REGISTER, regVal & ~channel.m_masterControlOnOffBit);
+		memory.WriteIO(AUDIO_MASTER_CONTROL_REGISTER, regVal & ~channel.m_masterControlOnOffBit);
 	}
 }

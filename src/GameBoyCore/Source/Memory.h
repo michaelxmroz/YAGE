@@ -6,6 +6,7 @@
 #include "Serialization.h"
 
 #define MEMORY_SIZE 0x10000
+#define IOPORTS_COUNT 0x80
 
 #ifdef _DEBUG
 #define TRACK_UNINITIALIZED_MEMORY_READS 1
@@ -62,12 +63,15 @@ public:
 
 	void Write(uint16_t addr, uint8_t value);
 	void WriteDirect(uint16_t addr, uint8_t value);
-	uint8_t ReadDirect(uint16_t addr);
+	uint8_t ReadDirect(uint16_t addr) const;
+
+	uint8_t ReadIO(uint16_t addr) const;
+	void WriteIO(uint16_t addr, uint8_t value);
 
 	const SpriteAttributes& ReadOAMEntry(uint8_t index) const;
 
 	void ClearMemory();
-
+	void ClearRange(uint16_t start, uint16_t end);
 	void ClearVRAM();
 
 	void MapROM(Serializer* serializer, const char* rom, uint32_t size);
@@ -81,6 +85,12 @@ public:
 
 	void SetVRamAccess(VRamAccess access);
 	uint8_t GetHeaderChecksum() const;
+
+	void AddIOUnusedBitsOverride(uint16_t addr, uint8_t mask);
+	void AddIOReadOnlyBitsOverride(uint16_t addr, uint8_t mask);
+	void AddIOWriteOnlyBitsOverride(uint16_t addr, uint8_t mask);
+	void AddIOReadOnlyRange(uint16_t start, uint16_t end);
+	void RemoveIOReadOnlyRange(uint16_t start, uint16_t end);
 
 private:
 
@@ -99,6 +109,10 @@ private:
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 
 	inline void WriteInternal(uint16_t addr, uint8_t value);
+
+	uint8_t CheckForIOUnusedBitOverride(uint16_t addr, uint8_t readValue) const;
+	uint8_t CheckForIOWriteOnlyBitOverride(uint16_t addr, uint8_t readValue) const;
+	uint8_t CheckForIOReadOnlyBitOverride(uint16_t addr, uint8_t readValue) const;
 
 	/*
 	  Memory Map
@@ -129,6 +143,13 @@ private:
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
+
+	//Unused bits in IO ports return 1 when read
+	uint8_t m_unusedIOBitsOverride[IOPORTS_COUNT];
+	//read only bits in IO ports ignore writes
+	uint8_t m_readOnlyIOBitsOverride[IOPORTS_COUNT];
+	//write only bits in IO ports return 0 when read
+	uint8_t m_writeOnlyIOBitsOverride[IOPORTS_COUNT];
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	uint8_t* m_initializationTracker;

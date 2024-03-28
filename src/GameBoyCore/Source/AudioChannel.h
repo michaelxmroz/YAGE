@@ -115,7 +115,7 @@ namespace AudioProcessors
 		const static uint32_t SWEEP_FREQUENCY_MAX_VALUE = 2047;
 
 		static bool ReloadSweepTimer(const Memory& memory, uint32_t& sweepTimer, uint16_t sweepRegister, uint8_t sweepPeriodBits, uint8_t sweepPeriodOffset);
-		static uint32_t CalculateNewSweepFrequency(bool& channelActive, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing);
+		static uint32_t CalculateNewSweepFrequency(Memory& memory, ChannelData& channel, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing);
 	};
 
 

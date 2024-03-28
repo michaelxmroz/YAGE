@@ -21,7 +21,7 @@
 #define HEADER_RAM_SIZE 0x0149
 
 #define IO_REGISTERS_BEGIN 0xFF00
-#define IO_REGISTERS_END 0xFF4B
+#define IO_REGISTERS_END 0xFF7F
 
 #define DIVIDER_REGISTER 0xFF04
 
@@ -112,6 +112,8 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		}
 	}
 
+	value = CheckForIOReadOnlyBitOverride(addr, value);
+
 	WriteInternal(addr, value);
 }
 
@@ -124,7 +126,7 @@ void Memory::WriteDirect(uint16_t addr, uint8_t value)
 #endif
 }
 
-uint8_t Memory::ReadDirect(uint16_t addr)
+uint8_t Memory::ReadDirect(uint16_t addr) const
 {
 	return m_mappedMemory[addr];
 }
@@ -144,6 +146,11 @@ void Memory::ClearMemory()
 #endif
 
 	WriteDirect(DMA_REGISTER, 0xFF);
+}
+
+void Memory::ClearRange(uint16_t start, uint16_t end)
+{
+	memset(m_mappedMemory + start, 0, end - start);
 }
 
 void Memory::ClearVRAM()
@@ -233,6 +240,10 @@ void Memory::Init()
 	m_onExternalRamDisable = nullptr;
 	m_mbc = nullptr;
 
+	memset(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
+	memset(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+	memset(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+
 	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
 	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
 
@@ -316,7 +327,37 @@ uint8_t Memory::operator[](uint16_t addr) const
 		return m_externalRamMemory[m_mbc->GetRAMAddr(addr)];
 	}
 
+	uint8_t memoryVal = m_mappedMemory[addr];
+
+
+	memoryVal = CheckForIOUnusedBitOverride(addr, memoryVal);
+	memoryVal = CheckForIOWriteOnlyBitOverride(addr, memoryVal);
+
+	return memoryVal;
+}
+
+//IO Register read function that skips unused bits and write only overrides
+uint8_t Memory::ReadIO(uint16_t addr) const
+{
+	if (addr < IO_REGISTERS_BEGIN || addr > IO_REGISTERS_END)
+	{		
+		LOG_ERROR(string_format("Trying to read IO registers at invalid address %x", addr).c_str());
+		return 0;
+	}
+
 	return m_mappedMemory[addr];
+}
+
+//IO Register write function that skips read only overrides
+void Memory::WriteIO(uint16_t addr, uint8_t value)
+{
+	if (addr < IO_REGISTERS_BEGIN || addr > IO_REGISTERS_END)
+	{
+		LOG_ERROR(string_format("Trying to write IO registers at invalid address %x", addr).c_str());
+		return;
+	}
+
+	WriteInternal(addr, value);
 }
 
 void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
@@ -369,4 +410,85 @@ inline void Memory::WriteInternal(uint16_t addr, uint8_t value)
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker[addr] = 1;
 #endif
+}
+
+uint8_t Memory::CheckForIOUnusedBitOverride(uint16_t addr, uint8_t readValue) const
+{
+	//Some IO registers have unused bits, these bits should always return 1 when read.
+	// Each subsystem needs to register its own unused bit overrides
+	if (addr >= IO_REGISTERS_BEGIN && addr <= IO_REGISTERS_END)
+	{
+		readValue |= m_unusedIOBitsOverride[(addr & 0xFF)];
+	}
+	return readValue;
+}
+
+uint8_t Memory::CheckForIOWriteOnlyBitOverride(uint16_t addr, uint8_t readValue) const
+{
+	//Some IO registers are write only, these bits should always return 1 when read.
+	if (addr >= IO_REGISTERS_BEGIN && addr <= IO_REGISTERS_END)
+	{
+		readValue |= m_writeOnlyIOBitsOverride[(addr & 0xFF)];
+	}
+	return readValue;
+}
+
+uint8_t Memory::CheckForIOReadOnlyBitOverride(uint16_t addr, uint8_t writeValue) const
+{
+	//Some IO registers are read only, these bits cannot be written to by the CPU.
+	if (addr >= IO_REGISTERS_BEGIN && addr <= IO_REGISTERS_END)
+	{
+		uint8_t readOnlyBits = m_readOnlyIOBitsOverride[(addr & 0xFF)];
+		writeValue = (writeValue & ~readOnlyBits) | (m_mappedMemory[addr] & readOnlyBits);
+	}
+	return writeValue;
+}
+
+void Memory::AddIOUnusedBitsOverride(uint16_t addr, uint8_t mask)
+{
+	uint32_t index = addr & 0xFF;
+	if (index >= IOPORTS_COUNT)
+	{
+		LOG_ERROR(string_format("Trying to add IO unused bits override for invalid address %x", addr).c_str());
+		return;
+	}
+	m_unusedIOBitsOverride[index] = mask;
+}
+
+void Memory::AddIOReadOnlyBitsOverride(uint16_t addr, uint8_t mask)
+{
+	uint32_t index = addr & 0xFF;
+	if (index >= IOPORTS_COUNT)
+	{
+		LOG_ERROR(string_format("Trying to add IO read only bits override for invalid address %x", addr).c_str());
+		return;
+	}
+	m_readOnlyIOBitsOverride[index] = mask;
+}
+
+void Memory::AddIOWriteOnlyBitsOverride(uint16_t addr, uint8_t mask)
+{
+	uint32_t index = addr & 0xFF;
+	if (index >= IOPORTS_COUNT)
+	{
+		LOG_ERROR(string_format("Trying to add IO write only bits override for invalid address %x", addr).c_str());
+		return;
+	}
+	m_writeOnlyIOBitsOverride[index] = mask;
+}
+
+void Memory::AddIOReadOnlyRange(uint16_t start, uint16_t end)
+{
+	for (uint16_t i = start; i <= end; ++i)
+	{
+		AddIOReadOnlyBitsOverride(i, 0xFF);
+	}
+}
+
+void Memory::RemoveIOReadOnlyRange(uint16_t start, uint16_t end)
+{
+	for (uint16_t i = start; i <= end; ++i)
+	{
+		AddIOReadOnlyBitsOverride(i, 0x00);
+	}
 }

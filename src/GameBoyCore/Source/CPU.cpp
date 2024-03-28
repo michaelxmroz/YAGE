@@ -48,7 +48,7 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 	HexToString(memory[registers.PC], strBuffer + offsets[10]);
 	HexToString(memory[registers.PC + 1], strBuffer + offsets[11]);
 	HexToString(memory[registers.PC + 2], strBuffer + offsets[12]);
-	HexToString(memory[0xFF05], strBuffer + offsets[13]);
+	HexToString(memory[registers.PC + 3], strBuffer + offsets[13]);
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -622,7 +622,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 }
 {
 #if CPU_STATE_LOGGING
-	uint32_t templateLength = strlen(DEBUG_LogTemplate) + 1;
+	uint32_t templateLength = static_cast<uint32_t>(strlen(DEBUG_LogTemplate)) + 1;
 	DEBUG_CPUInstructionLog = new char[templateLength]();
 	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
 #endif
