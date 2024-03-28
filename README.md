@@ -36,6 +36,19 @@ Currently the default control scheme is as follows, but this can be remapped thr
 - 2 - Load Gamestate
 - T - Turbo
 
+## Accuracy
+
+[Blargg's test roms](https://github.com/retrio/gb-test-roms)
+| Tests    | Result |
+| -------- | ------- |
+| cpu_instr  | ✅ |
+| dmg_sound | ❌ |
+| instr_timing    |  ✅  |
+| mem_timing | ❌ |
+| mem_timing-2 | ❌ |
+| oam_bug | ❌ |
+| halt_bug | ❌ |
+
 ## Roadmap
 - GBC
 - Multi-platform front-ends
