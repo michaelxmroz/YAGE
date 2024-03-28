@@ -1,6 +1,12 @@
 #pragma once
 #include "Memory.h"
 
+enum class SerialMode : uint8_t
+{
+	None = 0,
+	Loopback
+};
+
 //Loopback serial connector
 class Serial
 {
@@ -15,5 +21,6 @@ private:
 
 	uint32_t m_accumulatedCycles;
 	uint32_t m_bitsTransferred;
+	SerialMode m_mode;
 };
 

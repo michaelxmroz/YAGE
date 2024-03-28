@@ -9,7 +9,7 @@
 
 
 #if _DEBUG
-#define CPU_STATE_LOGGING 1
+#define CPU_STATE_LOGGING 0
 #endif
 
 class CPU : ISerializable

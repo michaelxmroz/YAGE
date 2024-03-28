@@ -14,6 +14,7 @@ Serial::Serial()
 {
 	m_accumulatedCycles = 0;
 	m_bitsTransferred = 0;
+	m_mode = SerialMode::None;
 }
 
 void Serial::Init(Memory& memory)
@@ -26,6 +27,11 @@ void Serial::Init(Memory& memory)
 
 void Serial::Update(Memory& memory, uint32_t mCycles)
 {
+	if(m_mode == SerialMode::None)
+	{
+		return;
+	}
+
 	if ((memory[SC_REGISTER] & SC_TRANSFER_ENABLE_MASK) > 0)
 	{
 		m_accumulatedCycles += mCycles;
