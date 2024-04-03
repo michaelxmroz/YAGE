@@ -40,7 +40,6 @@ struct ChannelData
 		, m_frequencyFactor(frequencyFactor)
 		, m_maxSampleLength(maxSampleLength)
 		, m_sampleBuffer(0)
-		, m_triggered(false)
 		, m_lengthTimerBits(lengthTimerBits)
 		, m_currentVolume()
 		, m_dutyStep()
@@ -91,7 +90,6 @@ struct ChannelData
 
 	bool m_DACEnabled;
 	bool m_enabled;
-	bool m_triggered;
 };
 
 namespace AudioProcessors
@@ -104,25 +102,32 @@ namespace AudioProcessors
 		void Pan(Memory& memory, float amplitude, uint8_t panRegisterOffset, float& mixedAmplitudeLeft, float& mixedAmplitudeRight);
 		uint32_t GetFrequency(const Memory& memory, const uint16_t& frequencyHighRegister, const uint16_t& frequencyLowRegister);
 		void SetFrequency(Memory& memory, const uint16_t& frequencyHighRegister, const uint16_t& frequencyLowRegister, uint32_t frequency);
-		bool CheckForTrigger(Memory& memory, ChannelData& channel);
 	}
 
 	class Sweep
 	{
 	public:
-		static void UpdateSweep(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateSweep(Memory& memory, ChannelData& channel);
 	private:
 		const static uint32_t SWEEP_FREQUENCY_MAX_VALUE = 2047;
+		const static uint8_t SWEEP_PERIOD_BITS = 0x70;
+		const static uint8_t SWEEP_PERIOD_OFFSET = 4;
+		const static uint8_t SWEEP_SHIFT_BITS = 0x07;
+		const static uint8_t SWEEP_DIRECTION_BIT = 0x08;
 
 		static bool ReloadSweepTimer(const Memory& memory, uint32_t& sweepTimer, uint16_t sweepRegister, uint8_t sweepPeriodBits, uint8_t sweepPeriodOffset);
 		static uint32_t CalculateNewSweepFrequency(Memory& memory, ChannelData& channel, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing);
 	};
 
-
 	class NoSweep
 	{
 	public:
-		static void UpdateSweep(Memory& /*memory*/, ChannelData& /*channel*/, uint8_t /*frameSequencerStep*/, bool /*isTriggered*/)
+		static void Trigger(Memory& /*memory*/, ChannelData& /*channel*/)
+		{
+		}
+
+		static void UpdateSweep(Memory& /*memory*/, ChannelData& /*channel*/)
 		{
 		}
 	};
@@ -130,21 +135,23 @@ namespace AudioProcessors
 	class PulseFrequency
 	{
 	public:
-
-		static void UpdateFrequency(Memory& memory, ChannelData& channel, uint32_t cyclesToStep, bool isTriggered);
-		static bool UpdateFrequencyInternal(Memory& memory, ChannelData& channel, uint32_t cyclesToStep, bool isTriggered, uint32_t initialDutyStep);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateFrequency(Memory& memory, ChannelData& channel, uint32_t cyclesToStep);
+		static bool UpdateFrequencyInternal(Memory& memory, ChannelData& channel, uint32_t cyclesToStep);
 	};
 
 	class WaveFrequency
 	{
 	public:
-		static void UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep, bool isTriggered);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep);
 	};
 
 	class NoiseFrequency
 	{
 	public:
-		static void UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep, bool isTriggered);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep);
 	private:
 		static uint32_t GetNoiseFrequencyTimer(uint8_t frequencyRegister);
 	};
@@ -152,19 +159,25 @@ namespace AudioProcessors
 	class Length
 	{
 	public:
-		static void UpdateLength(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateLength(Memory& memory, ChannelData& channel);
 	};
 
 	class Envelope
 	{
 	public:
-		static void UpdateVolume(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered);
+		static void Trigger(Memory& memory, ChannelData& channel);
+		static void UpdateVolume(Memory& memory, ChannelData& channel);
 	};
 
 	class NoEnvelope
 	{
 	public:
-		static void UpdateVolume(Memory& /*memory*/, ChannelData& /*channel*/, uint8_t /*frameSequencerStep*/, bool /*isTriggered*/)
+		static void Trigger(Memory& /*memory*/, ChannelData& /*channel*/)
+		{
+		}
+
+		static void UpdateVolume(Memory& /*memory*/, ChannelData& /*channel*/)
 		{
 		}
 	};
@@ -193,24 +206,48 @@ template<class SweepProcessor, class FrequencyProcessor, class LengthProcessor, 
 class AudioChannel
 {
 public:
-	static void Synthesize(ChannelData& data, Memory& memory, uint32_t cyclesToStep, uint8_t frameSequencerStep, Sample& sampleOut)
+
+	static void UpdateLength(Memory& memory, ChannelData& data)
 	{
 		using namespace AudioProcessors;
-		bool isTriggered = AudioChannel_Internal::CheckForTrigger(memory, data);
+		LengthProcessor::UpdateLength(memory, data);
+	}
 
-		LengthProcessor::UpdateLength(memory, data, frameSequencerStep, isTriggered);
+	static void UpdateSweep(Memory& memory, ChannelData& data)
+	{
+		using namespace AudioProcessors;
 		if (data.m_enabled)
 		{
-			SweepProcessor::UpdateSweep(memory, data, frameSequencerStep, isTriggered);
-			FrequencyProcessor::UpdateFrequency(memory, data, cyclesToStep, isTriggered);
+			SweepProcessor::UpdateSweep(memory, data);
+		}
+	}
 
-			if (data.m_enabled)
-			{
-				VolumeProcessor::UpdateVolume(memory, data, frameSequencerStep, isTriggered);
-				float amplitude = AmplitudeProcessor::UpdateAmplitude(memory, data);
-				AudioChannel_Internal::Pan(memory, amplitude, data.m_channelId, sampleOut.m_left, sampleOut.m_right);
-				sampleOut.m_activeChannels++;
-			}
+	static void UpdateVolume(Memory& memory, ChannelData& data)
+	{
+		using namespace AudioProcessors;
+		if (data.m_enabled)
+		{
+			VolumeProcessor::UpdateVolume(memory, data);
+		}
+	}
+
+	static void Trigger(Memory& memory, ChannelData& data)
+	{
+		LengthProcessor::Trigger(memory, data);
+		SweepProcessor::Trigger(memory, data);
+		VolumeProcessor::Trigger(memory, data);
+		FrequencyProcessor::Trigger(memory, data);
+	}
+
+	static void Render(Memory& memory, ChannelData& data, uint32_t cyclesToStep, Sample& sampleOut)
+	{
+		using namespace AudioProcessors;
+		if (data.m_enabled)
+		{
+			FrequencyProcessor::UpdateFrequency(memory, data, cyclesToStep);
+			float amplitude = AmplitudeProcessor::UpdateAmplitude(memory, data);
+			AudioChannel_Internal::Pan(memory, amplitude, data.m_channelId, sampleOut.m_left, sampleOut.m_right);
+			sampleOut.m_activeChannels++;
 		}
 		else if (data.m_DACEnabled)
 		{

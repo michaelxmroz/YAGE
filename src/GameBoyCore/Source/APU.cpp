@@ -47,7 +47,7 @@
 
 #define APU_ON_OFF_BIT 0x80
 
-#define FRAME_SEQUENCER_NO_TICK 9
+#define FRAME_SEQUENCER_NO_PULSE 0
 
 using namespace AudioProcessors;
 
@@ -58,6 +58,24 @@ typedef AudioChannel<NoSweep, NoiseFrequency, Length, Envelope, NoiseAmplitude> 
 
 namespace APU_Internal
 {
+	void TriggerChannel(Memory& memory, ChannelData& data, uint32_t index)
+	{
+		switch (index)
+		{
+		case 0:
+			Channel1::Trigger(memory, data);
+			break;
+		case 1:
+			Channel2::Trigger(memory, data);
+			break;
+		case 2:
+			Channel3::Trigger(memory, data);
+			break;
+		case 3:
+			Channel4::Trigger(memory, data);
+			break;
+		}
+	}
 
 	void SetupRegisterBitsOverrides(Memory& memory)
 	{
@@ -151,6 +169,29 @@ namespace APU_Internal
 		sample.m_left *= finalVolLeft;
 		sample.m_right *= finalVolRight;
 	}
+
+	//Obscure length counter behaviour: if length enable bit is set in the first half of the frame sequencer step,
+	// the length counter is decremented
+	void CheckForLengthEnableBug(uint32_t frameSequencerStep, const uint8_t& newValue, const uint8_t& prevValue, bool resetLength, ChannelData& channel, bool triggered, Memory* memory)
+	{
+		const uint8_t CONTROL_REGISTER_LENGTH_ENABLE_BIT = 0x40;
+		bool firstHalfSeqencerStep = (frameSequencerStep & 1) != 0;
+		bool lengthEnable = (newValue & CONTROL_REGISTER_LENGTH_ENABLE_BIT) != 0;
+		bool previousLengthEnable = (prevValue & CONTROL_REGISTER_LENGTH_ENABLE_BIT) != 0;
+		bool justEnabled = lengthEnable && (!previousLengthEnable || resetLength);
+		if (justEnabled && channel.m_lengthCounter > 0 && firstHalfSeqencerStep)
+		{
+			channel.m_lengthCounter--;
+			if (channel.m_lengthCounter == 0 && !triggered)
+			{
+				SetChannelActive(*memory, channel, false);
+			}
+			else if (channel.m_lengthCounter == 0 && triggered)
+			{
+				channel.m_lengthCounter = channel.m_initialLength - 1;
+			}
+		}
+	}
 }
 
 APU::APU(Serializer* serializer) : ISerializable(serializer)
@@ -160,7 +201,9 @@ APU::APU(Serializer* serializer) : ISerializable(serializer)
 		ChannelData(2, 256, 2, 31, 0xFF, CHANNEL3_MASTER_CONTROL_ON_OFF_BIT, CHANNEL3_CONTROL_FREQ_HIGH_REGISTER, CHANNEL3_LENGTH_REGISTER, CHANNEL3_VOLUME_REGISTER, CHANNEL3_FREQUENCY_LOW_REGISTER, CHANNEL3_ON_OFF_REGISTER),
 		ChannelData(3, 64, 4, 7, 0x3F, CHANNEL4_MASTER_CONTROL_ON_OFF_BIT, CHANNEL4_CONTROL_REGISTER, CHANNEL4_LENGTH_REGISTER, CHANNEL4_ENVELOPE_REGISTER, CHANNEL4_FREQUENCY_CLOCK_REGISTER, 0x0)
 	}
-	, m_previousFrameSequencerStep(FRAME_SEQUENCER_NO_TICK)
+	, m_frameSequencerStep(0)
+	, m_wasDivBit4Set(false)
+	, m_cachedFrameSequencerPulse(FRAME_SEQUENCER_NO_PULSE)
 {
 	m_externalAudioBuffer.buffer = nullptr;
 	m_externalAudioBuffer.size = 0;
@@ -169,6 +212,7 @@ APU::APU(Serializer* serializer) : ISerializable(serializer)
 	m_externalAudioBuffer.resampleRate = 0.0f;
 	m_externalAudioBuffer.samplesToGenerate = 0.0f;
 
+	m_totalSequencerSteps = 0;
 }
 
 void APU::Init(Memory& memory)
@@ -194,9 +238,10 @@ void APU::Init(Memory& memory)
 
 	memory.RegisterCallback(CHANNEL3_ON_OFF_REGISTER, SetChannel3DACActive, this);
 
-
-	m_previousFrameSequencerStep = FRAME_SEQUENCER_NO_TICK;
 	m_accumulatedCycles = 0;
+	m_frameSequencerStep = 0;
+	m_cachedFrameSequencerPulse = FRAME_SEQUENCER_NO_PULSE;
+	m_wasDivBit4Set = false;
 }
 
 void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
@@ -222,7 +267,37 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 	
 	uint32_t samplesgenerated = static_cast<uint32_t>(m_externalAudioBuffer.samplesToGenerate);
 
-	if (m_externalAudioBuffer.samplesToGenerate < 1.0f)
+	UpdateFrameSequencer(memory);
+
+	const uint8_t LENGTH_TICK_RATE = 1;
+	const uint8_t SWEEP_TICK_RATE = 3;
+	const uint8_t VOLUME_TICK_RATE = 7;
+
+	if ((m_cachedFrameSequencerPulse & LENGTH_TICK_RATE) == LENGTH_TICK_RATE)
+	{
+		Channel1::UpdateLength(memory, m_channels[0]);
+		Channel2::UpdateLength(memory, m_channels[1]);
+		Channel3::UpdateLength(memory, m_channels[2]);
+		Channel4::UpdateLength(memory, m_channels[3]);
+	}
+	if((m_cachedFrameSequencerPulse & SWEEP_TICK_RATE) == SWEEP_TICK_RATE)
+	{
+		Channel1::UpdateSweep(memory, m_channels[0]);
+		Channel2::UpdateSweep(memory, m_channels[1]);
+		Channel3::UpdateSweep(memory, m_channels[2]);
+		Channel4::UpdateSweep(memory, m_channels[3]);
+	}
+	if ((m_cachedFrameSequencerPulse & VOLUME_TICK_RATE) == VOLUME_TICK_RATE)
+	{
+		Channel1::UpdateVolume(memory, m_channels[0]);
+		Channel2::UpdateVolume(memory, m_channels[1]);
+		Channel3::UpdateVolume(memory, m_channels[2]);
+		Channel4::UpdateVolume(memory, m_channels[3]);
+	}
+
+	m_cachedFrameSequencerPulse = FRAME_SEQUENCER_NO_PULSE;
+
+	if (m_externalAudioBuffer.samplesToGenerate < 1.0f )
 	{
 		return samplesgenerated;
 	}
@@ -235,15 +310,10 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 		return samplesgenerated;
 	}
 
-	uint8_t frameSequencerStep = (memory.ReadIO(DIVIDER_REGISTER) / 32) % 8;
-	uint32_t frameSequencerStepTmp = frameSequencerStep;
-	frameSequencerStep = frameSequencerStep != m_previousFrameSequencerStep ? frameSequencerStep : FRAME_SEQUENCER_NO_TICK;
-	m_previousFrameSequencerStep = frameSequencerStepTmp;
-	
-	Channel1::Synthesize(m_channels[0], memory, m_accumulatedCycles, frameSequencerStep, sample);
-	Channel2::Synthesize(m_channels[1], memory, m_accumulatedCycles, frameSequencerStep, sample);
-	Channel3::Synthesize(m_channels[2], memory, m_accumulatedCycles, frameSequencerStep, sample);
-	Channel4::Synthesize(m_channels[3], memory, m_accumulatedCycles, frameSequencerStep, sample);
+	Channel1::Render(memory, m_channels[0], m_accumulatedCycles, sample);
+	Channel2::Render(memory, m_channels[1], m_accumulatedCycles, sample);
+	Channel3::Render(memory, m_channels[2], m_accumulatedCycles, sample);
+	Channel4::Render(memory, m_channels[3], m_accumulatedCycles, sample);
 
 	m_accumulatedCycles = 0;
 
@@ -259,6 +329,18 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 	GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 
 	return samplesgenerated;
+}
+
+void APU::UpdateFrameSequencer(Memory& memory)
+{
+	bool divBit4 = (memory.ReadIO(DIVIDER_REGISTER) & 0x10) != 0;
+	if (!divBit4 && m_wasDivBit4Set)
+	{
+		m_totalSequencerSteps++;
+		m_frameSequencerStep = (m_frameSequencerStep + 1) % 8;
+		m_cachedFrameSequencerPulse = m_frameSequencerStep;
+	}
+	m_wasDivBit4Set = divBit4;
 }
 
 void APU::GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample& sample, HighPassFilter& hpfLeft, HighPassFilter& hpfRight)
@@ -357,6 +439,7 @@ void APU::SetChannel3DACActive(Memory* memory, uint16_t addr, uint8_t prevValue,
 void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	const uint8_t CONTROL_REGISTER_TRIGGER_BIT = 0x80;
+
 	APU* apu = static_cast<APU*>(userData);
 
 	for (uint32_t i = 0; i < CHANNEL_COUNT; ++i)
@@ -367,7 +450,26 @@ void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, u
 			continue;
 		}
 
-		channel.m_triggered |= (newValue & CONTROL_REGISTER_TRIGGER_BIT) != 0;
+		bool triggered = (newValue & CONTROL_REGISTER_TRIGGER_BIT) != 0;
+
+		bool resetLength = false;
+		if (triggered && channel.m_lengthCounter == 0)
+		{
+			resetLength = true;
+		}
+
+		if (triggered)
+		{
+			if (channel.m_DACEnabled)
+			{
+				SetChannelActive(*memory, channel, true);
+			}
+
+			APU_Internal::TriggerChannel(*memory, apu->m_channels[i], i);
+		}	
+
+		APU_Internal::CheckForLengthEnableBug(apu->m_frameSequencerStep, newValue, prevValue, resetLength, channel, triggered, memory);
+		
 		break;
 	}
 }
@@ -384,7 +486,9 @@ void APU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 
 	WriteAndMove(rawData, &m_HPFLeft, sizeof(HighPassFilter));
 	WriteAndMove(rawData, &m_HPFRight, sizeof(HighPassFilter));
-	WriteAndMove(rawData, &m_previousFrameSequencerStep, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_frameSequencerStep, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_wasDivBit4Set, sizeof(bool));
+	WriteAndMove(rawData, &m_cachedFrameSequencerPulse, sizeof(uint8_t));
 	WriteAndMove(rawData, &m_accumulatedCycles, sizeof(uint32_t));
 }
 
@@ -405,7 +509,9 @@ void APU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 
 	ReadAndMove(data, &m_HPFLeft, sizeof(HighPassFilter));
 	ReadAndMove(data, &m_HPFRight, sizeof(HighPassFilter));
-	ReadAndMove(data, &m_previousFrameSequencerStep, sizeof(uint32_t));
+	ReadAndMove(data, &m_frameSequencerStep, sizeof(uint32_t));
+	ReadAndMove(data, &m_wasDivBit4Set, sizeof(bool));
+	ReadAndMove(data, &m_cachedFrameSequencerPulse, sizeof(uint8_t));
 	ReadAndMove(data, &m_accumulatedCycles, sizeof(uint32_t));
 }
 

@@ -52,11 +52,16 @@ private:
 
 	ChannelData m_channels[CHANNEL_COUNT];
 	ExternalAudioBuffer m_externalAudioBuffer;
-	uint32_t m_previousFrameSequencerStep;
+	uint8_t m_cachedFrameSequencerPulse;
+	uint32_t m_frameSequencerStep;
+	bool m_wasDivBit4Set;
 	HighPassFilter m_HPFLeft;
 	HighPassFilter m_HPFRight;
 
 	uint32_t m_accumulatedCycles;
+	uint32_t m_totalSequencerSteps = 0;
+
+	void UpdateFrameSequencer(Memory& memory);
 
 	// Inherited via ISerializable
 	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;

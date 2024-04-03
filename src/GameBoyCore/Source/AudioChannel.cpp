@@ -1,54 +1,46 @@
 #include "AudioChannel.h"
 
-void AudioProcessors::Sweep::UpdateSweep(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered)
+
+void AudioProcessors::Sweep::Trigger(Memory& memory, ChannelData& channel)
 {
-	const uint8_t SWEEP_PERIOD_BITS = 0x70;
-	const uint8_t SWEEP_PERIOD_OFFSET = 4;
-	const uint8_t SWEEP_SHIFT_BITS = 0x07;
-	const uint8_t SWEEP_DIRECTION_BIT = 0x08;
-	const uint32_t FREQUENCY_SWEEP_TICK_RATE = 4;
-
-	if (isTriggered)
+	channel.m_shadowFrequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
+	uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
+	bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
+	channel.m_sweepEnabled = !periodIsZero || sweepShift > 0;
+	if (sweepShift > 0)
 	{
-		channel.m_shadowFrequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
-		uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
-		bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
-		channel.m_sweepEnabled = !periodIsZero || sweepShift > 0;
-		if (sweepShift > 0)
-		{
-			bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
-			CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
-		}
+		bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
+		CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
 	}
-	if ((frameSequencerStep + 2) % FREQUENCY_SWEEP_TICK_RATE == 0)
+}
+
+void AudioProcessors::Sweep::UpdateSweep(Memory& memory, ChannelData& channel)
+{
+	if (channel.m_sweepTimer > 0)
 	{
-		if (channel.m_sweepTimer > 0)
+		channel.m_sweepTimer--;
+
+		if (channel.m_sweepTimer == 0)
 		{
-			channel.m_sweepTimer--;
+			bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
 
-			if (channel.m_sweepTimer == 0)
+			if (channel.m_sweepEnabled && !periodIsZero)
 			{
-				bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
+				uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
 
-				if (channel.m_sweepEnabled && !periodIsZero)
+				bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
+
+				uint32_t newFrequency = CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
+
+				if (newFrequency <= Sweep::SWEEP_FREQUENCY_MAX_VALUE && sweepShift > 0)
 				{
-					uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
-
-					bool isDecreasing = memory.ReadIO(channel.m_sweepRegister) & SWEEP_DIRECTION_BIT;
-
-					uint32_t newFrequency = CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
-
-					if (newFrequency <= Sweep::SWEEP_FREQUENCY_MAX_VALUE && sweepShift > 0)
-					{
-						AudioChannel_Internal::SetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister, newFrequency);
-						channel.m_shadowFrequency = newFrequency;
-						CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
-					}
+					AudioChannel_Internal::SetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister, newFrequency);
+					channel.m_shadowFrequency = newFrequency;
+					CalculateNewSweepFrequency(memory, channel, channel.m_shadowFrequency, sweepShift, isDecreasing);
 				}
 			}
 		}
 	}
-
 }
 
 bool AudioProcessors::Sweep::ReloadSweepTimer(const Memory& memory, uint32_t& sweepTimer, uint16_t sweepRegister, uint8_t sweepPeriodBits, uint8_t sweepPeriodOffset)
@@ -79,26 +71,27 @@ uint32_t AudioProcessors::Sweep::CalculateNewSweepFrequency(Memory& memory, Chan
 	// overflow check
 	if (newFrequency > SWEEP_FREQUENCY_MAX_VALUE)
 	{
-		SetChannelActive(memory, channel, true);
+		SetChannelActive(memory, channel, false);
 	}
 
 	return newFrequency;
 }
 
-void AudioProcessors::PulseFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, uint32_t cyclesToStep, bool isTriggered)
-{
-	UpdateFrequencyInternal(memory, channel, cyclesToStep, isTriggered, 0);
-}
-
-bool AudioProcessors::PulseFrequency::UpdateFrequencyInternal(Memory& memory, ChannelData& channel, uint32_t cyclesToStep, bool isTriggered, uint32_t initialDutyStep)
+void AudioProcessors::PulseFrequency::Trigger(Memory& memory, ChannelData& channel)
 {
 	uint32_t frequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
+	channel.m_frequencyTimer = (2048 - frequency) * channel.m_frequencyFactor;
+	channel.m_dutyStep = 0;
+}
 
-	if (isTriggered)
-	{
-		channel.m_frequencyTimer = (2048 - frequency) * channel.m_frequencyFactor;
-		channel.m_dutyStep = initialDutyStep;
-	}
+void AudioProcessors::PulseFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, uint32_t cyclesToStep)
+{
+	UpdateFrequencyInternal(memory, channel, cyclesToStep);
+}
+
+bool AudioProcessors::PulseFrequency::UpdateFrequencyInternal(Memory& memory, ChannelData& channel, uint32_t cyclesToStep)
+{
+	uint32_t frequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
 
 	uint32_t remainingSteps = cyclesToStep;
 	bool timerTriggered = false;
@@ -126,10 +119,17 @@ bool AudioProcessors::PulseFrequency::UpdateFrequencyInternal(Memory& memory, Ch
 	return timerTriggered;
 }
 
-void AudioProcessors::WaveFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep, bool isTriggered)
+void AudioProcessors::WaveFrequency::Trigger(Memory& memory, ChannelData& channel)
+{
+	uint32_t frequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
+	channel.m_frequencyTimer = (2048 - frequency) * channel.m_frequencyFactor;
+	channel.m_dutyStep = 1;
+}
+
+void AudioProcessors::WaveFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep)
 {
 	const uint16_t WAVE_PATTERN_RAM_BEGIN = 0xFF30;
-	if (PulseFrequency::UpdateFrequencyInternal(memory, channel, cyclesToStep, isTriggered, 1))
+	if (PulseFrequency::UpdateFrequencyInternal(memory, channel, cyclesToStep))
 	{
 		uint16_t sampleIndex = channel.m_dutyStep / 2;
 		bool sampleLowerNibble = static_cast<bool>(channel.m_dutyStep % 2);
@@ -138,16 +138,16 @@ void AudioProcessors::WaveFrequency::UpdateFrequency(Memory& memory, ChannelData
 	}
 }
 
-void AudioProcessors::NoiseFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep, bool isTriggered)
+void AudioProcessors::NoiseFrequency::Trigger(Memory& memory, ChannelData& channel)
+{
+	channel.m_lfsr = 0;
+	channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory.ReadIO(channel.m_frequencyRegister));
+}
+
+void AudioProcessors::NoiseFrequency::UpdateFrequency(Memory& memory, ChannelData& channel, const uint32_t& cyclesToStep)
 {
 	const uint8_t LFSR_WIDTH_BITS = 0x08;
 	const uint8_t LFSR_WIDTH_OFFSET = 3;
-
-	if (isTriggered)
-	{
-		channel.m_lfsr = 0;
-		channel.m_frequencyTimer = GetNoiseFrequencyTimer(memory.ReadIO(channel.m_frequencyRegister));
-	}
 
 	uint32_t remainingSteps = cyclesToStep;
 	while (remainingSteps > 0)
@@ -204,74 +204,68 @@ uint32_t AudioProcessors::NoiseFrequency::GetNoiseFrequencyTimer(uint8_t frequen
 	return (clockDivider > 0 ? (clockDivider << 4) : 8) << clockShift;
 }
 
-void AudioProcessors::Length::UpdateLength(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered)
+void AudioProcessors::Length::Trigger(Memory& memory, ChannelData& channel)
+{
+	if (channel.m_lengthCounter == 0)
+	{
+		channel.m_lengthCounter = channel.m_initialLength;
+	}
+}
+
+void AudioProcessors::Length::UpdateLength(Memory& memory, ChannelData& channel)
 {
 	const uint8_t SOUND_LENGTH_TICK_RATE = 2;
 	const uint8_t SOUND_LENGTH_ENABLE_BIT = 0x40;
 
-	if (isTriggered && channel.m_lengthCounter == 0)
+	bool useLength = (memory.ReadIO(channel.m_controlRegister) & SOUND_LENGTH_ENABLE_BIT) > 0;
+	if (useLength)
 	{
-		channel.m_lengthCounter = channel.m_initialLength;
-	}
-
-	if (frameSequencerStep % SOUND_LENGTH_TICK_RATE == 0)
-	{
-		bool useLength = (memory.ReadIO(channel.m_controlRegister) & SOUND_LENGTH_ENABLE_BIT) > 0;
-		if (useLength)
+		channel.m_lengthCounter--;
+		if (channel.m_lengthCounter == 0)
 		{
-			channel.m_lengthCounter--;
-			if (channel.m_lengthCounter == 0)
-			{
-				SetChannelActive(memory, channel, false);
-			}
+			SetChannelActive(memory, channel, false);
 		}
 	}
 }
 
-void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channel, uint8_t frameSequencerStep, bool isTriggered)
+void AudioProcessors::Envelope::Trigger(Memory& memory, ChannelData& channel)
 {
 	const uint8_t ENVELOPE_PACE_BITS = 0x07;
 	const uint8_t ENVELOPE_DIRECTION_BITS = 0x8;
 	const uint8_t INITIAL_VOLUME_BITS = 0xF0;
 	const uint8_t INITIAL_VOLUME_OFFSET = 4;
-	const uint8_t ENVELOPE_FRAME_SEQUENCER_STEP = 7;
-	const uint32_t ENVELOPE_PERIOD_DEFAULT_VALUE = 8;
 
-	if (isTriggered)
+	uint8_t period = memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_PACE_BITS;
+	/*if (period == 0)
 	{
-		uint8_t period = memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_PACE_BITS;
-		/*if (period == 0)
-		{
-			period = ENVELOPE_PERIOD_DEFAULT_VALUE;
-		}*/
-		channel.m_envelopePeriod = period;
-		channel.m_periodTimer = period;
-		channel.m_envelopeIncrease = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_DIRECTION_BITS) > 0;
-		uint8_t volume = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
-		channel.m_currentVolume = volume;
+		period = ENVELOPE_PERIOD_DEFAULT_VALUE;
+	}*/
+	channel.m_envelopePeriod = period;
+	channel.m_periodTimer = period;
+	channel.m_envelopeIncrease = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & ENVELOPE_DIRECTION_BITS) > 0;
+	uint8_t volume = (memory.ReadIO(channel.m_volumeEnvelopeRegister) & INITIAL_VOLUME_BITS) >> INITIAL_VOLUME_OFFSET;
+	channel.m_currentVolume = volume;
+}
+
+void AudioProcessors::Envelope::UpdateVolume(Memory& memory, ChannelData& channel)
+{
+	uint8_t period = channel.m_envelopePeriod;
+	if (period == 0)
+	{
+		return;
+	}
+	if (channel.m_periodTimer > 0)
+	{
+		channel.m_periodTimer--;
 	}
 
-	//only update envelope every 8 ticks
-	if (frameSequencerStep == ENVELOPE_FRAME_SEQUENCER_STEP)
+	if (channel.m_periodTimer == 0)
 	{
-		uint8_t period = channel.m_envelopePeriod;
-		if (period == 0)
-		{
-			return;
-		}
-		if (channel.m_periodTimer > 0)
-		{
-			channel.m_periodTimer--;
-		}
+		channel.m_periodTimer = period;
 
-		if (channel.m_periodTimer == 0)
+		if ((channel.m_currentVolume < 0x0F && channel.m_envelopeIncrease) || (channel.m_currentVolume > 0x00 && !channel.m_envelopeIncrease))
 		{
-			channel.m_periodTimer = period;
-
-			if ((channel.m_currentVolume < 0x0F && channel.m_envelopeIncrease) || (channel.m_currentVolume > 0x00 && !channel.m_envelopeIncrease))
-			{
-				channel.m_currentVolume += channel.m_envelopeIncrease ? 1 : -1;
-			}
+			channel.m_currentVolume += channel.m_envelopeIncrease ? 1 : -1;
 		}
 	}
 }
@@ -337,17 +331,6 @@ void AudioProcessors::AudioChannel_Internal::SetFrequency(Memory& memory, const 
 	memory.WriteIO(frequencyLowRegister, frequency & FREQUENCY_LOW_BITS);
 	uint8_t highRegisterOther = memory.ReadIO(frequencyHighRegister) & ~FREQUENCY_HIGH_BITS;
 	memory.WriteIO(frequencyHighRegister, highRegisterOther | ((frequency >> 8) & FREQUENCY_HIGH_BITS));
-}
-
-bool AudioProcessors::AudioChannel_Internal::CheckForTrigger(Memory& memory, ChannelData& channel)
-{
-	bool triggered = channel.m_triggered;
-	channel.m_triggered = false;
-	if (triggered && channel.m_DACEnabled)
-	{
-		SetChannelActive(memory, channel, true);
-	}
-	return triggered;
 }
 
 void AudioProcessors::SetChannelActive(Memory& memory, ChannelData& channel, bool active)
