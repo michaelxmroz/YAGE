@@ -42,7 +42,7 @@ Currently the default control scheme is as follows, but this can be remapped thr
 | Tests    | Result |
 | -------- | ------- |
 | cpu_instr  | ✅ |
-| dmg_sound | ❌ |
+| dmg_sound | ✅ (Except wave ram read/writes) |
 | instr_timing    |  ✅  |
 | mem_timing | ❌ |
 | mem_timing-2 | ❌ |
