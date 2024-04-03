@@ -734,11 +734,11 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 		//Wake up from low energy states
 		if (hasInterrupt)
 		{
-			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::ShouldHandleInterrupt(Interrupts::Types::Joypad, memory)))
+			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::HasInterruptRequest(Interrupts::Types::Joypad, memory)))
 			{
 				m_registers.CpuState = Registers::State::Running;
 
-				m_haltBug = !m_registers.IMEF;
+				m_haltBug = !m_delayedInterruptHandling || !m_registers.IMEF;
 			}
 		}
 
