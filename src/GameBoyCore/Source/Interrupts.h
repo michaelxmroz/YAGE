@@ -22,6 +22,8 @@ namespace Interrupts
 
     void RequestInterrupt(Types type, Memory& memory);
 
+    bool HasInterruptRequest(Types type, Memory& memory);
+
     void ClearInterruptRequest(Types type, Memory& memory);
 
     bool ShouldHandleInterrupt(Memory& memory);
