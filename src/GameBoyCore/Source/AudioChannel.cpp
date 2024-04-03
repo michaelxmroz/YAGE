@@ -338,15 +338,26 @@ void AudioProcessors::AudioChannel_Internal::SetFrequency(Memory& memory, const 
 
 void AudioProcessors::SetChannelActive(Memory& memory, ChannelData& channel, bool active)
 {
+	const uint16_t APU_WAVE_RAM_BEGIN = 0xFF30;
+	const uint16_t APU_WAVE_RAM_END = 0xFF3F;
 	const uint16_t AUDIO_MASTER_CONTROL_REGISTER = 0xFF26;
+
 	channel.m_enabled = active;
 	uint8_t regVal = memory.ReadIO(AUDIO_MASTER_CONTROL_REGISTER);
 	if (active)
 	{
 		memory.WriteIO(AUDIO_MASTER_CONTROL_REGISTER, regVal | channel.m_masterControlOnOffBit);
+		if (channel.m_channelId == 2) // no wave ram access when wave channel is active
+		{
+			memory.AddIOReadOnlyRange(APU_WAVE_RAM_BEGIN, APU_WAVE_RAM_END);
+		}
 	}
 	else
 	{
 		memory.WriteIO(AUDIO_MASTER_CONTROL_REGISTER, regVal & ~channel.m_masterControlOnOffBit);
+		if (channel.m_channelId == 2) // restore wave ram access when wave channel is deactivated
+		{
+			memory.RemoveIOReadOnlyRange(APU_WAVE_RAM_BEGIN, APU_WAVE_RAM_END);
+		}
 	}
 }

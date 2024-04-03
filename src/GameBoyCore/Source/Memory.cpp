@@ -492,3 +492,11 @@ void Memory::RemoveIOReadOnlyRange(uint16_t start, uint16_t end)
 		AddIOReadOnlyBitsOverride(i, 0x00);
 	}
 }
+
+void Memory::AddIOWriteOnlyRange(uint16_t start, uint16_t end)
+{
+	for (uint16_t i = start; i <= end; ++i)
+	{
+		AddIOWriteOnlyBitsOverride(i, 0xFF);
+	}
+}

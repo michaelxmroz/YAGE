@@ -5,6 +5,8 @@
 
 #define APU_REGISTERS_BEGIN 0xFF10
 #define APU_REGISTERS_END 0xFF2F
+#define APU_WAVE_RAM_BEGIN 0xFF30
+#define APU_WAVE_RAM_END 0xFF3F
 
 #define CHANNEL1_MASTER_CONTROL_ON_OFF_BIT 0x01
 #define CHANNEL1_SWEEP_REGISTER 0xFF10
@@ -121,10 +123,10 @@ namespace APU_Internal
 		memory.AddIOWriteOnlyBitsOverride(CHANNEL4_LENGTH_REGISTER, 0b00111111);
 		memory.AddIOWriteOnlyBitsOverride(CHANNEL4_CONTROL_REGISTER, 0b10000000);
 
+		memory.AddIOWriteOnlyRange(APU_WAVE_RAM_BEGIN, APU_WAVE_RAM_END);
+
 
 		memory.AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
-
-		//TODO wave ram read/write blocking while channel is playing
 	}
 
 	void ResetAudioRegistersToBootValues(Memory& memory)
@@ -192,6 +194,18 @@ namespace APU_Internal
 			}
 		}
 	}
+
+	void InitWaveRamToDefaults(Memory& memory)
+	{
+		const uint32_t waveRamSize = APU_WAVE_RAM_END - APU_WAVE_RAM_BEGIN + 1;
+		const uint8_t defaults[waveRamSize] = { 0x84, 0x40, 0x43, 0xAA, 0x2D, 0x78, 0x92, 0x3C, 0x60, 0x59, 0x59, 0xB0, 0x34, 0xB8, 0x2E, 0xDA };
+
+		for (uint16_t i = 0; i < waveRamSize; ++i)
+		{
+
+			memory.WriteIO(APU_WAVE_RAM_BEGIN + i, defaults[i]);
+		}
+	}
 }
 
 APU::APU(Serializer* serializer) : ISerializable(serializer)
@@ -233,6 +247,8 @@ void APU::Init(Memory& memory)
 	memory.RegisterCallback(CHANNEL4_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 
 	APU_Internal::ResetAudioRegistersToBootValues(memory);
+
+	APU_Internal::InitWaveRamToDefaults(memory);
 
 	memory.RegisterCallback(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
 	memory.RegisterCallback(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
@@ -551,6 +567,7 @@ APU::HighPassFilter::HighPassFilter() :
 
 void APU::HighPassFilter::SetParams(float cutoff, float sampleRate)
 {
+	const float M_PI = 3.141592654f;
 	m_alpha = 1.0f / (1.0f + 2.0f * M_PI * cutoff / sampleRate);
 }
 

@@ -91,6 +91,7 @@ public:
 	void AddIOWriteOnlyBitsOverride(uint16_t addr, uint8_t mask);
 	void AddIOReadOnlyRange(uint16_t start, uint16_t end);
 	void RemoveIOReadOnlyRange(uint16_t start, uint16_t end);
+	void AddIOWriteOnlyRange(uint16_t start, uint16_t end);
 
 private:
 

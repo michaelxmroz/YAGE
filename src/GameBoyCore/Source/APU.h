@@ -4,8 +4,6 @@
 
 #define CHANNEL_COUNT 4
 
-#define M_PI 3.14159265f
-
 class APU : ISerializable
 {
 public:
