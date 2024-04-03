@@ -53,6 +53,7 @@ struct ChannelData
 		, m_shadowFrequency()
 		, m_sweepEnabled()
 		, m_lfsr()
+		, m_decreasingFrequencyCalculationPerformed(false)
 	{
 	};
 
@@ -81,6 +82,7 @@ struct ChannelData
 	uint32_t m_sweepTimer;
 	uint32_t m_shadowFrequency;
 	bool m_sweepEnabled;
+	bool m_decreasingFrequencyCalculationPerformed;
 
 	//Channel 3 only
 	uint8_t m_sampleBuffer;

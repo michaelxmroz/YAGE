@@ -220,6 +220,9 @@ void APU::Init(Memory& memory)
 	APU_Internal::SetupRegisterBitsOverrides(memory);
 
 	memory.RegisterCallback(AUDIO_MASTER_CONTROL_REGISTER, CheckForReset, this);
+
+	memory.RegisterCallback(CHANNEL1_SWEEP_REGISTER, CheckForSweepReverse, this);
+
 	memory.RegisterCallback(CHANNEL1_LENGTH_DUTY_REGISTER, AdjustTimer, this);
 	memory.RegisterCallback(CHANNEL2_LENGTH_DUTY_REGISTER, AdjustTimer, this);
 	memory.RegisterCallback(CHANNEL3_LENGTH_REGISTER, AdjustTimer, this);
@@ -378,14 +381,38 @@ void APU::CheckForReset(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_
 		{
 			AudioProcessors::SetChannelActive(*memory, apu->m_channels[i], false);
 		}
+
 		memory->ClearRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
 		memory->AddIOReadOnlyRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
+		//Length registers are not affected by the APU being turned off on DMG
+		memory->AddIOReadOnlyBitsOverride(CHANNEL1_LENGTH_DUTY_REGISTER, 0b11000000);
+		memory->AddIOReadOnlyBitsOverride(CHANNEL2_LENGTH_DUTY_REGISTER, 0b11000000);
+		memory->AddIOReadOnlyBitsOverride(CHANNEL3_LENGTH_REGISTER, 0b00000000);
+		memory->AddIOReadOnlyBitsOverride(CHANNEL4_LENGTH_REGISTER, 0b00000000);
 		memory->AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
 	}
 	else if ((prevValue & APU_ON_OFF_BIT) == 0 && (newValue & APU_ON_OFF_BIT) != 0)
 	{
+		APU* apu = static_cast<APU*>(userData);
+
+		apu->m_frameSequencerStep = 0;
 		memory->RemoveIOReadOnlyRange(APU_REGISTERS_BEGIN, APU_REGISTERS_END);
 		memory->AddIOReadOnlyBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b00001111);
+	}
+}
+
+//Obscure APU behaviour: If sweep direction is reversed after at least a single sweep update, the channel is disabled
+void APU::CheckForSweepReverse(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
+{
+	const uint8_t SWEEP_DIRECTION_BIT = 0x08;
+
+	APU* apu = static_cast<APU*>(userData);
+
+	ChannelData& channel = apu->m_channels[0];
+
+	if(prevValue & SWEEP_DIRECTION_BIT && !(newValue & SWEEP_DIRECTION_BIT) && channel.m_decreasingFrequencyCalculationPerformed)
+	{
+		SetChannelActive(*memory, channel, false);
 	}
 }
 

@@ -45,6 +45,7 @@ private:
 	static void WriteToAudioBuffer(APU::ExternalAudioBuffer* buffer, float leftSample, float rightSample);
 
 	static void CheckForReset(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
+	static void CheckForSweepReverse(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void AdjustTimer(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void SetChannelsDACActive(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void SetChannel3DACActive(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);

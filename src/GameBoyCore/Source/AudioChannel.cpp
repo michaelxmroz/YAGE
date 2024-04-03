@@ -3,6 +3,7 @@
 
 void AudioProcessors::Sweep::Trigger(Memory& memory, ChannelData& channel)
 {
+	channel.m_decreasingFrequencyCalculationPerformed = false;
 	channel.m_shadowFrequency = AudioChannel_Internal::GetFrequency(memory, channel.m_controlRegister, channel.m_frequencyRegister);
 	uint8_t sweepShift = memory.ReadIO(channel.m_sweepRegister) & SWEEP_SHIFT_BITS;
 	bool periodIsZero = ReloadSweepTimer(memory, channel.m_sweepTimer, channel.m_sweepRegister, SWEEP_PERIOD_BITS, SWEEP_PERIOD_OFFSET);
@@ -57,6 +58,8 @@ bool AudioProcessors::Sweep::ReloadSweepTimer(const Memory& memory, uint32_t& sw
 
 uint32_t AudioProcessors::Sweep::CalculateNewSweepFrequency(Memory& memory, ChannelData& channel, uint32_t shadowFrequency, uint8_t sweepShift, bool isDecreasing)
 {
+	channel.m_decreasingFrequencyCalculationPerformed = isDecreasing;
+
 	uint32_t newFrequency = shadowFrequency >> sweepShift;
 
 	if (isDecreasing)
