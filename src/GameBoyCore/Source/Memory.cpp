@@ -174,11 +174,13 @@ void Memory::MapROM(Serializer* serializer, const char* rom, uint32_t size)
 	m_mbc = new MemoryBankController(serializer, m_romMemory[HEADER_CARTRIDGE_TYPE], m_romMemory[HEADER_ROM_SIZE], m_romMemory[HEADER_RAM_SIZE]);
 
 	uint16_t ramSize = m_mbc->GetRAMSize();
-	if (ramSize > 0)
+	if (ramSize == 0)
 	{
-		m_externalRamMemory = new uint8_t[ramSize];
-		memset(m_externalRamMemory, 0, ramSize);
+		ramSize = RAM_BANK_SIZE;
 	}
+
+	m_externalRamMemory = new uint8_t[ramSize];
+	memset(m_externalRamMemory, 0, ramSize);
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset(m_initializationTracker, 1, ROM_END + 1);

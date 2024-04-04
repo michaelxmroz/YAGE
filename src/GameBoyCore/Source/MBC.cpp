@@ -216,7 +216,7 @@ uint32_t MemoryBankController::GetRAMAddr(uint16_t addr) const
 	if (m_ramBankCount == 0 || !m_registers.m_isRAMEnabled)
 	{
 		LOG_ERROR("Trying to access invalid external ram address");
-		return 0x00;
+		return addr;
 	}
 
 	switch (m_type)
