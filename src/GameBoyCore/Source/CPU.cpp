@@ -736,13 +736,12 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::HasInterruptRequest(Interrupts::Types::Joypad, memory)))
 			{
 				m_registers.CpuState = Registers::State::Running;
-				//why is pokemon hanging bc of this change?
 				m_haltBug = !m_registers.IMEF;
 
+				// Another variation of the HALT bug: IF EI is called right before HALT, interrupts will be handled
+				// but afterwards the execution will jump back to the same HALT instruction, which will be executed twice
 				if (m_delayedInterruptHandling)
 				{
-					//m_haltBug = true;
-					//m_registers.CpuState = Registers::State::Halt;
 					m_delayedInterruptHandling = false;
 					m_registers.PC--;
 				}
