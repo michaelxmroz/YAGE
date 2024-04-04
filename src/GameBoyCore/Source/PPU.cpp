@@ -181,6 +181,16 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				processedCycles += 2;
 
+				data.m_cyclesSinceHBlankStart += 2;
+
+				if(data.m_cyclesSinceHBlankStart == 4)
+				{
+					if (PPUHelpers::IsStatFlagSet(StatFlags::Mode0Interrupt, memory))
+					{
+						Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+					}
+				}
+
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
 					if (data.m_totalCycles % 2 != 0)
@@ -261,13 +271,16 @@ void PPU::TransitionToVBlank(Memory& memory)
 
 void PPU::TransitionToHBlank(Memory& memory)
 {
+	/*
 	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode0Interrupt, memory))
 	{
 		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 	}
+	*/
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	data.m_state = PPUState::HBlank;
+	data.m_cyclesSinceHBlankStart = 0;
 }
 
 void PPU::TransitionToDraw(Memory& memory)

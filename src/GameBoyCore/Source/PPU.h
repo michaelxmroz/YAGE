@@ -111,6 +111,7 @@ private:
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
+		uint32_t m_cyclesSinceHBlankStart;
 	} data;
 	void* m_activeFrame;
 	void* m_backBuffer;
