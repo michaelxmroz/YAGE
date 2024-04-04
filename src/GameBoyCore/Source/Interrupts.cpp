@@ -35,6 +35,11 @@ namespace Interrupts
         memory.Write(INTERRUPT_FLAG_REGISTER, memory[INTERRUPT_FLAG_REGISTER] | (1 << static_cast<uint8_t>(type)));
     }
 
+    bool HasInterruptRequest(Types type, Memory& memory)
+    {
+        return (memory[INTERRUPT_FLAG_REGISTER] & (1 << static_cast<uint8_t>(type))) > 0;
+    }
+
     void Interrupts::ClearInterruptRequest(Types type, Memory& memory)
     {
         memory.Write(INTERRUPT_FLAG_REGISTER, memory[INTERRUPT_FLAG_REGISTER] & ~(1 << static_cast<uint8_t>(type)));

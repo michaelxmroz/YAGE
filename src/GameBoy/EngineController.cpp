@@ -132,8 +132,9 @@ inline void EngineController::RunEmulatorLoop()
     if (m_emulator != nullptr)
     {
         //Debug stops
-        //m_emulator->SetPCCallback(0xC023, &Debugging::TriggerBreakpoint);
+        m_emulator->SetPCCallback(0x0604, &Debugging::TriggerBreakpoint);
         //m_emulator->SetInstructionCountCallback(594925, &Debugging::TriggerBreakpoint);
+        //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
     }
 
     uint32_t frameCount = 0;

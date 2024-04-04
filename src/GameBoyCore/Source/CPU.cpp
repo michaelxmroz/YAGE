@@ -8,6 +8,7 @@
 #define INTERRUPT_DURATION 5
 
 #define EI_OPCODE 0xFB
+#define HALT_OPCODE 0x76
 
 
 #if CPU_STATE_LOGGING
@@ -676,49 +677,47 @@ void CPU::ClearCallbacks()
 
 uint32_t CPU::Step(Memory& memory)
 {
+#if _DEBUG
+	if (DEBUG_PCCallbackMap.size() > 0)
+	{
+		if (DEBUG_PCCallbackMap.count(m_registers.PC))
+		{
+			DEBUG_PCCallbackMap[m_registers.PC]();
+		}
+	}
+	if (DEBUG_instrCallbackMap.size() > 0)
+	{
+		if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
+		{
+			DEBUG_instrCallbackMap[memory[m_registers.PC]]();
+		}
+	}
+
+	DEBUG_instructionCount++;
+	if (DEBUG_instrCountCallbackMap.size() > 0)
+	{
+		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
+		{
+			DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
+		}
+	}
+
+	if (DEBUG_stopInstructions.size() > 0)
+	{
+		uint8_t instr = memory[m_registers.PC];
+		if (DEBUG_stopInstructions.count(instr))
+		{
+			m_registers.CpuState = Registers::State::Stop;
+			DEBUG_stopInstructions[instr] = true;
+		}
+	}
+#endif
+
 	uint32_t mCycles = 0; 
 	ProcessInterrupts(memory, mCycles);
 
-	m_delayedInterruptHandling = false;
-
 	if (m_registers.CpuState == Registers::State::Running)
 	{
-#if _DEBUG
-		if (DEBUG_PCCallbackMap.size() > 0)
-		{
-			if (DEBUG_PCCallbackMap.count(m_registers.PC))
-			{
-				DEBUG_PCCallbackMap[m_registers.PC]();
-			}
-		}
-		if (DEBUG_instrCallbackMap.size() > 0)
-		{
-			if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
-			{
-				DEBUG_instrCallbackMap[memory[m_registers.PC]]();
-			}
-		}
-
-		DEBUG_instructionCount++;
-		if (DEBUG_instrCountCallbackMap.size() > 0)
-		{
-			if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
-			{
-				DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
-			}
-		}
-
-		if (DEBUG_stopInstructions.size() > 0)
-		{
-			uint8_t instr = memory[m_registers.PC];
-			if (DEBUG_stopInstructions.count(instr))
-			{
-				m_registers.CpuState = Registers::State::Stop;
-				DEBUG_stopInstructions[instr] = true;
-			}
-		}
-#endif
-
 		ExecuteInstruction(memory, mCycles);
 	}
 
@@ -734,11 +733,19 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 		//Wake up from low energy states
 		if (hasInterrupt)
 		{
-			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::ShouldHandleInterrupt(Interrupts::Types::Joypad, memory)))
+			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::HasInterruptRequest(Interrupts::Types::Joypad, memory)))
 			{
 				m_registers.CpuState = Registers::State::Running;
-
+				//why is pokemon hanging bc of this change?
 				m_haltBug = !m_registers.IMEF;
+
+				if (m_delayedInterruptHandling)
+				{
+					//m_haltBug = true;
+					//m_registers.CpuState = Registers::State::Halt;
+					m_delayedInterruptHandling = false;
+					m_registers.PC--;
+				}
 			}
 		}
 
@@ -810,7 +817,7 @@ void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 	mCycles += instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
 
 	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
-	m_delayedInterruptHandling = encodedInstruction == EI_OPCODE;
+	m_delayedInterruptHandling = (encodedInstruction == EI_OPCODE) || (encodedInstruction == HALT_OPCODE && m_delayedInterruptHandling);
 }
 
 void CPU::SetProgramCounter(unsigned short addr)
