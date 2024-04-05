@@ -2469,10 +2469,6 @@ InstructionResult InstructionFunctions::RLC_mHL(const char* mnemonic, Instructio
 	else if (data.m_cycles == 1)
 	{
 		Helpers::RotateLeft(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2539,14 +2535,10 @@ InstructionResult InstructionFunctions::RRC_mHL(const char* mnemonic, Instructio
 	else if (data.m_cycles == 1)
 	{
 		Helpers::RotateRight(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2609,14 +2601,10 @@ InstructionResult InstructionFunctions::RL_mHL(const char* mnemonic, Instruction
 	else if (data.m_cycles == 1)
 	{
 		Helpers::RotateLeftWithCarry(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2679,14 +2667,10 @@ InstructionResult InstructionFunctions::RR_mHL(const char* mnemonic, Instruction
 	else if (data.m_cycles == 1)
 	{
 		Helpers::RotateRightWithCarry(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2749,14 +2733,10 @@ InstructionResult InstructionFunctions::SLA_mHL(const char* mnemonic, Instructio
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ShiftLeftArithmetic(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2819,14 +2799,10 @@ InstructionResult InstructionFunctions::SRA_mHL(const char* mnemonic, Instructio
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ShiftRightArithmetic(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2889,14 +2865,10 @@ InstructionResult InstructionFunctions::SWAP_mHL(const char* mnemonic, Instructi
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SwapNibbles(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -2959,14 +2931,10 @@ InstructionResult InstructionFunctions::SRL_mHL(const char* mnemonic, Instructio
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ShiftRightLogic(data.m_tmp_u8, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3024,10 +2992,6 @@ InstructionResult InstructionFunctions::BIT_0_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 0, registers);
 		return InstructionResult::Continue;
 	}
@@ -3089,14 +3053,10 @@ InstructionResult InstructionFunctions::BIT_1_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 1, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3154,14 +3114,10 @@ InstructionResult InstructionFunctions::BIT_2_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 2, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3219,14 +3175,10 @@ InstructionResult InstructionFunctions::BIT_3_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 3, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3284,14 +3236,10 @@ InstructionResult InstructionFunctions::BIT_4_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 4, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3349,14 +3297,10 @@ InstructionResult InstructionFunctions::BIT_5_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 5, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3414,14 +3358,10 @@ InstructionResult InstructionFunctions::BIT_6_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 6, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3479,14 +3419,10 @@ InstructionResult InstructionFunctions::BIT_7_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 1)
-	{
 		Helpers::TestBit(data.m_tmp_u8, 7, registers);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3549,14 +3485,10 @@ InstructionResult InstructionFunctions::RES_0_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 0, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3619,14 +3551,10 @@ InstructionResult InstructionFunctions::RES_1_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 1, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3689,14 +3617,10 @@ InstructionResult InstructionFunctions::RES_2_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 2, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3759,14 +3683,10 @@ InstructionResult InstructionFunctions::RES_3_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 3, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3829,14 +3749,10 @@ InstructionResult InstructionFunctions::RES_4_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 4, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3899,14 +3815,10 @@ InstructionResult InstructionFunctions::RES_5_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 5, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -3969,14 +3881,10 @@ InstructionResult InstructionFunctions::RES_6_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 6, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4039,14 +3947,10 @@ InstructionResult InstructionFunctions::RES_7_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::ResetBit(data.m_tmp_u8, 7, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4109,14 +4013,10 @@ InstructionResult InstructionFunctions::SET_0_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 0, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4179,14 +4079,10 @@ InstructionResult InstructionFunctions::SET_1_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 1, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4249,14 +4145,10 @@ InstructionResult InstructionFunctions::SET_2_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 2, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4319,14 +4211,10 @@ InstructionResult InstructionFunctions::SET_3_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 3, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4389,14 +4277,10 @@ InstructionResult InstructionFunctions::SET_4_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 4, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4459,14 +4343,10 @@ InstructionResult InstructionFunctions::SET_5_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 5, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4529,14 +4409,10 @@ InstructionResult InstructionFunctions::SET_6_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 6, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
@@ -4599,14 +4475,10 @@ InstructionResult InstructionFunctions::SET_7_mHL(const char* mnemonic, Instruct
 	else if (data.m_cycles == 1)
 	{
 		Helpers::SetBit(data.m_tmp_u8, 7, registers);
-		return InstructionResult::Continue;
-	}
-	else if (data.m_cycles == 2)
-	{
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
-	
+
 	return InstructionResult::Finished;
 }
 
