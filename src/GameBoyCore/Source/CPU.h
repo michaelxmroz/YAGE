@@ -9,7 +9,7 @@
 
 
 #if _DEBUG
-#define CPU_STATE_LOGGING 0
+#define CPU_STATE_LOGGING 1
 #endif
 
 class CPU : ISerializable
@@ -53,7 +53,7 @@ public:
 #endif // _DEBUG
 
 private:
-	typedef uint32_t (*InstructionFunc)(const char* mnemonic, Registers* registers, Memory& memory);
+	typedef InstructionResult (*InstructionFunc)(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory);
 
 	struct Instruction
 	{
@@ -64,8 +64,9 @@ private:
 	};
 
 	void ClearRegisters();
-	void ExecuteInstruction(Memory& memory, uint32_t& mCycles);
-	void ProcessInterrupts(Memory& memory, uint32_t& mCycles);
+	void ExecuteInstruction(Memory& memory);
+	void DecodeAndFetchNext(Memory& memory);
+	bool ProcessInterrupts(Memory& memory);
 
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
@@ -73,10 +74,15 @@ private:
 	Registers m_registers;
 
 	const Instruction m_instructions[INSTRUCTION_SET_SIZE];
+	const Instruction m_interruptHandler;
 
 	bool m_haltBug;
 	bool m_delayedInterruptHandling;
 	const bool m_InterruptHandlingEnabled;
+
+	const Instruction* m_currentInstruction;
+	InstructionTempData m_instructionTempData;
+	bool m_isNextInstructionCB;
 
 #if _DEBUG
 

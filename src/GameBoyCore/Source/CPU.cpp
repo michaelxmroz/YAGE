@@ -9,6 +9,7 @@
 
 #define EI_OPCODE 0xFB
 #define HALT_OPCODE 0x76
+#define NOP_INDEX 0
 
 
 #if CPU_STATE_LOGGING
@@ -76,6 +77,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
+	, m_interruptHandler({"INTERRUPT HANDLER", 0, 5, &InstructionFunctions::INTERRUPT_HANDLING})
 	, m_instructions {
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
@@ -713,18 +715,30 @@ uint32_t CPU::Step(Memory& memory)
 	}
 #endif
 
-	uint32_t mCycles = 0; 
-	ProcessInterrupts(memory, mCycles);
-
-	if (m_registers.CpuState == Registers::State::Running)
+	// HALT or STOP state, Waiting for interrupt
+	if(m_currentInstruction == nullptr)
 	{
-		ExecuteInstruction(memory, mCycles);
+		ProcessInterrupts(memory);
 	}
 
-	return std::max(mCycles, static_cast<uint32_t>(1)); //always do at least 1 cycle for sync purposes with the other subsystems, even when in halt states
+	//continue executing a multi-cycle instruction
+	if (m_currentInstruction != nullptr)
+	{
+		m_instructionTempData.m_cycles++;
+		if (m_instructionTempData.m_cycles < m_instructionTempData.m_delay)
+		{
+			return 0;
+		}
+
+		ExecuteInstruction(memory);
+
+		return 0;
+	}
+
+	return 0;
 }
 
-void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
+bool CPU::ProcessInterrupts(Memory& memory)
 {
 	if (m_InterruptHandlingEnabled)
 	{
@@ -752,13 +766,115 @@ void CPU::ProcessInterrupts(Memory& memory, uint32_t& mCycles)
 		if (!m_delayedInterruptHandling && hasInterrupt && m_registers.IMEF)
 		{
 			m_registers.IMEF = false;
-			uint16_t jumpAddr = Interrupts::GetJumpAddrAndClear(memory);
-
-			mCycles += INTERRUPT_DURATION;
-
-			InstructionFunctions::Helpers::Call(jumpAddr, &m_registers, memory);
+			
+        	m_currentInstruction = &m_interruptHandler;
+			m_instructionTempData.Reset();
+			m_instructionTempData.m_duration = m_currentInstruction->m_duration;
+	
+			return true;
 		}
 	}
+	return false;
+}
+
+void CPU::ExecuteInstruction(Memory& memory)
+{
+	//Execute
+	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
+	if (result == InstructionResult::Finished)
+	{
+		m_currentInstruction = nullptr;
+		
+		if (m_registers.CpuState == Registers::State::Running)
+		{
+			DecodeAndFetchNext(memory);
+			ProcessInterrupts(memory);
+		}
+	}
+	else
+	{
+		m_instructionTempData.m_delay = m_instructionTempData.m_cycles + static_cast<uint8_t>(result);
+	}
+}
+
+void CPU::DecodeAndFetchNext(Memory& memory)
+{
+#if CPU_STATE_LOGGING == 1
+	LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
+#endif
+	//Fetch
+	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
+	uint16_t encodedInstruction = memory[m_registers.PC++] + offset;
+
+	m_isNextInstructionCB = false;
+
+	//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
+	if (m_haltBug)
+	{
+		m_registers.PC--;
+		m_haltBug = false;
+	}
+
+	if (encodedInstruction == EXTENSION_OPCODE)
+	{
+		encodedInstruction = NOP_INDEX;
+		m_isNextInstructionCB = true;
+	}
+
+	//Decode
+	m_currentInstruction = &(m_instructions[encodedInstruction]);
+	m_instructionTempData.Reset();
+	m_instructionTempData.m_duration = m_currentInstruction->m_duration;
+
+	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
+	m_delayedInterruptHandling = (encodedInstruction == EI_OPCODE) || (encodedInstruction == HALT_OPCODE && m_delayedInterruptHandling);
+}
+
+void CPU::SetProgramCounter(unsigned short addr)
+{
+	m_registers.PC = addr;
+}
+
+void CPU::Reset()
+{
+	m_delayedInterruptHandling = false;
+	m_haltBug = false;
+	m_currentInstruction = &(m_instructions[0]);
+	ClearRegisters();
+
+#if _DEBUG
+	DEBUG_instructionCount=0;
+#endif
+}
+
+void CPU::ResetToBootromValues()
+{
+	m_delayedInterruptHandling = false;
+	m_haltBug = false;
+	m_instructionTempData.Reset();
+	m_isNextInstructionCB = false;
+	ClearRegisters();
+	m_registers.AF = 0x01B0;
+	m_registers.BC = 0x0013;
+	m_registers.DE = 0x00D8;
+	m_registers.HL = 0x014D;
+	m_registers.PC = 0x0100;
+
+#if _DEBUG
+	DEBUG_instructionCount = 0;
+#endif
+}
+
+void CPU::ClearRegisters()
+{
+	m_registers.SP = DEFAULT_STACK_POINTER;
+	m_registers.AF = 0;
+	m_registers.BC = 0;
+	m_registers.DE = 0;
+	m_registers.HL = 0;
+	m_registers.PC = 0;
+	m_registers.IMEF = false;
+	m_registers.CpuState = Registers::State::Running;
 }
 
 void CPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
@@ -784,81 +900,4 @@ void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 	ReadAndMove(data, &m_registers, sizeof(Registers));
 	ReadAndMove(data, &m_haltBug, sizeof(bool));
 	ReadAndMove(data, &m_delayedInterruptHandling, sizeof(bool));
-}
-
-void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
-{
-#if CPU_STATE_LOGGING == 1
-	LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
-#endif
-
-	//Fetch
-	uint16_t encodedInstruction = memory[m_registers.PC++];
-
-	//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
-	if (m_haltBug)
-	{
-		m_registers.PC--;
-		m_haltBug = false;
-	}
-
-	//Decode
-	if (encodedInstruction == EXTENSION_OPCODE)
-	{
-		encodedInstruction = memory[m_registers.PC++] + EXTENSION_OFFSET;
-	}
-
-	const Instruction& instruction = m_instructions[encodedInstruction];
-
-	mCycles += instruction.m_duration;
-
-	//Execute
-	mCycles += instruction.m_func(instruction.m_mnemonic, &m_registers, memory);
-
-	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
-	m_delayedInterruptHandling = (encodedInstruction == EI_OPCODE) || (encodedInstruction == HALT_OPCODE && m_delayedInterruptHandling);
-}
-
-void CPU::SetProgramCounter(unsigned short addr)
-{
-	m_registers.PC = addr;
-}
-
-void CPU::Reset()
-{
-	m_delayedInterruptHandling = false;
-	m_haltBug = false;
-	ClearRegisters();
-
-#if _DEBUG
-	DEBUG_instructionCount=0;
-#endif
-}
-
-void CPU::ResetToBootromValues()
-{
-	m_delayedInterruptHandling = false;
-	m_haltBug = false;
-	ClearRegisters();
-	m_registers.AF = 0x01B0;
-	m_registers.BC = 0x0013;
-	m_registers.DE = 0x00D8;
-	m_registers.HL = 0x014D;
-	m_registers.PC = 0x0100;
-
-#if _DEBUG
-	DEBUG_instructionCount = 0;
-#endif
-}
-
-void CPU::ClearRegisters()
-{
-	m_registers.SP = DEFAULT_STACK_POINTER;
-	m_registers.AF = 0;
-	m_registers.BC = 0;
-	m_registers.DE = 0;
-	m_registers.HL = 0;
-	m_registers.PC = 0;
-	m_registers.IMEF = false;
-	m_registers.CpuState = Registers::State::Running;
 }
