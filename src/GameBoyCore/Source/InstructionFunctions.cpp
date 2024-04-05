@@ -362,7 +362,7 @@ InstructionResult InstructionFunctions::JR_NZ_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	if (!registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC += data.m_tmp_s8;
 		return InstructionResult::Continue;
@@ -379,7 +379,7 @@ InstructionResult InstructionFunctions::JR_Z_n(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 
-	if (registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC += data.m_tmp_s8;
 		return InstructionResult::Continue;
@@ -396,7 +396,7 @@ InstructionResult InstructionFunctions::JR_NC_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	if (!registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC += data.m_tmp_s8;
 		return InstructionResult::Continue;
@@ -413,7 +413,7 @@ InstructionResult InstructionFunctions::JR_C_n(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 	
-	if (registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC += data.m_tmp_s8;
 		return InstructionResult::Continue;
@@ -447,7 +447,7 @@ InstructionResult InstructionFunctions::JP_NZ_nn(const char* mnemonic, Instructi
 		return InstructionResult::Delay_2;
 	}
 
-	if (!registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 2 && !registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC = data.m_tmp_16;
 		return InstructionResult::Continue;
@@ -464,7 +464,7 @@ InstructionResult InstructionFunctions::JP_Z_nn(const char* mnemonic, Instructio
 		return InstructionResult::Delay_2;
 	}
 
-	if (registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 2 && registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC = data.m_tmp_16;
 		return InstructionResult::Continue;
@@ -481,7 +481,7 @@ InstructionResult InstructionFunctions::JP_NC_nn(const char* mnemonic, Instructi
 		return InstructionResult::Delay_2;
 	}
 
-	if (!registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 2 && !registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC = data.m_tmp_16;
 		return InstructionResult::Continue;
@@ -498,7 +498,7 @@ InstructionResult InstructionFunctions::JP_C_nn(const char* mnemonic, Instructio
 		return InstructionResult::Delay_2;
 	}
 	
-	if (registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 2 && registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC = data.m_tmp_16;
 		return InstructionResult::Continue;
@@ -653,7 +653,7 @@ InstructionResult InstructionFunctions::RET_NZ(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 
-	if (!registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::zf))
 	{
 		//TODO needs to be split up?
 		registers->PC = Helpers::Read16Bit(registers->SP, memory);
@@ -669,7 +669,7 @@ InstructionResult InstructionFunctions::RET_Z(const char* mnemonic, InstructionT
 		return InstructionResult::Continue;
 	}
 	
-	if (registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::zf))
 	{
 		registers->PC = Helpers::Read16Bit(registers->SP, memory);
 		return InstructionResult::Delay_3;
@@ -684,7 +684,7 @@ InstructionResult InstructionFunctions::RET_NC(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 	
-	if (!registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC = Helpers::Read16Bit(registers->SP, memory);
 		return InstructionResult::Delay_3;
@@ -699,7 +699,7 @@ InstructionResult InstructionFunctions::RET_C(const char* mnemonic, InstructionT
 		return InstructionResult::Continue;
 	}
 	
-	if (registers->IsFlagSet(Registers::Flags::cy))
+	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::cy))
 	{
 		registers->PC = Helpers::Read16Bit(registers->SP, memory);
 		return InstructionResult::Delay_3;

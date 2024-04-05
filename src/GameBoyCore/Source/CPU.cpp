@@ -37,6 +37,8 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 
 	char* strBuffer = buffer;
 
+	uint16_t adjustedPC = registers.PC - 1;
+
 	HexToString(registers.A, strBuffer + offsets[0]);
 	HexToString(registers.FLAGS, strBuffer + offsets[1]);
 	HexToString(registers.B, strBuffer + offsets[2]);
@@ -46,10 +48,10 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 	HexToString(registers.H, strBuffer + offsets[6]);
 	HexToString(registers.L, strBuffer + offsets[7]);
 	HexToString(registers.SP, strBuffer + offsets[8]);
-	HexToString(registers.PC, strBuffer + offsets[9]);
-	HexToString(memory[registers.PC], strBuffer + offsets[10]);
-	HexToString(memory[registers.PC + 1], strBuffer + offsets[11]);
-	HexToString(memory[registers.PC + 2], strBuffer + offsets[12]);
+	HexToString(adjustedPC, strBuffer + offsets[9]);
+	HexToString(memory[adjustedPC], strBuffer + offsets[10]);
+	HexToString(memory[adjustedPC + 1], strBuffer + offsets[11]);
+	HexToString(memory[adjustedPC + 2], strBuffer + offsets[12]);
 	HexToString(memory[0xFF26], strBuffer + offsets[13]);
 
 	LOG_CPU_STATE(strBuffer);
@@ -695,7 +697,6 @@ uint32_t CPU::Step(Memory& memory)
 		}
 	}
 
-	DEBUG_instructionCount++;
 	if (DEBUG_instrCountCallbackMap.size() > 0)
 	{
 		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
@@ -721,12 +722,12 @@ uint32_t CPU::Step(Memory& memory)
 		ProcessInterrupts(memory);
 	}
 
-	//continue executing a multi-cycle instruction
+
 	if (m_currentInstruction != nullptr)
 	{
-		m_instructionTempData.m_cycles++;
 		if (m_instructionTempData.m_cycles < m_instructionTempData.m_delay)
 		{
+			m_instructionTempData.m_cycles++;
 			return 0;
 		}
 
@@ -769,7 +770,6 @@ bool CPU::ProcessInterrupts(Memory& memory)
 			
         	m_currentInstruction = &m_interruptHandler;
 			m_instructionTempData.Reset();
-			m_instructionTempData.m_duration = m_currentInstruction->m_duration;
 	
 			return true;
 		}
@@ -779,6 +779,12 @@ bool CPU::ProcessInterrupts(Memory& memory)
 
 void CPU::ExecuteInstruction(Memory& memory)
 {
+#if CPU_STATE_LOGGING == 1
+	if (m_instructionTempData.m_cycles == 0 && DEBUG_instructionCount != 0)
+	{
+		LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
+	}
+#endif
 	//Execute
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
@@ -794,14 +800,24 @@ void CPU::ExecuteInstruction(Memory& memory)
 	else
 	{
 		m_instructionTempData.m_delay = m_instructionTempData.m_cycles + static_cast<uint8_t>(result);
+		m_instructionTempData.m_cycles++;
+
+#if _DEBUG
+		if(m_instructionTempData.m_cycles > 6)
+		{
+			LOG_ERROR(string_format("Instruction took too long to execute: %s", m_currentInstruction->m_mnemonic).c_str());
+		}
+#endif
 	}
 }
 
 void CPU::DecodeAndFetchNext(Memory& memory)
 {
-#if CPU_STATE_LOGGING == 1
-	LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
+
+#if _DEBUG
+	DEBUG_instructionCount++;
 #endif
+
 	//Fetch
 	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
 	uint16_t encodedInstruction = memory[m_registers.PC++] + offset;
@@ -824,7 +840,6 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	//Decode
 	m_currentInstruction = &(m_instructions[encodedInstruction]);
 	m_instructionTempData.Reset();
-	m_instructionTempData.m_duration = m_currentInstruction->m_duration;
 
 	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
 	m_delayedInterruptHandling = (encodedInstruction == EI_OPCODE) || (encodedInstruction == HALT_OPCODE && m_delayedInterruptHandling);
@@ -840,6 +855,9 @@ void CPU::Reset()
 	m_delayedInterruptHandling = false;
 	m_haltBug = false;
 	m_currentInstruction = &(m_instructions[0]);
+	m_instructionTempData.Reset();
+	m_isNextInstructionCB = false;
+
 	ClearRegisters();
 
 #if _DEBUG
@@ -849,20 +867,13 @@ void CPU::Reset()
 
 void CPU::ResetToBootromValues()
 {
-	m_delayedInterruptHandling = false;
-	m_haltBug = false;
-	m_instructionTempData.Reset();
-	m_isNextInstructionCB = false;
-	ClearRegisters();
+	Reset();
+
 	m_registers.AF = 0x01B0;
 	m_registers.BC = 0x0013;
 	m_registers.DE = 0x00D8;
 	m_registers.HL = 0x014D;
 	m_registers.PC = 0x0100;
-
-#if _DEBUG
-	DEBUG_instructionCount = 0;
-#endif
 }
 
 void CPU::ClearRegisters()

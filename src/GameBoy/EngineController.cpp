@@ -133,7 +133,7 @@ inline void EngineController::RunEmulatorLoop()
     {
         //Debug stops
         //m_emulator->SetPCCallback(0x0604, &Debugging::TriggerBreakpoint);
-        m_emulator->SetInstructionCountCallback(100000, &Debugging::TriggerBreakpoint);
+        //m_emulator->SetInstructionCountCallback(100000, &Debugging::TriggerBreakpoint);
         //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
     }
 

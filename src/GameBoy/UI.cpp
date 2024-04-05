@@ -551,6 +551,10 @@ UI::UI(RendererVulkan& renderer)
     {
         LOG_ERROR("Initializing imgui Vulkan back end failed");
     }
+
+#if _DEBUG
+    m_state.m_showLogWindow = true;
+#endif
 }
 
 void UI::Prepare(EngineData& data)
