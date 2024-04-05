@@ -21,12 +21,14 @@ struct InstructionTempData
 		m_tmp_u8 = 0;
 		m_cycles = 0;
 		m_delay = 0;
+		m_opcode = 0;
 	}
 	uint16_t m_tmp_16;
 	int8_t m_tmp_s8;
 	uint8_t m_tmp_u8;
 	uint8_t m_cycles;
 	uint8_t m_delay;
+	uint16_t m_opcode;
 };
 
 namespace InstructionFunctions

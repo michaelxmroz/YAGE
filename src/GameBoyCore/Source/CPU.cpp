@@ -9,7 +9,8 @@
 
 #define EI_OPCODE 0xFB
 #define HALT_OPCODE 0x76
-#define NOP_INDEX 0
+#define NOP_OPCODE 0
+#define ITR_OPCODE 0x200
 
 
 #if CPU_STATE_LOGGING
@@ -79,8 +80,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
-	, m_interruptHandler({"INTERRUPT HANDLER", 0, 5, &InstructionFunctions::INTERRUPT_HANDLING})
-	, m_instructions {
+	, m_instructions{
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
 	, { "LD (BC) A", 1, 2, &InstructionFunctions::LD_mBC_A }
@@ -624,6 +624,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 7 L", 2, 2, &InstructionFunctions::SET_7_L }
 	, { "SET 7 (HL)", 2, 4, &InstructionFunctions::SET_7_mHL }
 	, { "SET 7 A", 2, 2, &InstructionFunctions::SET_7_A }
+	, { "INTERRUPT HANDLER", 0, 0, &InstructionFunctions::INTERRUPT_HANDLING }
 }
 {
 #if CPU_STATE_LOGGING
@@ -681,41 +682,6 @@ void CPU::ClearCallbacks()
 
 uint32_t CPU::Step(Memory& memory)
 {
-#if _DEBUG
-	if (DEBUG_PCCallbackMap.size() > 0)
-	{
-		if (DEBUG_PCCallbackMap.count(m_registers.PC))
-		{
-			DEBUG_PCCallbackMap[m_registers.PC]();
-		}
-	}
-	if (DEBUG_instrCallbackMap.size() > 0)
-	{
-		if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
-		{
-			DEBUG_instrCallbackMap[memory[m_registers.PC]]();
-		}
-	}
-
-	if (DEBUG_instrCountCallbackMap.size() > 0)
-	{
-		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
-		{
-			DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
-		}
-	}
-
-	if (DEBUG_stopInstructions.size() > 0)
-	{
-		uint8_t instr = memory[m_registers.PC];
-		if (DEBUG_stopInstructions.count(instr))
-		{
-			m_registers.CpuState = Registers::State::Stop;
-			DEBUG_stopInstructions[instr] = true;
-		}
-	}
-#endif
-
 	// HALT or STOP state, Waiting for interrupt
 	if(m_currentInstruction == nullptr)
 	{
@@ -768,8 +734,9 @@ bool CPU::ProcessInterrupts(Memory& memory)
 		{
 			m_registers.IMEF = false;
 			
-        	m_currentInstruction = &m_interruptHandler;
+        	m_currentInstruction = &(m_instructions[ITR_OPCODE]);
 			m_instructionTempData.Reset();
+			m_instructionTempData.m_opcode = ITR_OPCODE;
 	
 			return true;
 		}
@@ -780,7 +747,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 void CPU::ExecuteInstruction(Memory& memory)
 {
 #if CPU_STATE_LOGGING == 1
-	if (m_instructionTempData.m_cycles == 0 && DEBUG_instructionCount != 0)
+	if (m_instructionTempData.m_cycles == 0 && DEBUG_instructionCount != 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET)
 	{
 		LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
 	}
@@ -813,9 +780,50 @@ void CPU::ExecuteInstruction(Memory& memory)
 
 void CPU::DecodeAndFetchNext(Memory& memory)
 {
+#if _DEBUG
+	if (DEBUG_PCCallbackMap.size() > 0)
+	{
+		if (DEBUG_PCCallbackMap.count(m_registers.PC))
+		{
+			DEBUG_PCCallbackMap[m_registers.PC]();
+		}
+	}
+	if (DEBUG_instrCallbackMap.size() > 0)
+	{
+		if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
+		{
+			DEBUG_instrCallbackMap[memory[m_registers.PC]]();
+		}
+	}
+
+	if (DEBUG_instrCountCallbackMap.size() > 0)
+	{
+		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
+		{
+			DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
+		}
+	}
+
+	if (DEBUG_stopInstructions.size() > 0)
+	{
+		uint8_t instr = memory[m_registers.PC];
+		if (DEBUG_stopInstructions.count(instr))
+		{
+			m_registers.CpuState = Registers::State::Stop;
+			DEBUG_stopInstructions[instr] = true;
+		}
+	}
+#endif
+
+	//[Hardware] Interrupt handling is delayed by one cycle if EI was just executed
+	m_delayedInterruptHandling = (m_instructionTempData.m_opcode == EI_OPCODE) || (m_instructionTempData.m_opcode == HALT_OPCODE && m_delayedInterruptHandling);
 
 #if _DEBUG
-	DEBUG_instructionCount++;
+	if (m_instructionTempData.m_opcode != ITR_OPCODE)
+	{
+		DEBUG_instructionCount++;
+	}
+
 #endif
 
 	//Fetch
@@ -833,16 +841,14 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 
 	if (encodedInstruction == EXTENSION_OPCODE)
 	{
-		encodedInstruction = NOP_INDEX;
+		encodedInstruction = NOP_OPCODE;
 		m_isNextInstructionCB = true;
 	}
 
 	//Decode
 	m_currentInstruction = &(m_instructions[encodedInstruction]);
 	m_instructionTempData.Reset();
-
-	//[Hardware] Interrupt handling is delayed by one cycle if EI was just called
-	m_delayedInterruptHandling = (encodedInstruction == EI_OPCODE) || (encodedInstruction == HALT_OPCODE && m_delayedInterruptHandling);
+	m_instructionTempData.m_opcode = encodedInstruction;
 }
 
 void CPU::SetProgramCounter(unsigned short addr)

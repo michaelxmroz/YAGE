@@ -73,8 +73,7 @@ private:
 
 	Registers m_registers;
 
-	const Instruction m_instructions[INSTRUCTION_SET_SIZE];
-	const Instruction m_interruptHandler;
+	const Instruction m_instructions[INSTRUCTION_SET_SIZE + 1];
 
 	bool m_haltBug;
 	bool m_delayedInterruptHandling;
