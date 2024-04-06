@@ -11,6 +11,7 @@
 #define HALT_OPCODE 0x76
 #define NOP_OPCODE 0
 #define ITR_OPCODE 0x200
+#define HALT_OPCODE 0x76
 
 
 #if CPU_STATE_LOGGING
@@ -683,13 +684,12 @@ void CPU::ClearCallbacks()
 uint32_t CPU::Step(Memory& memory)
 {
 	// HALT or STOP state, Waiting for interrupt
-	if(m_currentInstruction == nullptr)
+	if(m_registers.CpuState != Registers::State::Running)
 	{
-		ProcessInterrupts(memory);
+		CheckForWakeup(memory, false);
 	}
 
-
-	if (m_currentInstruction != nullptr)
+	if (m_registers.CpuState == Registers::State::Running)
 	{
 		if (m_instructionTempData.m_cycles < m_instructionTempData.m_delay)
 		{
@@ -705,45 +705,6 @@ uint32_t CPU::Step(Memory& memory)
 	return 0;
 }
 
-bool CPU::ProcessInterrupts(Memory& memory)
-{
-	if (m_InterruptHandlingEnabled)
-	{
-		bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
-
-		//Wake up from low energy states
-		if (hasInterrupt)
-		{
-			if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::HasInterruptRequest(Interrupts::Types::Joypad, memory)))
-			{
-				m_registers.CpuState = Registers::State::Running;
-				m_haltBug = !m_registers.IMEF;
-
-				// Another variation of the HALT bug: IF EI is called right before HALT, interrupts will be handled
-				// but afterwards the execution will jump back to the same HALT instruction, which will be executed twice
-				if (m_delayedInterruptHandling)
-				{
-					m_delayedInterruptHandling = false;
-					m_registers.PC--;
-				}
-			}
-		}
-
-		//Handle interrupt
-		if (!m_delayedInterruptHandling && hasInterrupt && m_registers.IMEF)
-		{
-			m_registers.IMEF = false;
-			
-        	m_currentInstruction = &(m_instructions[ITR_OPCODE]);
-			m_instructionTempData.Reset();
-			m_instructionTempData.m_opcode = ITR_OPCODE;
-	
-			return true;
-		}
-	}
-	return false;
-}
-
 void CPU::ExecuteInstruction(Memory& memory)
 {
 #if CPU_STATE_LOGGING == 1
@@ -756,13 +717,8 @@ void CPU::ExecuteInstruction(Memory& memory)
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
 	{
-		m_currentInstruction = nullptr;
-		
-		if (m_registers.CpuState == Registers::State::Running)
-		{
-			DecodeAndFetchNext(memory);
-			ProcessInterrupts(memory);
-		}
+		DecodeAndFetchNext(memory);
+		ProcessInterrupts(memory);
 	}
 	else
 	{
@@ -796,6 +752,11 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 		}
 	}
 
+	if (m_instructionTempData.m_opcode != ITR_OPCODE)
+	{
+		DEBUG_instructionCount++;
+	}
+
 	if (DEBUG_instrCountCallbackMap.size() > 0)
 	{
 		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
@@ -816,28 +777,20 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 #endif
 
 	//[Hardware] Interrupt handling is delayed by one cycle if EI was just executed
-	m_delayedInterruptHandling = (m_instructionTempData.m_opcode == EI_OPCODE) || (m_instructionTempData.m_opcode == HALT_OPCODE && m_delayedInterruptHandling);
-
-#if _DEBUG
-	if (m_instructionTempData.m_opcode != ITR_OPCODE)
-	{
-		DEBUG_instructionCount++;
-	}
-
-#endif
+	m_delayedInterruptHandling = (m_instructionTempData.m_opcode == EI_OPCODE) || (m_delayedInterruptHandling && m_instructionTempData.m_opcode == HALT_OPCODE);
 
 	//Fetch
 	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
 	uint16_t encodedInstruction = memory[m_registers.PC++] + offset;
 
-	m_isNextInstructionCB = false;
-
-	//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
+	//[Hardware] 
 	if (m_haltBug)
 	{
 		m_registers.PC--;
 		m_haltBug = false;
 	}
+
+	m_isNextInstructionCB = false;
 
 	if (encodedInstruction == EXTENSION_OPCODE)
 	{
@@ -849,6 +802,70 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	m_currentInstruction = &(m_instructions[encodedInstruction]);
 	m_instructionTempData.Reset();
 	m_instructionTempData.m_opcode = encodedInstruction;
+}
+
+
+bool CPU::ProcessInterrupts(Memory& memory)
+{
+	if (m_InterruptHandlingEnabled)
+	{
+		if (CheckForWakeup(memory, true))
+		{
+			//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
+			if (!m_registers.IMEF)
+			{
+				m_registers.PC--;
+			}
+
+			// [Hardware] Another variation of the HALT bug: IF EI is called right before HALT, interrupts will be handled
+			// but afterwards the execution will jump back to the same HALT instruction, which will be executed twice
+			if (m_delayedInterruptHandling)
+			{
+				m_delayedInterruptHandling = false;
+				m_registers.PC--;
+			}
+		}
+
+		bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
+
+		//Handle interrupt
+		if (!m_delayedInterruptHandling && hasInterrupt && m_registers.IMEF)
+		{
+			m_registers.IMEF = false;
+
+			m_currentInstruction = &(m_instructions[ITR_OPCODE]);
+			m_instructionTempData.Reset();
+			m_instructionTempData.m_opcode = ITR_OPCODE;
+
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CPU::CheckForWakeup(Memory& memory, bool postFetch)
+{
+	bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
+
+	//Wake up from low energy states
+	if (hasInterrupt)
+	{
+		if (m_registers.CpuState == Registers::State::Halt || (m_registers.CpuState == Registers::State::Stop && Interrupts::HasInterruptRequest(Interrupts::Types::Joypad, memory)))
+		{
+			m_registers.CpuState = Registers::State::Running;
+
+			if (!postFetch)
+			{
+				m_registers.PC--;
+				m_currentInstruction = &(m_instructions[NOP_OPCODE]);
+				m_instructionTempData.Reset();
+				m_instructionTempData.m_opcode = NOP_OPCODE;
+			}
+
+			return true;
+		}
+	}
+	return false;
 }
 
 void CPU::SetProgramCounter(unsigned short addr)

@@ -67,6 +67,7 @@ private:
 	void ExecuteInstruction(Memory& memory);
 	void DecodeAndFetchNext(Memory& memory);
 	bool ProcessInterrupts(Memory& memory);
+	bool CheckForWakeup(Memory& memory, bool postFetch);
 
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
