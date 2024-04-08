@@ -12,6 +12,7 @@
 #define NOP_OPCODE 0
 #define ITR_OPCODE 0x200
 #define HALT_OPCODE 0x76
+#define PSEUDO_NOP_OPCODE 0x201
 
 
 #if CPU_STATE_LOGGING
@@ -626,6 +627,7 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	, { "SET 7 (HL)", 2, 4, &InstructionFunctions::SET_7_mHL }
 	, { "SET 7 A", 2, 2, &InstructionFunctions::SET_7_A }
 	, { "INTERRUPT HANDLER", 0, 0, &InstructionFunctions::INTERRUPT_HANDLING }
+	, { "PSEUDO NOP", 0, 0, &InstructionFunctions::NOP }
 }
 {
 #if CPU_STATE_LOGGING
@@ -808,6 +810,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	{
 		encodedInstruction = NOP_OPCODE;
 		m_isNextInstructionCB = true;
+		m_delayedInterruptHandling = true; // No interrupts when fetching CB instruction
 	}
 
 	//Decode
@@ -870,9 +873,9 @@ bool CPU::CheckForWakeup(Memory& memory, bool postFetch)
 			if (!postFetch)
 			{
 				//m_registers.PC--;
-				m_currentInstruction = &(m_instructions[NOP_OPCODE]);
+				m_currentInstruction = &(m_instructions[PSEUDO_NOP_OPCODE]);
 				m_instructionTempData.Reset();
-				m_instructionTempData.m_opcode = NOP_OPCODE;
+				m_instructionTempData.m_opcode = PSEUDO_NOP_OPCODE;
 			}
 
 			return true;

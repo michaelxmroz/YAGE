@@ -5,7 +5,7 @@
 #include "Interrupts.h"
 #include <map>
 
-#define INSTRUCTION_SET_SIZE 512
+#define INSTRUCTION_SET_SIZE 513
 
 
 #if _DEBUG
