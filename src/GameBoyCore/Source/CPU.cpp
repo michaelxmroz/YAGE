@@ -696,7 +696,6 @@ uint32_t CPU::Step(Memory& memory)
 		}
 	}
 
-	DEBUG_instructionCount++;
 	if (DEBUG_instrCountCallbackMap.size() > 0)
 	{
 		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
@@ -793,6 +792,10 @@ void CPU::ExecuteInstruction(Memory& memory, uint32_t& mCycles)
 {
 #if CPU_STATE_LOGGING == 1
 	LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
+#endif
+
+#if _DEBUG
+	DEBUG_instructionCount++;
 #endif
 
 	//Fetch
