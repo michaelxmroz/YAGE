@@ -756,7 +756,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 		}
 	}
 
-	if (m_instructionTempData.m_opcode != ITR_OPCODE)
+	if (m_instructionTempData.m_opcode != ITR_OPCODE && !m_isNextInstructionCB)
 	{
 		DEBUG_instructionCount++;
 	}
