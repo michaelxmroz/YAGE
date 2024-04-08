@@ -23,6 +23,9 @@ public:
 	void Run();
     ~EngineController();
 
+    void Load();
+    void Save();
+
 private:
 
     static void SavePersistentMemory(const void* data, uint32_t size);

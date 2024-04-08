@@ -22,9 +22,9 @@ public:
 	~CPU();
 
 #if _DEBUG
-	void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback);
-	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback);
-	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback);
+	void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData);
+	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback, void* userData);
+	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData);
 	void ClearCallbacks();
 	void StopOnInstruction(uint8_t instr);
 	bool HasReachedInstruction(uint8_t instr);
@@ -89,6 +89,11 @@ private:
 	std::map<uint16_t, Emulator::DebugCallback> DEBUG_PCCallbackMap;
 	std::map<uint8_t, Emulator::DebugCallback> DEBUG_instrCallbackMap;
 	std::map<uint64_t, Emulator::DebugCallback> DEBUG_instrCountCallbackMap;
+
+	std::map<uint16_t, void*> DEBUG_PCCallbackUserData;
+	std::map<uint8_t, void*> DEBUG_instrCallbackUserData;
+	std::map<uint64_t, void*> DEBUG_instrCountCallbackUserData;
+
 	std::map<uint8_t, bool> DEBUG_stopInstructions;
 
 	uint64_t DEBUG_instructionCount = 0;

@@ -35,9 +35,9 @@ public:
 	virtual void SetTurboSpeed(float speed) override;
 
 #if _DEBUG
-	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback) override;
-	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback) override;
-	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback) override;
+	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) override;
+	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData) override;
+	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) override;
 	virtual void ClearCallbacks() override;
 
 	void StopOnInstruction(uint8_t instr);

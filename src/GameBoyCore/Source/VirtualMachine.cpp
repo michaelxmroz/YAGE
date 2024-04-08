@@ -118,19 +118,19 @@ void VirtualMachine::SetTurboSpeed(float speed)
 
 #if _DEBUG
 
-void VirtualMachine::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback)
+void VirtualMachine::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData)
 {
-	m_cpu.SetInstructionCallback(instr, callback);
+	m_cpu.SetInstructionCallback(instr, callback, userData);
 }
 
-void VirtualMachine::SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback)
+void VirtualMachine::SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData)
 {
-	m_cpu.SetInstructionCountCallback(instr, callback);
+	m_cpu.SetInstructionCountCallback(instr, callback, userData);
 }
 
-void VirtualMachine::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback)
+void VirtualMachine::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData)
 {
-	m_cpu.SetPCCallback(pc, callback);
+	m_cpu.SetPCCallback(pc, callback, userData);
 }
 
 void VirtualMachine::ClearCallbacks()
