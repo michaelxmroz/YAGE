@@ -29,6 +29,7 @@ public:
 	void RegisterOptionsCallbacks(UserSettings& userSettings);
 
 	void SetScale(uint32_t scale);
+	void SetWindowTitle(const char* title);
 	bool PauseRendering();
 	bool ResumeRendering();
 

@@ -831,7 +831,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 			// but afterwards the execution will jump back to the same HALT instruction, which will be executed twice
 			if (m_delayedInterruptHandling)
 			{
-				m_delayedInterruptHandling = false;
+				//m_delayedInterruptHandling = false;
 				//m_registers.PC--;
 			}
 		}

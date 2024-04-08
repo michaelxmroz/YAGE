@@ -1218,6 +1218,11 @@ void RendererVulkan::SetScale(uint32_t scale)
 	m_shouldResize = true;
 }
 
+void RendererVulkan::SetWindowTitle(const char* title)
+{
+	m_backend.SetWindowTitle(title);
+}
+
 bool RendererVulkan::PauseRendering()
 {
 	if (m_shouldRender)
