@@ -99,9 +99,9 @@ void VirtualMachine::SetPersistentMemoryCallback(PersistentMemoryCallback callba
 	m_memory.RegisterExternalRamDisableCallback(callback);
 }
 
-std::vector<uint8_t> VirtualMachine::Serialize() const
+std::vector<uint8_t> VirtualMachine::Serialize(bool rawData) const
 {
-	return m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName);
+	return m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName, rawData);
 }
 void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
 {

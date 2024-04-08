@@ -24,7 +24,7 @@ public:
     ~EngineController();
 
     void Load();
-    void Save();
+    void Save(bool rawData);
 
 private:
 

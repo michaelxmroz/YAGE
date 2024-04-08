@@ -57,7 +57,7 @@ void Serializer::RegisterComponent(ISerializable* component)
 	m_components.push_back(component);
 }
 
-std::vector<uint8_t> Serializer::Serialize(uint8_t headerChecksum, const std::string& romName) const
+std::vector<uint8_t> Serializer::Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData) const
 {
 	std::vector<ISerializable::Chunk> chunks;
 	std::vector<uint8_t> data;
@@ -86,10 +86,17 @@ std::vector<uint8_t> Serializer::Serialize(uint8_t headerChecksum, const std::st
 	header.m_dataSize = dataSize;
 	header.m_dataStartOffset = headerSize + romNameSize + chunkSize;
 
-	uint8_t* rawData = buffer.data();
-	memcpy(rawData + header.m_romNameStartOffset, romName.c_str(), romNameSize);
-	memcpy(rawData + header.m_chunkStartOffset, chunks.data(), chunkSize);
-	memcpy(rawData + header.m_dataStartOffset, data.data(), dataSize);
+	uint8_t* rawBuffer = buffer.data();
+	if (!rawData)
+	{
+		memcpy(rawBuffer + header.m_romNameStartOffset, romName.c_str(), romNameSize);
+		memcpy(rawBuffer + header.m_chunkStartOffset, chunks.data(), chunkSize);
+		memcpy(rawBuffer + header.m_dataStartOffset, data.data(), dataSize);
+	}
+	else
+	{
+		memcpy(rawBuffer, data.data(), dataSize);
+	}
 
 	return buffer;
 }

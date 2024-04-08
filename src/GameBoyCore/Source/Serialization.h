@@ -18,7 +18,7 @@ class Serializer
 {
 public:
 	void RegisterComponent(ISerializable* component);
-	std::vector<uint8_t> Serialize(uint8_t headerChecksum, const std::string& romName) const;
+	std::vector<uint8_t> Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData) const;
 	void Deserialize(const uint8_t* buffer, const uint32_t size, uint8_t headerChecksum);
 private:
 	std::vector<ISerializable*> m_components;

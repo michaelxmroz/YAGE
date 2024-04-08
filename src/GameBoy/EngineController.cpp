@@ -7,7 +7,7 @@ std::string EngineController::s_persistentMemoryPath;
 void DumpMemory(void* userData)
 {
     EngineController* engine = static_cast<EngineController*>(userData);
-    engine->Save();
+    engine->Save(true);
     Debugging::TriggerBreakpoint();
 }
 #endif
@@ -214,7 +214,7 @@ void EngineController::HandleSaveLoad()
 {
     if (m_data.m_saveLoadState == EngineData::SaveLoadState::SAVE && m_data.m_gameLoaded)
     {
-        Save();
+        Save(false);
     }
     else if (m_data.m_saveLoadState == EngineData::SaveLoadState::LOAD)
     {
@@ -238,9 +238,9 @@ void EngineController::Load()
     }
 }
 
-void EngineController::Save()
+void EngineController::Save(bool rawData)
 {
-    std::vector<uint8_t> saveState = m_emulator->Serialize();
+    std::vector<uint8_t> saveState = m_emulator->Serialize(rawData);
     std::string saveStatePath = m_data.m_saveLoadPath;
     if (saveStatePath.empty())
     {
