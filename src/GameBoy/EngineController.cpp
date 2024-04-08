@@ -29,6 +29,8 @@ void EngineController::Run()
 {
     while (m_data.m_engineState.GetState() != StateMachine::EngineState::EXIT)
     {
+        Logger::FileOutput::Clear();
+
         if (m_data.m_engineState.GetState() == StateMachine::EngineState::RESET)
         {
             m_data.m_engineState.SetState(StateMachine::EngineState::RUNNING);
@@ -132,7 +134,7 @@ inline void EngineController::RunEmulatorLoop()
     if (m_emulator != nullptr)
     {
         //Debug stops
-        //m_emulator->SetPCCallback(0x0604, &Debugging::TriggerBreakpoint);
+        m_emulator->SetPCCallback(0x9C06, &Debugging::TriggerBreakpoint);
         //m_emulator->SetInstructionCountCallback(100000, &Debugging::TriggerBreakpoint);
         //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
     }

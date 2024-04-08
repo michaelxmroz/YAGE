@@ -161,9 +161,24 @@ Logger::FileOutput::~FileOutput()
     m_writer.m_fileHandle.get()->close();
 }
 
+void Logger::FileOutput::Clear()
+{
+    if (!m_instance)
+    {
+        return;
+    }
+    m_instance.get()->m_writer.m_clear = true;
+    volatile uint32_t waitloop = 0;
+    while (m_instance.get()->m_writer.m_clear == true)
+    {
+        waitloop++; //busy loop waiting for the last log to be cleared
+    }
+}
+
 Logger::FileOutput::FileOutput(const char* filePath)
 {
-    m_writer.m_fileHandle = std::make_unique<std::fstream>(std::fstream(filePath, std::ios::out | std::ios::ate));
+    m_writer.m_fileHandle = std::make_unique<std::fstream>(std::fstream(filePath, std::ios::out | std::ios::trunc));
+    m_writer.filePath = filePath;
     m_writerThread = std::thread(std::ref(m_writer));
 }
 
@@ -187,6 +202,12 @@ void Logger::FileOutput::Writer::operator()()
                 previousTime = now;
                 m_fileHandle.get()->flush();
             }
+        }
+        if (m_clear)
+        {
+            m_fileHandle.get()->close();
+            m_fileHandle.reset(new std::fstream(filePath, std::ios::out | std::ios::trunc));
+            m_clear = false;
         }
     }
 }
@@ -229,6 +250,14 @@ unsigned int Logger::GlobalLogBuffer::GetCurrentMessageIndex()
     }
 
     return m_instance.get()->m_writeIndex;
+}
+
+void Logger::GlobalLogBuffer::Clear()
+{
+    if (!m_instance)
+    {
+        return;
+    }
 }
 
 void Logger::GlobalLogBuffer::Init()

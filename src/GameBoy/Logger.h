@@ -211,6 +211,8 @@ namespace Logger
 
         static unsigned int GetCurrentMessageIndex();
 
+        static void Clear();
+
     private:
         static void Init();
 
@@ -284,10 +286,11 @@ namespace Logger
             m_instance.get()->m_writer.m_buffer.Push(message);
         };
 
+        static void Clear();
+
     private:
 
         FileOutput(const char* filePath);
-
 
         FileOutput& GetInstance()
         {
@@ -302,6 +305,8 @@ namespace Logger
             std::unique_ptr<std::fstream> m_fileHandle;
             Logging_Helpers::LocklessRingBuffer<FILE_MESSAGE_BUFFER_SIZE> m_buffer;
             bool m_isRunning = true;
+            bool m_clear = false;
+            EzString filePath;
         };
 
 

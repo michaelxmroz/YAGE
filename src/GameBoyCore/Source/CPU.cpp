@@ -39,7 +39,7 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 
 	char* strBuffer = buffer;
 
-	uint16_t adjustedPC = registers.PC - 1;
+	uint16_t adjustedPC = registers.PC;
 
 	HexToString(registers.A, strBuffer + offsets[0]);
 	HexToString(registers.FLAGS, strBuffer + offsets[1]);
@@ -707,12 +707,6 @@ uint32_t CPU::Step(Memory& memory)
 
 void CPU::ExecuteInstruction(Memory& memory)
 {
-#if CPU_STATE_LOGGING == 1
-	if (m_instructionTempData.m_cycles == 0 && DEBUG_instructionCount != 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET)
-	{
-		LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
-	}
-#endif
 	//Execute
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
@@ -781,7 +775,20 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 
 	//Fetch
 	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
-	uint16_t encodedInstruction = memory[m_registers.PC++] + offset;
+	uint16_t encodedInstruction = memory[m_registers.PC] + offset;
+
+#if CPU_STATE_LOGGING == 1
+	if (encodedInstruction < EXTENSION_OFFSET)
+	{
+		LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
+	}
+#endif
+
+	// [Hardware] HALT instruction doesn't increase the PC
+	if (m_instructionTempData.m_opcode != HALT_OPCODE)
+	{
+		m_registers.PC++;
+	}
 
 	//[Hardware] 
 	if (m_haltBug)
@@ -814,7 +821,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 			//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
 			if (!m_registers.IMEF)
 			{
-				m_registers.PC--;
+				//m_registers.PC--;
 			}
 
 			// [Hardware] Another variation of the HALT bug: IF EI is called right before HALT, interrupts will be handled
@@ -822,7 +829,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 			if (m_delayedInterruptHandling)
 			{
 				m_delayedInterruptHandling = false;
-				m_registers.PC--;
+				//m_registers.PC--;
 			}
 		}
 
@@ -856,7 +863,7 @@ bool CPU::CheckForWakeup(Memory& memory, bool postFetch)
 
 			if (!postFetch)
 			{
-				m_registers.PC--;
+				//m_registers.PC--;
 				m_currentInstruction = &(m_instructions[NOP_OPCODE]);
 				m_instructionTempData.Reset();
 				m_instructionTempData.m_opcode = NOP_OPCODE;

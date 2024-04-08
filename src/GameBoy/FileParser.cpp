@@ -27,6 +27,12 @@ bool FileParser::Read(std::string path, std::vector<char>& parsedBlob)
 	if (file.is_open())
 	{
 		std::streampos size = file.tellg();
+		
+		if (size == 0)
+		{
+			return false;
+		}
+		
 		file.seekg(0, std::ios::beg);
 
 		parsedBlob.clear();

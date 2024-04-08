@@ -62,11 +62,12 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
 	{
 		uint32_t cyclesPassed = 1; // always step 1 cycle
 		m_joypad.Update(inputState, m_memory);
-		m_cpu.Step(m_memory);
 		m_clock.Increment(cyclesPassed, m_memory);
 		m_ppu.Render(cyclesPassed, m_memory);
 		m_samplesGenerated += m_apu.Update(m_memory, cyclesPassed, m_turbospeed);
 		m_serial.Update(m_memory, cyclesPassed);
+
+		m_cpu.Step(m_memory);
 
 		m_totalCycles += cyclesPassed;
 		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
