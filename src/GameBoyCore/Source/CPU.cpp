@@ -651,19 +651,22 @@ bool CPU::HasReachedInstruction(uint8_t instr)
 	return false;
 }
 
-void CPU::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback)
+void CPU::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData)
 {
 	DEBUG_instrCallbackMap.emplace(instr, callback);
+	DEBUG_instrCallbackUserData.emplace(instr, userData);
 }
 
-void CPU::SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback)
+void CPU::SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback, void* userData)
 {
 	DEBUG_instrCountCallbackMap.emplace(instrCount, callback);
+	DEBUG_instrCountCallbackUserData.emplace(instrCount, userData);
 }
 
-void CPU::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback)
+void CPU::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData)
 {
 	DEBUG_PCCallbackMap.emplace(pc, callback);
+	DEBUG_PCCallbackUserData.emplace(pc, userData);
 }
 
 void CPU::ClearCallbacks()
@@ -682,14 +685,14 @@ uint32_t CPU::Step(Memory& memory)
 	{
 		if (DEBUG_PCCallbackMap.count(m_registers.PC))
 		{
-			DEBUG_PCCallbackMap[m_registers.PC]();
+			DEBUG_PCCallbackMap[m_registers.PC](DEBUG_PCCallbackUserData[m_registers.PC]);
 		}
 	}
 	if (DEBUG_instrCallbackMap.size() > 0)
 	{
 		if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
 		{
-			DEBUG_instrCallbackMap[memory[m_registers.PC]]();
+			DEBUG_instrCallbackMap[memory[m_registers.PC]](DEBUG_instrCallbackUserData[memory[m_registers.PC]]);
 		}
 	}
 
@@ -698,7 +701,7 @@ uint32_t CPU::Step(Memory& memory)
 	{
 		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
 		{
-			DEBUG_instrCountCallbackMap[DEBUG_instructionCount]();
+			DEBUG_instrCountCallbackMap[DEBUG_instructionCount](DEBUG_instrCountCallbackUserData[DEBUG_instructionCount]);
 		}
 	}
 
