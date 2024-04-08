@@ -29,7 +29,7 @@ inline void HexToString(uint16_t value, char* buffer)
 	HexToString(static_cast<uint8_t>(value), buffer + 2);
 }
 
-void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
+void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory)
 {
 	const char* hexTemplate = "%02X";
 	const char* hexTemplateLong = "%04X";
@@ -39,7 +39,7 @@ void LogCPUState(char* buffer, const Registers& registers, const Memory& memory)
 
 	char* strBuffer = buffer;
 
-	uint16_t adjustedPC = registers.PC;
+	uint16_t adjustedPC = atPC;
 
 	HexToString(registers.A, strBuffer + offsets[0]);
 	HexToString(registers.FLAGS, strBuffer + offsets[1]);
@@ -707,6 +707,13 @@ uint32_t CPU::Step(Memory& memory)
 
 void CPU::ExecuteInstruction(Memory& memory)
 {
+#if CPU_STATE_LOGGING == 1
+	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
+	{
+		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory);
+	}
+#endif
+
 	//Execute
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
@@ -777,12 +784,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
 	uint16_t encodedInstruction = memory[m_registers.PC] + offset;
 
-#if CPU_STATE_LOGGING == 1
-	if (encodedInstruction < EXTENSION_OFFSET)
-	{
-		LogCPUState(DEBUG_CPUInstructionLog, m_registers, memory);
-	}
-#endif
+	uint16_t atPC = m_registers.PC;
 
 	// [Hardware] HALT instruction doesn't increase the PC
 	if (m_instructionTempData.m_opcode != HALT_OPCODE)
@@ -809,6 +811,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	m_currentInstruction = &(m_instructions[encodedInstruction]);
 	m_instructionTempData.Reset();
 	m_instructionTempData.m_opcode = encodedInstruction;
+	m_instructionTempData.m_atPC = atPC;
 }
 
 
