@@ -61,6 +61,7 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
 	while (m_stepDuration < deltaMs)
 	{
 		uint32_t cyclesPassed = 1; // always step 1 cycle
+		m_memory.Update();
 		m_joypad.Update(inputState, m_memory);
 		m_clock.Increment(cyclesPassed, m_memory);
 		m_ppu.Render(cyclesPassed, m_memory);

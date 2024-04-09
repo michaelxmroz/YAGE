@@ -11,6 +11,7 @@
 #define OAM_SIZE 0xA0
 #define VRAM_START 0x8000
 #define VRAM_END 0x9FFF 
+#define HRAM_BEGIN 0xFF80
 
 #define BOOTROM_BANK 0xFF50
 #define BOOTROM_SIZE 0x100
@@ -65,6 +66,10 @@ Memory::~Memory()
 
 void Memory::Write(uint16_t addr, uint8_t value)
 {
+	if (m_DMAInProgress && addr < HRAM_BEGIN)
+	{
+		return;
+	}
 	if (!m_externalMemory)
 	{
 		if (m_vRamAccess != VRamAccess::All)
@@ -242,6 +247,9 @@ void Memory::Init()
 	m_onExternalRamDisable = nullptr;
 	m_mbc = nullptr;
 
+	m_DMAInProgress = false;
+	m_DMAProgress = 0;
+
 	memset(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
 	memset(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
 	memset(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
@@ -278,6 +286,8 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 		memcpy(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
 	}
 
+	memory->m_DMAInProgress = true;
+
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
 #endif
@@ -288,8 +298,27 @@ void Memory::UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint
 	memory->m_isBootromMapped = false;
 }
 
+void Memory::Update()
+{
+	const uint32_t DMA_DURATION = 160;
+	if (m_DMAInProgress)
+	{
+		m_DMAProgress++;
+		if (m_DMAProgress == DMA_DURATION - 1)
+		{
+			m_DMAProgress = 0;
+			m_DMAInProgress = false;
+		}
+	}
+}
+
 uint8_t Memory::operator[](uint16_t addr) const
 {
+	if (m_DMAInProgress && addr < HRAM_BEGIN)
+	{
+		return 0xFF;
+	}
+
 	if (m_vRamAccess != VRamAccess::All)
 	{
 		if (addr >= VRAM_START && addr <= VRAM_END && m_vRamAccess == VRamAccess::VRamOAMBlocked)
@@ -376,6 +405,8 @@ void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 	}
 
 	WriteAndMove(rawData, &m_isBootromMapped, sizeof(bool));
+	WriteAndMove(rawData, &m_DMAInProgress, sizeof(bool));
+	WriteAndMove(rawData, &m_DMAProgress, sizeof(uint32_t));
 }
 
 void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
@@ -397,6 +428,8 @@ void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const 
 	}
 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
+	ReadAndMove(data, &m_DMAInProgress, sizeof(bool));
+	ReadAndMove(data, &m_DMAProgress, sizeof(uint32_t));
 }
 
 inline void Memory::WriteInternal(uint16_t addr, uint8_t value)

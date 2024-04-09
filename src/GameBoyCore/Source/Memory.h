@@ -59,6 +59,8 @@ public:
 	Memory(const Memory& other) = delete;
 	Memory operator= (const Memory& other) = delete;
 
+	void Update();
+
 	uint8_t operator[](uint16_t addr) const;
 
 	void Write(uint16_t addr, uint8_t value);
@@ -144,6 +146,8 @@ private:
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
+	bool m_DMAInProgress;
+	uint32_t m_DMAProgress;
 
 	//Unused bits in IO ports return 1 when read
 	uint8_t m_unusedIOBitsOverride[IOPORTS_COUNT];
