@@ -55,7 +55,7 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 	HexToString(memory[adjustedPC], strBuffer + offsets[10]);
 	HexToString(memory[adjustedPC + 1], strBuffer + offsets[11]);
 	HexToString(memory[adjustedPC + 2], strBuffer + offsets[12]);
-	HexToString(memory[0xFF26], strBuffer + offsets[13]);
+	HexToString(memory[0xFE8E], strBuffer + offsets[13]);
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -715,7 +715,6 @@ void CPU::ExecuteInstruction(Memory& memory)
 #if CPU_STATE_LOGGING == 1
 	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
 	{
-		if (DEBUG_instructionCount > 2267080)
 		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory);
 	}
 #endif
@@ -849,6 +848,11 @@ bool CPU::ProcessInterrupts(Memory& memory)
 		if (!m_delayedInterruptHandling && hasInterrupt && m_registers.IMEF)
 		{
 			m_registers.IMEF = false;
+
+			if (m_instructionTempData.m_opcode >= EXTENSION_OFFSET)
+			{
+				m_registers.PC--; //Previous fetch was a double-fetch for an extension instruction, therfore PC needs to be set back once more.
+			}
 
 			m_currentInstruction = &(m_instructions[ITR_OPCODE]);
 			m_instructionTempData.Reset();
