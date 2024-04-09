@@ -66,7 +66,7 @@ Memory::~Memory()
 
 void Memory::Write(uint16_t addr, uint8_t value)
 {
-	if (m_DMAInProgress && addr < HRAM_BEGIN)
+	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
 	{
 		return;
 	}
@@ -275,6 +275,10 @@ void Memory::Init()
 
 void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
+	if (memory->m_DMAInProgress)
+	{
+		return;
+	}
 	uint16_t source = static_cast<uint16_t>((*memory)[DMA_REGISTER]) << 8;
 	//TODO DMA from external ram?
 	if (source < ROM_END && !memory->m_externalMemory)
@@ -314,7 +318,7 @@ void Memory::Update()
 
 uint8_t Memory::operator[](uint16_t addr) const
 {
-	if (m_DMAInProgress && addr < HRAM_BEGIN)
+	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
 	{
 		return 0xFF;
 	}

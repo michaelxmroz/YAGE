@@ -116,7 +116,7 @@ PPU::~PPU()
 void PPU::Init(Memory& memory)
 {
 	memory.RegisterCallback(BGP_REGISTER, CacheBackgroundPalette, this);
-	memory.RegisterCallback(LCDC_REGISTER, CacheBackgroundEnableFlag, this);
+	memory.RegisterCallback(LCDC_REGISTER, LCDCWrite, this);
 
 	memory.Write(LCDC_REGISTER, 0x91);
 	memory.Write(STAT_REGISTER, 0x00);
@@ -139,10 +139,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 {
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
-		if (data.m_totalCycles != 0)
-		{
-			DisableScreen(memory);
-		}
 		return;
 	}
 
@@ -307,7 +303,7 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
-	TransitionToOAMScan(memory);
+	memory.SetVRamAccess(Memory::VRamAccess::All);
 }
 
 void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
@@ -462,10 +458,22 @@ void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValu
 	}
 }
 
-void PPU::CacheBackgroundEnableFlag(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
+void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
 	PPU* ppu = reinterpret_cast<PPU*>(userData);
 	ppu->data.m_cachedBackgroundEnabled = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::BgEnable))) > 0;
+
+
+	bool PPUPowerPrev = (prevValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
+	bool PPUPowerNew = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
+	if (prevValue && !newValue)
+	{
+		ppu->DisableScreen(*memory);
+	}
+	else if (!prevValue && newValue)
+	{
+		ppu->TransitionToOAMScan(*memory);
+	}
 }
 
 void PPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& serializationData)

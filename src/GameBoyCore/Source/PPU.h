@@ -66,7 +66,7 @@ private:
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
-	static void CacheBackgroundEnableFlag(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
+	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 
 
 	struct PPUData
