@@ -76,7 +76,6 @@ private:
 
 	const Instruction m_instructions[INSTRUCTION_SET_SIZE + 1];
 
-	bool m_haltBug;
 	bool m_delayedInterruptHandling;
 	const bool m_InterruptHandlingEnabled;
 

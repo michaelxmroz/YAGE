@@ -80,8 +80,9 @@ CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
 	: ISerializable(serializer)
 	, m_registers()
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
-	, m_haltBug(false)
 	, m_delayedInterruptHandling(false)
+	, m_instructionTempData()
+	, m_isNextInstructionCB(false)
 	, m_instructions{
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
@@ -797,13 +798,6 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 		m_registers.PC++;
 	}
 
-	//[Hardware] 
-	if (m_haltBug)
-	{
-		m_registers.PC--;
-		m_haltBug = false;
-	}
-
 	m_isNextInstructionCB = false;
 
 	if (encodedInstruction == EXTENSION_OPCODE)
@@ -825,22 +819,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 {
 	if (m_InterruptHandlingEnabled)
 	{
-		if (CheckForWakeup(memory, true))
-		{
-			//[Hardware] If the CPU was in a halt state and gets an interrupt request while interrupts are disabled in the IMEF register the PC does not increment properly
-			if (!m_registers.IMEF)
-			{
-				//m_registers.PC--;
-			}
-
-			// [Hardware] Another variation of the HALT bug: IF EI is called right before HALT, interrupts will be handled
-			// but afterwards the execution will jump back to the same HALT instruction, which will be executed twice
-			if (m_delayedInterruptHandling)
-			{
-				//m_delayedInterruptHandling = false;
-				//m_registers.PC--;
-			}
-		}
+		CheckForWakeup(memory, true);
 
 		bool hasInterrupt = Interrupts::ShouldHandleInterrupt(memory);
 
@@ -897,8 +876,7 @@ void CPU::SetProgramCounter(unsigned short addr)
 void CPU::Reset()
 {
 	m_delayedInterruptHandling = false;
-	m_haltBug = false;
-	m_currentInstruction = &(m_instructions[0]);
+	m_currentInstruction = &(m_instructions[NOP_OPCODE]);
 	m_instructionTempData.Reset();
 	m_isNextInstructionCB = false;
 
@@ -938,8 +916,9 @@ void CPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::CPU);
 
 	WriteAndMove(rawData, &m_registers, sizeof(Registers));
-	WriteAndMove(rawData, &m_haltBug, sizeof(bool));
 	WriteAndMove(rawData, &m_delayedInterruptHandling, sizeof(bool));
+	WriteAndMove(rawData, &m_instructionTempData, sizeof(InstructionTempData));
+	WriteAndMove(rawData, &m_isNextInstructionCB, sizeof(bool));
 }
 
 void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
@@ -953,7 +932,10 @@ void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uin
 	data += myChunk->m_offset;
 
 	ReadAndMove(data, &m_registers, sizeof(Registers));
-	ReadAndMove(data, &m_haltBug, sizeof(bool));
 	ReadAndMove(data, &m_delayedInterruptHandling, sizeof(bool));
+	ReadAndMove(data, &m_instructionTempData, sizeof(InstructionTempData));
+	ReadAndMove(data, &m_isNextInstructionCB, sizeof(bool));
+
+	m_currentInstruction = &(m_instructions[m_instructionTempData.m_opcode]);
 
 }
