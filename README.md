@@ -44,10 +44,10 @@ Currently the default control scheme is as follows, but this can be remapped thr
 | cpu_instr  | ✅ |
 | dmg_sound | ✅ (Except wave ram read/writes) |
 | instr_timing    |  ✅  |
-| mem_timing | ❌ |
-| mem_timing-2 | ❌ |
+| mem_timing | ✅ |
+| mem_timing-2 | ✅ |
 | oam_bug | ❌ |
-| halt_bug | ❌ |
+| halt_bug | ✅ |
 
 ## Roadmap
 - GBC
