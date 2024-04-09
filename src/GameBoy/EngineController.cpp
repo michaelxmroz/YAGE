@@ -8,7 +8,7 @@ void DumpMemory(void* userData)
 {
     EngineController* engine = static_cast<EngineController*>(userData);
     engine->Save(true);
-    Debugging::TriggerBreakpoint();
+    Debugging::TriggerBreakpoint(userData);
 }
 #endif
 
@@ -150,7 +150,7 @@ inline void EngineController::RunEmulatorLoop()
     {
         //Debug stops
         //m_emulator->SetPCCallback(0x48C5, &DumpMemory, this);
-        //m_emulator->SetInstructionCountCallback(100000, &Debugging::TriggerBreakpoint);
+        m_emulator->SetInstructionCountCallback(2267080, &Debugging::TriggerBreakpoint, nullptr);
         //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
         //m_emulator->SetInstructionCountCallback(2105147, &DumpMemory, this);
     }

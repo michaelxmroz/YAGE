@@ -715,6 +715,7 @@ void CPU::ExecuteInstruction(Memory& memory)
 #if CPU_STATE_LOGGING == 1
 	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
 	{
+		if (DEBUG_instructionCount > 2267080)
 		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory);
 	}
 #endif

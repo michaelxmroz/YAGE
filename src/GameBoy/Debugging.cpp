@@ -7,7 +7,7 @@
 #include <intrin.h>
 #endif
 
-void Debugging::TriggerBreakpoint()
+void Debugging::TriggerBreakpoint(void* userData)
 {
 #if DEBUG_VS
 	__debugbreak();

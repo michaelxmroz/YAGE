@@ -3,6 +3,6 @@
 
 namespace Debugging
 {
-	void TriggerBreakpoint();
+	void TriggerBreakpoint(void* userData);
 };
 
