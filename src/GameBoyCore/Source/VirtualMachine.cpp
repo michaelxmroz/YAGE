@@ -15,6 +15,7 @@ VirtualMachine::VirtualMachine()
 	, m_apu(&m_serializer)
 	, m_samplesGenerated(0)
 	, m_turbospeed(1)
+	, m_serial(&m_serializer)
 {
 }
 

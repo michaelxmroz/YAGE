@@ -912,7 +912,7 @@ void CPU::ClearRegisters()
 
 void CPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 {
-	uint32_t dataSize = sizeof(Registers) + sizeof(bool) + sizeof(bool);
+	uint32_t dataSize = sizeof(Registers) + sizeof(bool) + sizeof(bool) + sizeof(InstructionTempData);
 	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::CPU);
 
 	WriteAndMove(rawData, &m_registers, sizeof(Registers));

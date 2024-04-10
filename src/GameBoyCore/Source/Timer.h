@@ -28,6 +28,5 @@ private:
 		};
 	};
 	bool m_previousCycleTimerModuloEdge;
-	uint8_t m_currentCyclesStepped;
 };
 

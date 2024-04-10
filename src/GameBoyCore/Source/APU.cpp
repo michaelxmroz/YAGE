@@ -508,7 +508,8 @@ void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, u
 
 void APU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 {
-	uint32_t dataSize = sizeof(ChannelData) * 4 + sizeof(HighPassFilter) * 2 + sizeof(uint32_t);
+	uint32_t dataSize = sizeof(ChannelData) * CHANNEL_COUNT + sizeof(HighPassFilter) * 2 + sizeof(uint32_t)
+		+ sizeof(bool) + sizeof(uint8_t) + sizeof(uint32_t);
 	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::APU);
 
 	for (uint32_t i = 0; i < CHANNEL_COUNT; ++i)

@@ -400,7 +400,7 @@ void Memory::WriteIO(uint16_t addr, uint8_t value)
 void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 {
 	uint32_t ramSize = m_mbc->GetRAMSize();
-	uint32_t dataSize = MEMORY_SIZE + ramSize + sizeof(bool);
+	uint32_t dataSize = MEMORY_SIZE + ramSize + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
 	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Memory);
 
 	WriteAndMove(rawData, m_mappedMemory, MEMORY_SIZE);

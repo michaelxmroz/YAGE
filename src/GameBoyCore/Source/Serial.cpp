@@ -10,7 +10,7 @@
 
 #define TRANSFER_CLOCK_MCYCLES 32
 
-Serial::Serial()
+Serial::Serial(Serializer* serializer) : ISerializable(serializer)
 {
 	m_accumulatedCycles = 0;
 	m_bitsTransferred = 0;
@@ -79,4 +79,29 @@ void Serial::TransferNextBit(Memory& memory)
 
 		LOG_INFO(string_format("Serial transfer complete. Transferred: 0x%02X", sb).c_str());
 	}
+}
+
+void Serial::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+{
+	uint32_t dataSize = sizeof(uint32_t) + sizeof(uint32_t) + sizeof(SerialMode);
+	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Timer);
+
+	WriteAndMove(rawData, &m_accumulatedCycles, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_bitsTransferred, sizeof(uint32_t));
+	WriteAndMove(rawData, &m_mode, sizeof(SerialMode));
+}
+
+void Serial::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+{
+	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Timer);
+	if (myChunk == nullptr)
+	{
+		return;
+	}
+
+	data += myChunk->m_offset;
+
+	ReadAndMove(data, &m_accumulatedCycles, sizeof(uint32_t));
+	ReadAndMove(data, &m_bitsTransferred, sizeof(uint32_t));
+	ReadAndMove(data, &m_mode, sizeof(SerialMode));
 }

@@ -38,7 +38,6 @@ Timer::Timer(Serializer* serializer)
 	: ISerializable(serializer)
 	, m_previousCycleTimerModuloEdge(false)
 	, m_divTotal(0)
-	, m_currentCyclesStepped(0)
 {
 }
 
@@ -59,7 +58,6 @@ void Timer::Init(Memory& memory)
 void Timer::Increment(uint32_t mCycles, Memory& memory)
 {
 	uint32_t cyclesToStep = mCycles * MCYCLES_TO_CYCLES;
-	m_currentCyclesStepped = cyclesToStep;
 
 	bool isTimerEnabled = Helpers::IsTimerEnabled(memory);
 	uint16_t timerBits = Helpers::GetTimerFrequency(memory);
