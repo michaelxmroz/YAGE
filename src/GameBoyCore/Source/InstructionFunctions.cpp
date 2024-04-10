@@ -12,19 +12,18 @@ namespace InstructionFunctions
 			return static_cast<uint16_t>(msb) << 8 | static_cast<uint16_t>(lsb);
 		}
 
-		FORCE_INLINE uint16_t Read16Bit(uint16_t& addr, Memory& memory)
+		FORCE_INLINE uint16_t Read16Bit(uint16_t& addr, Memory& memory, uint8_t cycle, uint8_t& cache)
 		{
-			uint8_t lsb = memory[addr++];
-			uint8_t msb = memory[addr++];
-			return u16(lsb, msb);
-		}
-
-		FORCE_INLINE void Write16Bit(uint16_t data, uint16_t addr, Memory& memory)
-		{
-			uint8_t lsb = static_cast<uint8_t>(data);
-			uint8_t msb = static_cast<uint8_t>(data >> 8);
-			memory.Write(addr++, lsb);
-			memory.Write(addr, msb);
+			if (cycle == 0)
+			{
+				cache = memory[addr++];
+				return 0;
+			}
+			else
+			{
+				uint8_t msb = memory[addr++];
+				return u16(cache, msb);
+			}
 		}
 
 		FORCE_INLINE void Write16BitMSB(uint16_t data, uint16_t addr, Memory& memory)
@@ -442,9 +441,14 @@ InstructionResult InstructionFunctions::JP_NZ_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 2 && !registers->IsFlagSet(Registers::Flags::zf))
@@ -459,9 +463,14 @@ InstructionResult InstructionFunctions::JP_Z_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 2 && registers->IsFlagSet(Registers::Flags::zf))
@@ -476,9 +485,14 @@ InstructionResult InstructionFunctions::JP_NC_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 2 && !registers->IsFlagSet(Registers::Flags::cy))
@@ -493,9 +507,14 @@ InstructionResult InstructionFunctions::JP_C_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 	
 	if (data.m_cycles == 2 && registers->IsFlagSet(Registers::Flags::cy))
@@ -510,9 +529,14 @@ InstructionResult InstructionFunctions::JP_nn(const char* mnemonic, InstructionT
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 2)
@@ -534,9 +558,14 @@ InstructionResult InstructionFunctions::CALL_NZ_nn(const char* mnemonic, Instruc
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (!registers->IsFlagSet(Registers::Flags::zf))
@@ -550,9 +579,14 @@ InstructionResult InstructionFunctions::CALL_Z_nn(const char* mnemonic, Instruct
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (registers->IsFlagSet(Registers::Flags::zf))
@@ -566,9 +600,14 @@ InstructionResult InstructionFunctions::CALL_NC_nn(const char* mnemonic, Instruc
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (!registers->IsFlagSet(Registers::Flags::cy))
@@ -582,9 +621,14 @@ InstructionResult InstructionFunctions::CALL_C_nn(const char* mnemonic, Instruct
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	if (registers->IsFlagSet(Registers::Flags::cy))
@@ -598,9 +642,14 @@ InstructionResult InstructionFunctions::CALL_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO needs to be split up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
@@ -650,14 +699,23 @@ InstructionResult InstructionFunctions::RET_NZ(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
+		data.m_tmp_s8 = !registers->IsFlagSet(Registers::Flags::zf) ? 1 : 0;
 		return InstructionResult::Continue;
 	}
 
-	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::zf))
+	if (data.m_tmp_s8 == 1)
 	{
-		//TODO needs to be split up?
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_3;
+		if (data.m_cycles == 1)
+		{
+			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			return InstructionResult::Continue;
+		}
+
+		if (data.m_cycles == 2)
+		{
+			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			return InstructionResult::Delay_2;
+		}
 	}
 	return InstructionResult::Finished;
 }
@@ -666,13 +724,23 @@ InstructionResult InstructionFunctions::RET_Z(const char* mnemonic, InstructionT
 {
 	if (data.m_cycles == 0)
 	{
+		data.m_tmp_s8 = registers->IsFlagSet(Registers::Flags::zf) ? 1 : 0;
 		return InstructionResult::Continue;
 	}
-	
-	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::zf))
+
+	if (data.m_tmp_s8 == 1)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_3;
+		if (data.m_cycles == 1)
+		{
+			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			return InstructionResult::Continue;
+		}
+
+		if (data.m_cycles == 2)
+		{
+			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			return InstructionResult::Delay_2;
+		}
 	}
 	return InstructionResult::Finished;
 }
@@ -681,13 +749,23 @@ InstructionResult InstructionFunctions::RET_NC(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
+		data.m_tmp_s8 = !registers->IsFlagSet(Registers::Flags::cy) ? 1 : 0;
 		return InstructionResult::Continue;
 	}
-	
-	if (data.m_cycles == 1 && !registers->IsFlagSet(Registers::Flags::cy))
+
+	if (data.m_tmp_s8 == 1)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_3;
+		if (data.m_cycles == 1)
+		{
+			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			return InstructionResult::Continue;
+		}
+
+		if (data.m_cycles == 2)
+		{
+			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			return InstructionResult::Delay_2;
+		}
 	}
 	return InstructionResult::Finished;
 }
@@ -696,13 +774,23 @@ InstructionResult InstructionFunctions::RET_C(const char* mnemonic, InstructionT
 {
 	if (data.m_cycles == 0)
 	{
+		data.m_tmp_s8 = registers->IsFlagSet(Registers::Flags::cy) ? 1 : 0;
 		return InstructionResult::Continue;
 	}
-	
-	if (data.m_cycles == 1 && registers->IsFlagSet(Registers::Flags::cy))
+
+	if (data.m_tmp_s8 == 1)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_3;
+		if (data.m_cycles == 1)
+		{
+			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			return InstructionResult::Continue;
+		}
+
+		if (data.m_cycles == 2)
+		{
+			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			return InstructionResult::Delay_2;
+		}
 	}
 	return InstructionResult::Finished;
 }
@@ -711,9 +799,16 @@ InstructionResult InstructionFunctions::RET(const char* mnemonic, InstructionTem
 {
 	if (data.m_cycles == 0)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_3;
+		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
+
+	if (data.m_cycles == 1)
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Delay_2;
+	}
+
 	return InstructionResult::Finished;
 }
 
@@ -721,9 +816,15 @@ InstructionResult InstructionFunctions::RETI(const char* mnemonic, InstructionTe
 {
 	if (data.m_cycles == 0)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory);
+		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		registers->IMEF = true;
-		return InstructionResult::Delay_3;
+		return InstructionResult::Delay_2;
 	}
 
 	return InstructionResult::Finished;
@@ -1538,11 +1639,17 @@ InstructionResult InstructionFunctions::LD_mnn_A(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
-	else if (data.m_cycles == 2)
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 2)
 	{
 		memory.Write(data.m_tmp_16, registers->A);
 		return InstructionResult::Continue;
@@ -1555,11 +1662,17 @@ InstructionResult InstructionFunctions::LD_A_mnn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
-	else if (data.m_cycles == 2)
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+	
+	if (data.m_cycles == 2)
 	{
 		registers->A = memory[data.m_tmp_16];
 		return InstructionResult::Continue;
@@ -4494,11 +4607,16 @@ InstructionResult InstructionFunctions::SET_7_A(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::LD_BC_nn(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
- 	if (data.m_cycles == 0)
+	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	registers->BC = data.m_tmp_16;
@@ -4510,9 +4628,14 @@ InstructionResult InstructionFunctions::LD_DE_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	registers->DE = data.m_tmp_16;
@@ -4524,9 +4647,14 @@ InstructionResult InstructionFunctions::LD_HL_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	registers->HL = data.m_tmp_16;
@@ -4538,9 +4666,14 @@ InstructionResult InstructionFunctions::LD_SP_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
 
 	registers->SP = data.m_tmp_16;
@@ -4550,16 +4683,23 @@ InstructionResult InstructionFunctions::LD_SP_nn(const char* mnemonic, Instructi
 
 InstructionResult InstructionFunctions::LD_mnn_SP(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	if (data.m_cycles == 0)
+	switch (data.m_cycles)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory);
-		return InstructionResult::Delay_2;
-	}
-	else if (data.m_cycles == 2)
-	{
-		Helpers::Write16Bit(registers->SP, data.m_tmp_16, memory);
-		return InstructionResult::Delay_2;
+	case 0:
+		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	case 1:
+		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	case 2:
+		Helpers::Write16BitLSB(registers->SP, data.m_tmp_16, memory);
+		data.m_tmp_16++;
+		return InstructionResult::Continue;
+	case 3:
+		Helpers::Write16BitMSB(registers->SP, data.m_tmp_16, memory);
+		return InstructionResult::Continue;
+	case 4:
+		return InstructionResult::Finished;
 	}
 
 	return InstructionResult::Finished;
@@ -4600,10 +4740,16 @@ InstructionResult InstructionFunctions::POP_BC(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
 	registers->BC = data.m_tmp_16;
 	
 	return InstructionResult::Finished;
@@ -4613,10 +4759,16 @@ InstructionResult InstructionFunctions::POP_DE(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
 	registers->DE = data.m_tmp_16;
 	
 	return InstructionResult::Finished;
@@ -4626,10 +4778,16 @@ InstructionResult InstructionFunctions::POP_HL(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		//TODO split this up?
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory);
-		return InstructionResult::Delay_2;
+		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		return InstructionResult::Continue;
 	}
+
+	if (data.m_cycles == 1)
+	{
+		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		return InstructionResult::Continue;
+	}
+
 	registers->HL = data.m_tmp_16;
 	
 	return InstructionResult::Finished;
