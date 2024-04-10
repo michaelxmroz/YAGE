@@ -52,6 +52,8 @@ void Timer::Init(Memory& memory)
 	memory.Write(TMA_REGISTER, 0x00);
 	memory.Write(TAC_REGISTER, 0xF8);
 	memory.RegisterCallback(DIVIDER_REGISTER, Timer::ResetDivider, this);
+
+	memory.AddIOUnusedBitsOverride(TAC_REGISTER, 0b11111000);
 }
 
 void Timer::Increment(uint32_t mCycles, Memory& memory)

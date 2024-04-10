@@ -31,7 +31,7 @@ bool IsSpriteFlagSet(SpriteFlags flag, uint8_t flags)
 
 bool IsControlFlagSet(LCDControlFlags flag, Memory& memory)
 {
-	return (memory[LCDC_REGISTER] & (1 << static_cast<uint8_t>(flag))) > 0;
+	return (memory.ReadIO(LCDC_REGISTER) & (1 << static_cast<uint8_t>(flag))) > 0;
 }
 
 uint8_t GetColorForTilePixel(uint8_t index, uint8_t low, uint8_t high)
@@ -209,14 +209,14 @@ void PixelFetcher::GetBackgroundTile(Memory& memory, const uint8_t& y)
 
 	if (!m_window)
 	{
-		tilePosX = (memory[SCX_REGISTER] / TILE_SIZE + m_x) & 0x1F;
-		uint8_t tileCoordY = (memory[SCY_REGISTER] + y) & 0xFF;
+		tilePosX = (memory.ReadIO(SCX_REGISTER) / TILE_SIZE + m_x) & 0x1F;
+		uint8_t tileCoordY = (memory.ReadIO(SCY_REGISTER) + y) & 0xFF;
 		tilePosY = tileCoordY / TILE_SIZE;
 		fineScrollY = tileCoordY % TILE_SIZE;
 	}
 	else
 	{
-		uint8_t tileCoordY = (y - memory[WY_REGISTER]) & 0xFF;
+		uint8_t tileCoordY = (y - memory.ReadIO(WY_REGISTER)) & 0xFF;
 		tilePosY = tileCoordY / TILE_SIZE;
 		fineScrollY = tileCoordY % TILE_SIZE;
 	}

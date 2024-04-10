@@ -23,6 +23,8 @@ void Serial::Init(Memory& memory)
 	memory.Write(SC_REGISTER, 0x7E);
 
 	memory.RegisterCallback(SC_REGISTER, ResetClock, this);
+
+	memory.AddIOUnusedBitsOverride(SC_REGISTER, 0b01111110);
 }
 
 void Serial::Update(Memory& memory, uint32_t mCycles)

@@ -117,6 +117,8 @@ private:
 	uint8_t CheckForIOWriteOnlyBitOverride(uint16_t addr, uint8_t readValue) const;
 	uint8_t CheckForIOReadOnlyBitOverride(uint16_t addr, uint8_t readValue) const;
 
+	void RegisterUnusedIORegisters();
+
 	/*
 	  Memory Map
 

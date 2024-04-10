@@ -265,6 +265,8 @@ void Memory::Init()
 
 	m_vRamAccess = VRamAccess::All;
 
+	RegisterUnusedIORegisters();
+
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker = new uint8_t[MEMORY_SIZE];
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
@@ -483,36 +485,97 @@ uint8_t Memory::CheckForIOReadOnlyBitOverride(uint16_t addr, uint8_t writeValue)
 	return writeValue;
 }
 
+void Memory::RegisterUnusedIORegisters()
+{
+	//Unused IO registers
+	AddIOUnusedBitsOverride(0xFF03, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF08, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF09, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0A, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0B, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF0F, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF27, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF28, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF29, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2A, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2B, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF2F, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF4C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF4D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF4E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF50, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF56, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF57, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF58, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF59, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5A, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5B, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF5F, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF60, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF61, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF62, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF63, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF64, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF65, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF66, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF67, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6F, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF71, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF72, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF73, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF74, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF75, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF76, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF77, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF78, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF79, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7A, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7B, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7C, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7D, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7E, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF7F, 0b11111111);
+	//GBC only
+	AddIOUnusedBitsOverride(0xFF4F, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF51, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF52, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF53, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF54, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF55, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF68, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF69, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6A, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF6B, 0b11111111);
+	AddIOUnusedBitsOverride(0xFF70, 0b11111111);
+}
+
 void Memory::AddIOUnusedBitsOverride(uint16_t addr, uint8_t mask)
 {
 	uint32_t index = addr & 0xFF;
-	if (index >= IOPORTS_COUNT)
-	{
-		LOG_ERROR(string_format("Trying to add IO unused bits override for invalid address %x", addr).c_str());
-		return;
-	}
 	m_unusedIOBitsOverride[index] = mask;
 }
 
 void Memory::AddIOReadOnlyBitsOverride(uint16_t addr, uint8_t mask)
 {
 	uint32_t index = addr & 0xFF;
-	if (index >= IOPORTS_COUNT)
-	{
-		LOG_ERROR(string_format("Trying to add IO read only bits override for invalid address %x", addr).c_str());
-		return;
-	}
 	m_readOnlyIOBitsOverride[index] = mask;
 }
 
 void Memory::AddIOWriteOnlyBitsOverride(uint16_t addr, uint8_t mask)
 {
 	uint32_t index = addr & 0xFF;
-	if (index >= IOPORTS_COUNT)
-	{
-		LOG_ERROR(string_format("Trying to add IO write only bits override for invalid address %x", addr).c_str());
-		return;
-	}
 	m_writeOnlyIOBitsOverride[index] = mask;
 }
 

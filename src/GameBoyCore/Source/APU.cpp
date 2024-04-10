@@ -96,17 +96,6 @@ namespace APU_Internal
 		memory.AddIOUnusedBitsOverride(CHANNEL4_CONTROL_REGISTER, 0b00111111);
 
 		memory.AddIOUnusedBitsOverride(AUDIO_MASTER_CONTROL_REGISTER, 0b01110000);
-		//Unused IO registers
-		memory.AddIOUnusedBitsOverride(0xFF27, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF28, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF29, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2A, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2B, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2C, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2D, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2E, 0b11111111);
-		memory.AddIOUnusedBitsOverride(0xFF2F, 0b11111111);
-
 
 		memory.AddIOWriteOnlyBitsOverride(CHANNEL1_LENGTH_DUTY_REGISTER, 0b00111111);
 		memory.AddIOWriteOnlyBitsOverride(CHANNEL1_FREQUENCY_LOW_REGISTER, 0b11111111);

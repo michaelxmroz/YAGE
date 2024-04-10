@@ -52,27 +52,27 @@ namespace PPUHelpers
 
 	bool IsControlFlagSet(LCDControlFlags flag, Memory& memory)
 	{
-		return (memory[LCDC_REGISTER] & (1 << static_cast<uint8_t>(flag))) > 0;
+		return (memory.ReadIO(LCDC_REGISTER) & (1 << static_cast<uint8_t>(flag))) > 0;
 	}
 
 	bool IsStatFlagSet(StatFlags flag, Memory& memory)
 	{
-		return (memory[STAT_REGISTER] & (1 << static_cast<uint8_t>(flag))) > 0;
+		return (memory.ReadIO(STAT_REGISTER) & (1 << static_cast<uint8_t>(flag))) > 0;
 	}
 
 	void SetStatFlag(StatFlags flag, Memory& memory)
 	{
-		memory.Write(STAT_REGISTER, memory[STAT_REGISTER] | (1 << static_cast<uint8_t>(flag)));
+		memory.WriteIO(STAT_REGISTER, memory.ReadIO(STAT_REGISTER) | (1 << static_cast<uint8_t>(flag)));
 	}
 
 	void ResetStatFlag(StatFlags flag, Memory& memory)
 	{
-		memory.Write(STAT_REGISTER, memory[STAT_REGISTER] & ~(1 << static_cast<uint8_t>(flag)));
+		memory.WriteIO(STAT_REGISTER, memory.ReadIO(STAT_REGISTER) & ~(1 << static_cast<uint8_t>(flag)));
 	}
 
 	void SetModeFlag(uint8_t mode, Memory& memory)
 	{
-		memory.Write(STAT_REGISTER, (memory[STAT_REGISTER] & 0xFC) | mode);
+		memory.WriteIO(STAT_REGISTER, (memory.ReadIO(STAT_REGISTER) & 0xFC) | mode);
 	}
 
 	bool IsNewScanline(uint32_t totalCycles, uint8_t& currentLine, Memory& memory)
@@ -81,7 +81,7 @@ namespace PPUHelpers
 		if (currentLine != newLineY)
 		{
 			currentLine = newLineY % MAX_LINES_Y;
-			if (currentLine == memory[LYC_REGISTER])
+			if (currentLine == memory.ReadIO(LYC_REGISTER))
 			{
 				if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
 				{
@@ -118,16 +118,20 @@ void PPU::Init(Memory& memory)
 	memory.RegisterCallback(BGP_REGISTER, CacheBackgroundPalette, this);
 	memory.RegisterCallback(LCDC_REGISTER, LCDCWrite, this);
 
-	memory.Write(LCDC_REGISTER, 0x91);
-	memory.Write(STAT_REGISTER, 0x00);
-	memory.Write(LYC_REGISTER, 0x00);
-	memory.Write(SCY_REGISTER, 0x00);
-	memory.Write(SCX_REGISTER, 0x00);
-	memory.Write(BGP_REGISTER, 0xFC);
-	memory.Write(OBJ0_REGISTER, 0x00);
-	memory.Write(OBJ1_REGISTER, 0x00);
+	memory.WriteIO(LCDC_REGISTER, 0x91);
+	memory.WriteIO(STAT_REGISTER, 0x00);
+	memory.WriteIO(LYC_REGISTER, 0x00);
+	memory.WriteIO(SCY_REGISTER, 0x00);
+	memory.WriteIO(SCX_REGISTER, 0x00);
+	memory.WriteIO(BGP_REGISTER, 0xFC);
+	memory.WriteIO(OBJ0_REGISTER, 0x00);
+	memory.WriteIO(OBJ1_REGISTER, 0x00);
 	memset(m_activeFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memset(m_backBuffer, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+
+
+	memory.AddIOUnusedBitsOverride(STAT_REGISTER, 0b10000000);
+	memory.AddIOReadOnlyRange(STAT_REGISTER, 0b00000111);
 
 	memory.ClearVRAM();
 
@@ -228,7 +232,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	data.m_cycleDebt =  targetCycles - processedCycles;
 
-	memory.Write(LY_REGISTER, data.m_lineY);
+	memory.WriteIO(LY_REGISTER, data.m_lineY);
 	data.m_totalCycles += processedCycles;
 }
 
@@ -284,7 +288,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_lineSpriteCount = 0;
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
-	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory[WY_REGISTER] ? WindowState::InScanline : WindowState::NoWindow;
+	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 
 	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode2Interrupt, memory))
 	{
@@ -297,7 +301,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 
 void PPU::DisableScreen(Memory& memory)
 {
-	memory.Write(LY_REGISTER, 0);
+	memory.WriteIO(LY_REGISTER, 0);
 	data.m_totalCycles = 0;
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
@@ -310,7 +314,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
 	processedCycles += 2;
 
-	if (data.m_windowState == WindowState::InScanline && data.m_lineX + 7 >= memory[WX_REGISTER])
+	if (data.m_windowState == WindowState::InScanline && data.m_lineX + 7 >= memory.ReadIO(WX_REGISTER))
 	{
 		data.m_backgroundFetcher.Reset();
 		data.m_backgroundFIFO.Clear();
@@ -355,11 +359,11 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	
 	if (data.m_lineX == 0)
 	{
-		uint8_t fineScroll = memory[SCX_REGISTER] & 0x7;
+		uint8_t fineScroll = memory.ReadIO(SCX_REGISTER) & 0x7;
 
 		if (data.m_windowState == WindowState::Draw)
 		{
-			fineScroll =  0x7 - memory[WX_REGISTER] & 0x7;
+			fineScroll =  0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
 		}
 
 		if (fineScroll > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
