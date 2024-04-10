@@ -153,6 +153,7 @@
     <ClInclude Include="..\src\GameBoy\Clock.h" />
     <ClInclude Include="..\src\GameBoy\TimerWin32.h" />
     <ClInclude Include="..\src\GameBoy\UI.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
@@ -165,6 +166,12 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\externalLibs\imgui\misc\debuggers\imgui.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameBoy.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\yage.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
