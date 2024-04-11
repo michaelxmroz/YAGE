@@ -215,7 +215,7 @@
     <ClInclude Include="..\src\GameBoy\Backend.h">
       <Filter>Header Files\Platforms</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="..\src\GameBoy\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

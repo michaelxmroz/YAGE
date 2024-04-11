@@ -25,6 +25,7 @@
 #include "Logging.h"
 #include <locale>
 #include <codecvt>
+#include "resource.h"
 
 
 #define GET_SCAN_CODE(lParam) ((lParam >> 16) & 0x1FF)
@@ -81,8 +82,12 @@ namespace Win32Internal
             // Extract the user data pointer from the CREATESTRUCT
             void* userData = reinterpret_cast<void*>(createStruct->lpCreateParams);
 
+            BackendWin32::WindowUserData* data = static_cast<BackendWin32::WindowUserData*>(userData);
+            SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)data->m_icon);
+            SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)data->m_icon);
+
             // Store the user data pointer with the window
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(userData));
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(data->m_renderer));
         }
         return 0;
         case WM_SIZE:
@@ -208,7 +213,11 @@ void BackendWin32::InitWindow(uint32_t width, uint32_t height, void* userData)
     m_window.m_height = height;
 
     HMODULE instanceID = GetModuleHandle(nullptr);
-    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID, userData);
+
+    m_data.m_icon = LoadIcon(instanceID, MAKEINTRESOURCE(IDI_ICON1)); // IDI_MYICON is the resource ID of your small icon
+    m_data.m_renderer = userData;
+
+    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID, &m_data);
 }
 
 
@@ -219,6 +228,7 @@ const std::unordered_map<uint32_t, bool>& BackendWin32::GetInputEventMap()
 
 void BackendWin32::CleanupWindow()
 {
+    DestroyIcon(m_data.m_icon);
     DestroyWindow(m_window.m_hwnd);
 }
 

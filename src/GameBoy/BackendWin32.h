@@ -7,6 +7,13 @@
 class BackendWin32
 {
 public:
+
+	struct WindowUserData
+	{
+		void* m_renderer;
+		HICON m_icon;
+	};
+
 	void InitWindow(uint32_t width, uint32_t height, void* userData);
 	void CleanupWindow();
 
@@ -32,6 +39,7 @@ public:
 	static std::string ConvertVirtualKeyToString(uint32_t virtualKey);
 	static uint32_t ConvertCharToVirtualKey(char c);
 private:
+
 	class Window
 	{
 	public:
@@ -43,5 +51,6 @@ private:
 	Window m_window;
 	std::unordered_map<uint32_t, bool> m_rawInputEvents;
 	uint32_t m_nextKeyDown;
+	WindowUserData m_data;
 };
 
