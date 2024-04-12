@@ -5,7 +5,7 @@
 YAGE is a classic (DMG) GameBoy emulator. It is written in C++ and consists of a platform-independent backend and a minimal WinAPI & Vulkan frontend for windowing, input & rendering.
 
 ## Features
-YAGE aims to be a medium-accuracy emulator. For the exact workings of the original GameBoy hardware that this project is trying to emulate please consult the [Pandocs](https://gbdev.io/pandocs/) as this would go beyond the scope of this readme. In it's current state YAGE emulates all GameBoy systems except for the serial data connection.
+YAGE is a cycle-accurate Game Boy (DMG) emulator. For the exact workings of the original GameBoy hardware that this project is trying to emulate please consult the [Pandocs](https://gbdev.io/pandocs/) as this would go beyond the scope of this readme. In it's current state YAGE emulates all GameBoy systems except for the serial data connection.
 The [Portaudio](https://portaudio.com/) library is used for plattform-indepentent audio playback and [Dear imgui](https://github.com/ocornut/imgui) for the UI.
 Furthermore full game-state serialization is supported for save-states.
 
