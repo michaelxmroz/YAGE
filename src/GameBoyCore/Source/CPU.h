@@ -9,7 +9,7 @@
 
 
 #if _DEBUG
-#define CPU_STATE_LOGGING 0
+#define CPU_STATE_LOGGING 1
 #endif
 
 class CPU : ISerializable
@@ -99,7 +99,7 @@ private:
 
 #if CPU_STATE_LOGGING
 	char* DEBUG_CPUInstructionLog;
-	const char* DEBUG_LogTemplate = "A:00 F:00 B:00 C:00 D:00 E:00 H:00 L:00 SP:0000 PC:0000 PCMEM:00,00,00,00\n"; 
+	const char* DEBUG_LogTemplate = "A:00 F:00 B:00 C:00 D:00 E:00 H:00 L:00 SP:0000 PC:0000 PCMEM:00,00,00,00 IO:00 ITR:0 OP:           \n"; 
 #endif // CPU_STATE_LOGGING
 #endif
 };

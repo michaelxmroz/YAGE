@@ -17,6 +17,8 @@
 
 #if CPU_STATE_LOGGING
 
+#define IO_REG_LOG 0xFF44
+
 inline void HexToString(uint8_t value, char* buffer)
 {
 	const char* LUT = "0123456789ABCDEF";
@@ -30,11 +32,11 @@ inline void HexToString(uint16_t value, char* buffer)
 	HexToString(static_cast<uint8_t>(value), buffer + 2);
 }
 
-void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory)
+void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory, const char* mnemonic)
 {
 	const char* hexTemplate = "%02X";
 	const char* hexTemplateLong = "%04X";
-	const uint32_t offsets[14] = { 2,7,12,17,22,27,32,37,43,51,62,65,68,71 };
+	const uint32_t offsets[17] = { 2,7,12,17,22,27,32,37,43,51,62,65,68,71,77,84,89};
 
 	char tmpString[5] = { 'X','X','X','X','\0' };
 
@@ -55,7 +57,14 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 	HexToString(memory[adjustedPC], strBuffer + offsets[10]);
 	HexToString(memory[adjustedPC + 1], strBuffer + offsets[11]);
 	HexToString(memory[adjustedPC + 2], strBuffer + offsets[12]);
-	HexToString(memory[0xFE8E], strBuffer + offsets[13]);
+	HexToString(memory[adjustedPC + 3], strBuffer + offsets[13]);
+	HexToString(memory[IO_REG_LOG], strBuffer + offsets[14]);
+
+	char* itrPos = strBuffer + offsets[15];
+	itrPos[0] = '0';//TODO fix interrupt messaging here
+
+	memset(strBuffer + offsets[16], ' ', 11);
+	memcpy(strBuffer + offsets[16], mnemonic, strlen(mnemonic));
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -716,7 +725,8 @@ void CPU::ExecuteInstruction(Memory& memory)
 #if CPU_STATE_LOGGING == 1
 	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
 	{
-		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory);
+		const char* mnemonic = m_instructions[m_instructionTempData.m_opcode].m_mnemonic;
+		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory, mnemonic);
 	}
 #endif
 
