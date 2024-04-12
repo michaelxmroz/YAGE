@@ -52,7 +52,7 @@ private:
 		Draw = 2
 	};
 
-	void ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& processedCycles);
+	void ScanOAM(const uint32_t& positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
 	void TransitionToVBlank(Memory& memory);
@@ -82,10 +82,13 @@ private:
 			, m_lineX(0)
 			, m_windowState(WindowState::NoWindow)
 			, m_state(PPUState::OAMScan)
+			, m_previousState(PPUState::VBlank)
 			, m_spritePrefetchLine(0)
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
+			, m_cyclesSinceStateChange(0)
+			, m_fineScrollX(0)
 		{}
 
 		uint32_t m_totalCycles;
@@ -108,6 +111,10 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
+		PPUState m_previousState;
+		uint32_t m_cyclesSinceStateChange;
+
+		uint8_t m_fineScrollX;
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];

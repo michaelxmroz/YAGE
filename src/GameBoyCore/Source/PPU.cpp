@@ -32,7 +32,7 @@ const RGBA SCREEN_COLORS[4]
 	{0x08, 0x18, 0x20, 0xFF}
 };
 
-enum class StatFlags
+enum class StatFlags : uint32_t
 {
 	Mode = 0,
 	LCYEqLC = 2,
@@ -40,6 +40,13 @@ enum class StatFlags
 	Mode1Interrupt = 4,
 	Mode2Interrupt = 5,
 	LCYEqLCInterrupt = 6
+};
+
+const StatFlags ModeIndexToStatFlags[3]
+{
+	StatFlags::Mode0Interrupt,
+	StatFlags::Mode1Interrupt,
+	StatFlags::Mode2Interrupt
 };
 
 namespace PPUHelpers
@@ -81,19 +88,6 @@ namespace PPUHelpers
 		if (currentLine != newLineY)
 		{
 			currentLine = newLineY % MAX_LINES_Y;
-			if (currentLine == memory.ReadIO(LYC_REGISTER))
-			{
-				if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
-				{
-					Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-				}
-				PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
-			}
-			else
-			{
-				PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
-			}
-
 			return true;
 		}
 		return false;
@@ -151,6 +145,14 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	uint32_t processedCycles = 0;
 	uint32_t totalCycles = data.m_totalCycles;
 
+	if (data.m_previousState != data.m_state)
+	{
+		data.m_previousState = data.m_state;
+		data.m_cyclesSinceStateChange = 0;
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+	}
+
+
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
 		switch (data.m_state)
@@ -158,7 +160,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			case PPUState::OAMScan:
 			{
 				uint32_t positionInLine = totalCycles % SCANLINE_DURATION;
-				ScanOAM(positionInLine, memory, processedCycles);
+				ScanOAM(positionInLine, memory);
 				processedCycles += 2;
 				positionInLine += 2;
 				if (positionInLine == OAM_SCAN_DURATION)
@@ -230,9 +232,50 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		totalCycles = data.m_totalCycles + processedCycles;
 	}
 
+	data.m_cyclesSinceStateChange += processedCycles;
+
+	uint32_t writtenLine = data.m_lineY;
+
+	if (data.m_lineY == MAX_LINES_Y - 1 && data.m_cyclesSinceStateChange > 0)
+	{
+		memory.WriteIO(LY_REGISTER, 0);
+		writtenLine = 0;
+	}
+	else
+	{
+		memory.WriteIO(LY_REGISTER, data.m_lineY);
+	}
+
+	if (data.m_cyclesSinceStateChange == 4)
+	{
+		if ((data.m_state == PPUState::OAMScan || data.m_state == PPUState::VBlank) && writtenLine == memory.ReadIO(LYC_REGISTER))
+		{
+			if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
+			{
+				Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+			}
+			PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
+		}
+
+		if (data.m_state == PPUState::VBlank)
+		{
+			Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
+		}
+
+		if (PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
+		{
+			Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+		}
+
+		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+	}
+	else if (data.m_cyclesSinceStateChange == 8)
+	{
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+	}
+
 	data.m_cycleDebt =  targetCycles - processedCycles;
 
-	memory.WriteIO(LY_REGISTER, data.m_lineY);
 	data.m_totalCycles += processedCycles;
 }
 
@@ -250,23 +293,12 @@ const void* PPU::GetFrameBuffer() const
 
 void PPU::TransitionToVBlank(Memory& memory)
 {
-	Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
-	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode1Interrupt, memory))
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-	}
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::VBlank), memory);
 	data.m_state = PPUState::VBlank;
 }
 
 void PPU::TransitionToHBlank(Memory& memory)
 {
-	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode0Interrupt, memory))
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-	}
 	memory.SetVRamAccess(Memory::VRamAccess::All);
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	data.m_state = PPUState::HBlank;
 }
 
@@ -279,22 +311,16 @@ void PPU::TransitionToDraw(Memory& memory)
 	data.m_spriteFetcher.Reset();
 
 	memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::Drawing), memory);
 	data.m_state = PPUState::Drawing;
 }
 
 void PPU::TransitionToOAMScan(Memory& memory)
 {
+	data.m_fineScrollX = memory.ReadIO(SCX_REGISTER) & 0x7;
 	data.m_lineSpriteCount = 0;
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
-
-	if (PPUHelpers::IsStatFlagSet(StatFlags::Mode2Interrupt, memory))
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-	}
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::OAMScan), memory);
 	memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
 	data.m_state = PPUState::OAMScan;
 }
@@ -320,6 +346,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		data.m_backgroundFIFO.Clear();
 		data.m_backgroundFetcher.FetchWindow();
 		data.m_windowState = WindowState::Draw;
+		data.m_fineScrollX = 0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
 	}
 	
 	uint8_t currentSpriteIndex;
@@ -359,29 +386,21 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	
 	if (data.m_lineX == 0)
 	{
-		uint8_t fineScroll = memory.ReadIO(SCX_REGISTER) & 0x7;
-
-		if (data.m_windowState == WindowState::Draw)
+		if (data.m_fineScrollX > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
 		{
-			fineScroll =  0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
-		}
-
-		if (fineScroll > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
-		{
-			for (uint8_t i = 0; i < fineScroll; ++i)
+			
+			for (uint8_t i = 0; i < 2; ++i)
 			{
+
 				data.m_backgroundFIFO.Pop();
+				data.m_fineScrollX--;
+				if (data.m_fineScrollX == 0)
+				{
+					break;
+				}
 			}
 
-			if (fineScroll > 4)
-			{
-				processedCycles += 8;
-			}
-			else if (fineScroll > 0)
-			{
-				processedCycles += 4;
-			}
-			//processedCycles += fineScroll;
+			return;
 		}
 	}
 
@@ -389,6 +408,10 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	{
 		RenderNextPixel(memory);
 		RenderNextPixel(memory);
+	}
+	else
+	{
+		int x = 0;
 	}
 }
 
@@ -420,7 +443,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	data.m_lineX++;
 }
 
-void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory, uint32_t& processedCycles)
+void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
 {
 	uint8_t oamEntry = (positionInLine / 2);
 
