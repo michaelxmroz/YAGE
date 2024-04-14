@@ -238,13 +238,19 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	if (data.m_lineY == MAX_LINES_Y - 1 && data.m_cyclesSinceStateChange > 0)
 	{
-		memory.WriteIO(LY_REGISTER, 0);
 		writtenLine = 0;
+	}
+
+	memory.WriteIO(LY_REGISTER, writtenLine);
+	if (writtenLine == memory.ReadIO(LYC_REGISTER))
+	{
+		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 	else
 	{
-		memory.WriteIO(LY_REGISTER, data.m_lineY);
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
+
 
 	if (data.m_cyclesSinceStateChange == 4)
 	{
@@ -268,10 +274,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		}
 
 		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
-	}
-	else if (data.m_cyclesSinceStateChange == 8)
-	{
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
 	data.m_cycleDebt =  targetCycles - processedCycles;
@@ -327,8 +329,9 @@ void PPU::TransitionToOAMScan(Memory& memory)
 
 void PPU::DisableScreen(Memory& memory)
 {
+
 	memory.WriteIO(LY_REGISTER, 0);
-	data.m_totalCycles = 0;
+	data.m_totalCycles = 4; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
@@ -493,11 +496,11 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 
 	bool PPUPowerPrev = (prevValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
 	bool PPUPowerNew = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
-	if (prevValue && !newValue)
+	if (PPUPowerPrev && !PPUPowerNew)
 	{
 		ppu->DisableScreen(*memory);
 	}
-	else if (!prevValue && newValue)
+	else if (!PPUPowerPrev && PPUPowerNew)
 	{
 		ppu->TransitionToOAMScan(*memory);
 	}

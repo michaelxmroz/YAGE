@@ -152,7 +152,7 @@ inline void EngineController::RunEmulatorLoop()
         //m_emulator->SetPCCallback(0x48C5, &DumpMemory, this);
         //m_emulator->SetInstructionCountCallback(2267080, &Debugging::TriggerBreakpoint, nullptr);
         //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
-        //m_emulator->SetInstructionCountCallback(544581, &DumpMemory, this);
+        //m_emulator->SetInstructionCountCallback(6157, &DumpMemory, this);
     }
 
     uint32_t frameCount = 0;

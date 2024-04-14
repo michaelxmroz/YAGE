@@ -866,7 +866,6 @@ bool CPU::CheckForWakeup(Memory& memory, bool postFetch)
 
 			if (!postFetch)
 			{
-				//m_registers.PC--;
 				m_currentInstruction = &(m_instructions[PSEUDO_NOP_OPCODE]);
 				m_instructionTempData.Reset();
 				m_instructionTempData.m_opcode = PSEUDO_NOP_OPCODE;
