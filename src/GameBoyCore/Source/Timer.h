@@ -6,7 +6,7 @@ class Timer : ISerializable
 {
 public:
 	Timer();
-	explicit Timer(Serializer* serializer);
+	explicit Timer(GamestateSerializer* serializer);
 
 	void Init(Memory& memory);
 

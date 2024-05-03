@@ -10,7 +10,7 @@
 
 #define TRANSFER_CLOCK_MCYCLES 32
 
-Serial::Serial(Serializer* serializer) : ISerializable(serializer)
+Serial::Serial(GamestateSerializer* serializer) : ISerializable(serializer)
 {
 	m_accumulatedCycles = 0;
 	m_bitsTransferred = 0;

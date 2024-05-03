@@ -34,7 +34,7 @@ Timer::Timer()
 {
 }
 
-Timer::Timer(Serializer* serializer)
+Timer::Timer(GamestateSerializer* serializer)
 	: ISerializable(serializer)
 	, m_previousCycleTimerModuloEdge(false)
 	, m_divTotal(0)

@@ -94,7 +94,7 @@ namespace PPUHelpers
 	}
 }
 
-PPU::PPU(Serializer* serializer) : ISerializable(serializer)
+PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer)
 	, data()
 {
 	m_activeFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];

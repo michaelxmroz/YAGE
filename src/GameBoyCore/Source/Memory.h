@@ -50,7 +50,7 @@ public:
 		VRamOAMBlocked = 2,
 	};
 
-	explicit Memory(Serializer* serializer);
+	explicit Memory(GamestateSerializer* serializer);
 
 	explicit Memory(uint8_t* rawMemory);
 
@@ -76,14 +76,14 @@ public:
 	void ClearRange(uint16_t start, uint16_t end);
 	void ClearVRAM();
 
-	void MapROM(Serializer* serializer, const char* rom, uint32_t size);
-	void MapRAM(const char* ram, uint32_t size);
+	void MapROM(GamestateSerializer* serializer, const char* rom, uint32_t size);
+	void DeserializePersistentData(const char* ram, uint32_t size);
 	void MapBootrom(const char* rom, uint32_t size);
 
 	void RegisterCallback(uint16_t addr, MemoryWriteCallback callback, void* userData);
 	void DeregisterCallback(uint16_t addr);
 
-	void RegisterExternalRamDisableCallback(Emulator::PersistentMemoryCallback callback);
+	void RegisterRamSaveCallback(Emulator::PersistentMemoryCallback callback);
 
 	void SetVRamAccess(VRamAccess access);
 	uint8_t GetHeaderChecksum() const;
@@ -96,12 +96,6 @@ public:
 	void AddIOWriteOnlyRange(uint16_t start, uint16_t end);
 
 private:
-
-	struct DelayedWrite
-	{
-		uint16_t m_addr;
-		uint8_t m_value;
-	};
 
 	void Init();
 
@@ -137,13 +131,11 @@ private:
 	*/
 
 	uint8_t* m_mappedMemory;
-	uint8_t* m_romMemory;
 	uint8_t* m_bootrom;
-	uint8_t* m_externalRamMemory;
+
 	MemoryWriteCallback* m_writeCallbacks;
 	uint64_t* m_callbackUserData;
 	MemoryBankController* m_mbc;
-	Emulator::PersistentMemoryCallback m_onExternalRamDisable;
 
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;

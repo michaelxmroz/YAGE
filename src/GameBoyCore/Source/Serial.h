@@ -11,7 +11,7 @@ enum class SerialMode : uint8_t
 class Serial : ISerializable
 {
 public:
-	Serial(Serializer* serializer);
+	Serial(GamestateSerializer* serializer);
 	void Init(Memory& memory);
 	void Update(Memory& memory, uint32_t mCycles);
 private:

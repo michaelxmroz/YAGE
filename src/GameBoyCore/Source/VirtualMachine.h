@@ -29,7 +29,7 @@ public:
 
 	virtual void SetLoggerCallback(LoggerCallback callback) override;
 
-	virtual std::vector<uint8_t> Serialize(bool rawData) const override;
+	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const override;
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) override;
 
 	virtual void SetTurboSpeed(float speed) override;
@@ -45,7 +45,7 @@ public:
 	Registers& GetRegisters();
 #endif
 private:
-	Serializer m_serializer;
+	GamestateSerializer m_serializer;
 	Memory m_memory;
 	CPU m_cpu;
 	Timer m_clock;

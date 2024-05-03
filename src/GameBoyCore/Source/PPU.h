@@ -23,7 +23,7 @@ struct RGBA
 class PPU : ISerializable
 {
 public:
-	PPU(Serializer* serializer);
+	PPU(GamestateSerializer* serializer);
 
 	~PPU();
 

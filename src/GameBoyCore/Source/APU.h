@@ -7,7 +7,7 @@
 class APU : ISerializable
 {
 public:
-	APU(Serializer* serializer);
+	APU(GamestateSerializer* serializer);
 	void Init(Memory& memory);
 	void SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset);
 
