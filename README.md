@@ -10,7 +10,10 @@ The [Portaudio](https://portaudio.com/) library is used for plattform-indepenten
 Furthermore full game-state serialization is supported for save-states.
 
 ## Build
-The "Build" folder contains pre-generated VS2019 project files, but any build system can be used in theory.
+The "Build" folder contains pre-generated VS2022 project files, but any build system can be used in theory.
+
+IMPORTANT: When running the app from Visual Studio, make sure to change the debugging working directory of the Gameboy project to "$(OutDir)" (Gameboy->Right Click->Properties->Debugging->Working Directory). Otherwise the relative path for the main shader file will be incorrect, and the emulator will crash on startup.
+
 The application consists of three projects: front-end (GameBoy), back-end (GameBoyCore) and unit tests (Tests).
 The back-end should be built into a library and then linked by either the front-end or the unit tests.
 
