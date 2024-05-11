@@ -12,15 +12,15 @@ Furthermore full game-state serialization is supported for save-states.
 ## Build
 The "Build" folder contains pre-generated VS2022 project files, but any build system can be used in theory.
 
-IMPORTANT: When running the app from Visual Studio, make sure to change the debugging working directory of the Gameboy project to "$(OutDir)" (Gameboy->Right Click->Properties->Debugging->Working Directory). Otherwise the relative path for the main shader file will be incorrect, and the emulator will crash on startup.
+IMPORTANT: When running the app from Visual Studio, make sure to change the debugging working directory of the YAGEFrontend project to "$(OutDir)" (YAGEFrontend->Right Click->Properties->Debugging->Working Directory). Otherwise the relative path for the main shader file will be incorrect, and the emulator will crash on startup.
 
-The application consists of three projects: front-end (GameBoy), back-end (GameBoyCore) and unit tests (Tests).
+The application consists of three projects: front-end (YAGEFrontend), back-end (YAGECore) and unit tests (Tests).
 The back-end should be built into a library and then linked by either the front-end or the unit tests.
 
 ## Dependencies
 The front-end is dependent on WinAPI and the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/).
 
-The back-end (GameBoyCore) is pure C++ without any external dependencies.
+The back-end (YAGECore) is pure C++ without any external dependencies. It also exposes a C API as long as _CINTERFACE is set.
 
 The unit tests require the [Google Test](https://github.com/google/googletest) framework.
 
