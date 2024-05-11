@@ -1,6 +1,7 @@
 #pragma once
 #include "../Include/Emulator.h"
 #include "Serialization.h"
+#include <chrono>
 
 #define ROM_END 0x7FFF
 #define ROM_BANK_SIZE 0x4000
@@ -11,13 +12,31 @@ class MemoryBankController : ISerializable
 {
 public:
 	MemoryBankController();
-	MemoryBankController(Serializer* serializer, uint8_t headerType, uint8_t headerRomBanks, uint8_t headerRamBanks);
+	MemoryBankController(GamestateSerializer* serializer, const char* rom, uint32_t size);
 
-	bool WriteRegister(uint16_t addr, uint8_t value);
-	uint32_t GetRAMAddr(uint16_t addr) const;
-	uint32_t GetROMAddr(uint16_t addr) const;
+	void WriteRegister(uint16_t addr, uint8_t value);
+	void Write(uint16_t addr, uint8_t value);
 
-	uint16_t GetRAMSize() const;
+	uint8_t ReadRAM(uint16_t addr);
+	uint8_t ReadROM(uint16_t addr);
+
+	void DeserializePersistentData(const char* ram, uint32_t size);
+
+	uint8_t* GetROMMemoryOffset(uint16_t addr);
+
+	void RegisterRamSaveCallback(Emulator::PersistentMemoryCallback callback);
+
+	struct RTC
+	{
+		std::chrono::milliseconds m_lastUpdate;
+		bool m_isLatched;
+		uint8_t m_selectedReg;
+		uint8_t m_secReg;
+		uint8_t m_minReg;
+		uint8_t m_hourReg;
+		uint8_t m_dayReg;
+		uint8_t m_ctrlReg;
+	};
 
 	struct Registers
 	{
@@ -26,6 +45,7 @@ public:
 		uint8_t m_primaryBankRegister;
 		uint8_t m_secondaryBankRegister;
 		uint8_t m_tertiaryBankRegister;
+		RTC m_RTC;
 	};
 
 private:
@@ -39,11 +59,25 @@ private:
 
 	Type GetTypeFromHeaderCode(uint8_t header) const;
 
+	uint32_t GetRAMAddr(uint16_t addr) const;
+	uint32_t GetROMAddr(uint16_t addr) const;
+
+	uint16_t GetRAMSize() const;
+
+	void SerializePersistentData();
+
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 
+	uint8_t* m_ram;
+	uint8_t* m_rom;
 	Registers m_registers;
+	uint32_t m_currentlySelectedRTCReg;
+
+	Emulator::PersistentMemoryCallback m_onRamSave;
+
 	const Type m_type;
+	const bool m_hasRTC;
 	const uint16_t m_romBankCount;
 	const uint16_t m_ramBankCount;
 };

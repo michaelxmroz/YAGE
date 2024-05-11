@@ -72,7 +72,7 @@ public:
 	virtual const void* GetFrameBuffer() = 0;
 	virtual uint32_t GetNumberOfGeneratedSamples() = 0;
 
-	virtual std::vector<uint8_t> Serialize(bool rawData) const = 0;
+	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const = 0;
 	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
 
 	virtual void SetTurboSpeed(float speed) = 0;

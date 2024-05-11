@@ -80,12 +80,12 @@ CPU::CPU(bool enableInterruptHandling)
 {
 }
 
-CPU::CPU(Serializer* serializer)
+CPU::CPU(GamestateSerializer* serializer)
 	: CPU(serializer, true)
 {
 }
 
-CPU::CPU(Serializer* serializer, bool enableInterruptHandling)
+CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 	: ISerializable(serializer)
 	, m_registers()
 	, m_InterruptHandlingEnabled(enableInterruptHandling)

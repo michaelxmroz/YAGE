@@ -95,17 +95,17 @@ void VirtualMachine::SetLoggerCallback(LoggerCallback callback)
 
 void VirtualMachine::LoadPersistentMemory(const char* ram, uint32_t size)
 {
-	m_memory.MapRAM(ram, size);
+	m_memory.DeserializePersistentData(ram, size);
 }
 
 void VirtualMachine::SetPersistentMemoryCallback(PersistentMemoryCallback callback)
 {
-	m_memory.RegisterExternalRamDisableCallback(callback);
+	m_memory.RegisterRamSaveCallback(callback);
 }
 
-std::vector<uint8_t> VirtualMachine::Serialize(bool rawData) const
+void VirtualMachine::Serialize(bool rawData, std::vector<uint8_t>& dataOut) const
 {
-	return m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName, rawData);
+	m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName, rawData, dataOut);
 }
 void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
 {

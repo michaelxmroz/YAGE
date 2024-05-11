@@ -17,8 +17,8 @@ class CPU : ISerializable
 public:
 	CPU();
 	explicit CPU(bool enableInterruptHandling);
-	explicit CPU(Serializer* serializer);
-	CPU(Serializer* serializer, bool enableInterruptHandling);
+	explicit CPU(GamestateSerializer* serializer);
+	CPU(GamestateSerializer* serializer, bool enableInterruptHandling);
 	~CPU();
 
 #if _DEBUG

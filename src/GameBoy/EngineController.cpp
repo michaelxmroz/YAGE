@@ -248,7 +248,8 @@ void EngineController::Load()
 
 void EngineController::Save(bool rawData)
 {
-    std::vector<uint8_t> saveState = m_emulator->Serialize(rawData);
+    std::vector<uint8_t> saveState;
+    m_emulator->Serialize(rawData, saveState);
     std::string saveStatePath = m_data.m_saveLoadPath;
     if (saveStatePath.empty())
     {
