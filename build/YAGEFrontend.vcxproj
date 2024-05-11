@@ -17,6 +17,7 @@
     <RootNamespace>GameBoy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <BaseItemPath>$(SolutionDir)..\src\GameBoy\</BaseItemPath>
+    <ProjectName>YAGEFrontend</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -96,7 +97,7 @@
   <ItemGroup>
     <ClCompile Include="$(BaseItemPath)\CommandLineArguments.cpp" />
     <ClCompile Include="$(BaseItemPath)\FileParser.cpp" />
-    <ClCompile Include="$(BaseItemPath)\GameBoy.cpp" />
+    <ClCompile Include="..\src\GameBoy\YAGEFrontend.cpp" />
     <ClCompile Include="$(BaseItemPath)\Input.cpp" />
     <ClCompile Include="$(BaseItemPath)\miniz.c" />
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp" />
@@ -168,7 +169,7 @@
     <Natvis Include="..\externalLibs\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GameBoy.rc" />
+    <ResourceCompile Include="YAGEFrontend.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\yage.ico" />

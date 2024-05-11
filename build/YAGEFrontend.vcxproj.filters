@@ -48,7 +48,7 @@
     <ClCompile Include="$(BaseItemPath)\FileParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(BaseItemPath)\GameBoy.cpp">
+    <ClCompile Include="..\src\GameBoy\YAGEFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\miniz.c">
@@ -233,7 +233,7 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GameBoy.rc">
+    <ResourceCompile Include="YAGEFrontend.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -16,7 +16,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GameBoy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>GameBoyCore</ProjectName>
+    <ProjectName>YAGECore</ProjectName>
     <BaseItemPath>$(SolutionDir)\..\src\GameBoyCore\Source</BaseItemPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -61,7 +61,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_LOGGING;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CINTERFACE;_LOGGING;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\GameBoyCore\Source\Emulator_C.cpp" />
     <ClCompile Include="..\src\GameBoyCore\Source\Timer.cpp" />
     <ClCompile Include="$(BaseItemPath)\CPU.cpp" />
     <ClCompile Include="$(BaseItemPath)\Helpers.cpp" />
@@ -109,6 +110,7 @@
     <ClCompile Include="..\src\GameBoyCore\Source\Serialization.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\GameBoyCore\Include\Emulator_C.h" />
     <ClInclude Include="..\src\GameBoyCore\Source\Timer.h" />
     <ClInclude Include="$(BaseItemPath)\CPU.h" />
     <ClInclude Include="$(BaseItemPath)\Helpers.h" />

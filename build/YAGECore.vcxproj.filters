@@ -81,6 +81,9 @@
     <ClCompile Include="..\src\GameBoyCore\Source\AudioChannel.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\GameBoyCore\Source\Emulator_C.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
@@ -139,6 +142,9 @@
     </ClInclude>
     <ClInclude Include="..\src\GameBoyCore\Source\Logging.h">
       <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\GameBoyCore\Include\Emulator_C.h">
+      <Filter>Header Files\Interface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

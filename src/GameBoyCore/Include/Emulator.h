@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include "Emulator_C.h"
 
 namespace EmulatorInputs
 {
@@ -25,6 +26,11 @@ namespace EmulatorInputs
 		InputState() : m_dPad(0x0F), m_buttons(0x0F)
 		{
 		}
+
+		InputState(uint8_t dPad, uint8_t buttons) : m_dPad(dPad), m_buttons(buttons)
+		{
+		}
+
 		uint8_t m_dPad;
 		uint8_t m_buttons;
 
@@ -41,10 +47,10 @@ namespace EmulatorInputs
 
 namespace EmulatorConstants
 {
-	const uint32_t SCREEN_WIDTH = 160;
-	const uint32_t SCREEN_HEIGHT = 144;
-	const uint32_t SCREEN_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT;
-	const double PREFERRED_REFRESH_RATE = 59.73;
+	const uint32_t SCREEN_WIDTH = EMULATOR_SCREEN_WIDTH;
+	const uint32_t SCREEN_HEIGHT = EMULATOR_SCREEN_HEIGHT;
+	const uint32_t SCREEN_SIZE = EMULATOR_SCREEN_SIZE;
+	const double PREFERRED_REFRESH_RATE = EMULATOR_PREFERRED_REFRESH_RATE;
 }
 
 class Emulator
