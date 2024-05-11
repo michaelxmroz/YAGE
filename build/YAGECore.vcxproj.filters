@@ -24,7 +24,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\GameBoyCore\Source\Timer.cpp">
+    <ClCompile Include="$(BaseItemPath)\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\CPU.cpp">
@@ -63,25 +63,25 @@
     <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\Emulator.cpp">
+    <ClCompile Include="$(BaseItemPath)\Emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\Serial.cpp">
+    <ClCompile Include="$(BaseItemPath)\Serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\MBC.cpp">
+    <ClCompile Include="$(BaseItemPath)\MBC.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\Serialization.cpp">
+    <ClCompile Include="$(BaseItemPath)\Serialization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\APU.cpp">
+    <ClCompile Include="$(BaseItemPath)\APU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\AudioChannel.cpp">
+    <ClCompile Include="$(BaseItemPath)\AudioChannel.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoyCore\Source\Emulator_C.cpp">
+    <ClCompile Include="$(BaseItemPath)\Emulator_C.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,7 +89,7 @@
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\Timer.h">
+    <ClInclude Include="$(BaseItemPath)\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\CPU.h">
@@ -122,28 +122,28 @@
     <ClInclude Include="$(BaseItemPath)\PixelFIFO.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h">
+    <ClInclude Include="..\src\YAGECore\Include\Emulator.h">
       <Filter>Header Files\Interface</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\Serial.h">
+    <ClInclude Include="$(BaseItemPath)\Serial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\MBC.h">
+    <ClInclude Include="$(BaseItemPath)\MBC.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\Serialization.h">
+    <ClInclude Include="$(BaseItemPath)\Serialization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\APU.h">
+    <ClInclude Include="$(BaseItemPath)\APU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h">
+    <ClInclude Include="$(BaseItemPath)\AudioChannel.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Source\Logging.h">
+    <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoyCore\Include\Emulator_C.h">
+    <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h">
       <Filter>Header Files\Interface</Filter>
     </ClInclude>
   </ItemGroup>

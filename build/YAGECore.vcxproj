@@ -14,10 +14,10 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{815E8E62-4E72-45BB-9E10-826FAF8F16A9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>GameBoy</RootNamespace>
+    <RootNamespace>YAGECore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>YAGECore</ProjectName>
-    <BaseItemPath>$(SolutionDir)\..\src\GameBoyCore\Source</BaseItemPath>
+    <BaseItemPath>$(SolutionDir)\..\src\YAGECore\Source</BaseItemPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -88,8 +88,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\GameBoyCore\Source\Emulator_C.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\Timer.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Emulator_C.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Timer.cpp" />
     <ClCompile Include="$(BaseItemPath)\CPU.cpp" />
     <ClCompile Include="$(BaseItemPath)\Helpers.cpp" />
     <ClCompile Include="$(BaseItemPath)\InstructionFunctions.cpp" />
@@ -102,16 +102,16 @@
     <ClCompile Include="$(BaseItemPath)\PPU.cpp" />
     <ClCompile Include="$(BaseItemPath)\Registers.cpp" />
     <ClCompile Include="$(BaseItemPath)\VirtualMachine.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\APU.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\AudioChannel.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\Emulator.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\MBC.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\Serial.cpp" />
-    <ClCompile Include="..\src\GameBoyCore\Source\Serialization.cpp" />
+    <ClCompile Include="$(BaseItemPath)\APU.cpp" />
+    <ClCompile Include="$(BaseItemPath)\AudioChannel.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Emulator.cpp" />
+    <ClCompile Include="$(BaseItemPath)\MBC.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Serial.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Serialization.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\GameBoyCore\Include\Emulator_C.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\Timer.h" />
+    <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h" />
+    <ClInclude Include="$(BaseItemPath)\Timer.h" />
     <ClInclude Include="$(BaseItemPath)\CPU.h" />
     <ClInclude Include="$(BaseItemPath)\Helpers.h" />
     <ClInclude Include="$(BaseItemPath)\InstructionFunctions.h" />
@@ -123,13 +123,13 @@
     <ClInclude Include="$(BaseItemPath)\PPU.h" />
     <ClInclude Include="$(BaseItemPath)\Registers.h" />
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h" />
-    <ClInclude Include="..\src\GameBoyCore\Include\Emulator.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\APU.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\AudioChannel.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\Logging.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\Serialization.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\MBC.h" />
-    <ClInclude Include="..\src\GameBoyCore\Source\Serial.h" />
+    <ClInclude Include="..\src\YAGECore\Include\Emulator.h" />
+    <ClInclude Include="$(BaseItemPath)\APU.h" />
+    <ClInclude Include="$(BaseItemPath)\AudioChannel.h" />
+    <ClInclude Include="$(BaseItemPath)\Logging.h" />
+    <ClInclude Include="$(BaseItemPath)\Serialization.h" />
+    <ClInclude Include="$(BaseItemPath)\MBC.h" />
+    <ClInclude Include="$(BaseItemPath)\Serial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

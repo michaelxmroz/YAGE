@@ -14,9 +14,9 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{e522b312-42c3-4c11-b9f6-a4a40848cfee}</ProjectGuid>
-    <RootNamespace>GameBoy</RootNamespace>
+    <RootNamespace>YAGEFrontend</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <BaseItemPath>$(SolutionDir)..\src\GameBoy\</BaseItemPath>
+    <BaseItemPath>$(SolutionDir)..\src\YAGEFrontend\</BaseItemPath>
     <ProjectName>YAGEFrontend</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -61,14 +61,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_LOGGING;_DEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\YAGECore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>propsys.lib;shlwapi.lib;comctl32.lib;GameBoyCore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>propsys.lib;shlwapi.lib;comctl32.lib;YAGECore.lib;vulkan-1.lib;shaderc_combinedd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.268.0\Lib;$(SolutionDir)\..\externalLibs\</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -81,7 +81,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_LOGGING;NDEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\GameBoyCore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\YAGECore\Include\;C:\VulkanSDK\1.3.268.0\Include;$(SolutionDir)\..\externalLibs\;$(SolutionDir)\..\externalLibs\imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -90,14 +90,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);C:\VulkanSDK\1.3.268.0\Lib;$(SolutionDir)\..\externalLibs\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>GameBoyCore.lib;vulkan-1.lib;shaderc_combined.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>YAGECore.lib;vulkan-1.lib;shaderc_combined.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(BaseItemPath)\CommandLineArguments.cpp" />
     <ClCompile Include="$(BaseItemPath)\FileParser.cpp" />
-    <ClCompile Include="..\src\GameBoy\YAGEFrontend.cpp" />
+    <ClCompile Include="$(BaseItemPath)\YAGEFrontend.cpp" />
     <ClCompile Include="$(BaseItemPath)\Input.cpp" />
     <ClCompile Include="$(BaseItemPath)\miniz.c" />
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp" />
@@ -109,20 +109,20 @@
     <ClCompile Include="..\externalLibs\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\externalLibs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp" />
-    <ClCompile Include="..\src\GameBoy\Audio.cpp" />
-    <ClCompile Include="..\src\GameBoy\AudioPortaudio.cpp" />
-    <ClCompile Include="..\src\GameBoy\BackendWin32.cpp" />
-    <ClCompile Include="..\src\GameBoy\Debugging.cpp" />
-    <ClCompile Include="..\src\GameBoy\EngineController.cpp" />
-    <ClCompile Include="..\src\GameBoy\EngineState.cpp" />
-    <ClCompile Include="..\src\GameBoy\Logger.cpp" />
-    <ClCompile Include="..\src\GameBoy\Logging.cpp" />
-    <ClCompile Include="..\src\GameBoy\MiniMath.cpp" />
-    <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp" />
-    <ClCompile Include="..\src\GameBoy\ShaderCompiler.cpp" />
-    <ClCompile Include="..\src\GameBoy\Clock.cpp" />
-    <ClCompile Include="..\src\GameBoy\TimerWin32.cpp" />
-    <ClCompile Include="..\src\GameBoy\UI.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Audio.cpp" />
+    <ClCompile Include="$(BaseItemPath)\AudioPortaudio.cpp" />
+    <ClCompile Include="$(BaseItemPath)\BackendWin32.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Debugging.cpp" />
+    <ClCompile Include="$(BaseItemPath)\EngineController.cpp" />
+    <ClCompile Include="$(BaseItemPath)\EngineState.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Logger.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Logging.cpp" />
+    <ClCompile Include="$(BaseItemPath)\MiniMath.cpp" />
+    <ClCompile Include="$(BaseItemPath)\RendererVulkan.cpp" />
+    <ClCompile Include="$(BaseItemPath)\ShaderCompiler.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Clock.cpp" />
+    <ClCompile Include="$(BaseItemPath)\TimerWin32.cpp" />
+    <ClCompile Include="$(BaseItemPath)\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -139,29 +139,29 @@
     <ClInclude Include="..\externalLibs\imgui\imstb_textedit.h" />
     <ClInclude Include="..\externalLibs\imgui\imstb_truetype.h" />
     <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h" />
-    <ClInclude Include="..\src\GameBoy\Audio.h" />
-    <ClInclude Include="..\src\GameBoy\AudioPortaudio.h" />
-    <ClInclude Include="..\src\GameBoy\Backend.h" />
-    <ClInclude Include="..\src\GameBoy\BackendWin32.h" />
-    <ClInclude Include="..\src\GameBoy\Debugging.h" />
-    <ClInclude Include="..\src\GameBoy\EngineController.h" />
-    <ClInclude Include="..\src\GameBoy\EngineState.h" />
-    <ClInclude Include="..\src\GameBoy\Logger.h" />
-    <ClInclude Include="..\src\GameBoy\Logging.h" />
-    <ClInclude Include="..\src\GameBoy\MiniMath.h" />
-    <ClInclude Include="..\src\GameBoy\RendererVulkan.h" />
-    <ClInclude Include="..\src\GameBoy\ShaderCompiler.h" />
-    <ClInclude Include="..\src\GameBoy\Clock.h" />
-    <ClInclude Include="..\src\GameBoy\TimerWin32.h" />
-    <ClInclude Include="..\src\GameBoy\UI.h" />
-    <ClInclude Include="..\src\GameBoy\resource.h" />
+    <ClInclude Include="$(BaseItemPath)\Audio.h" />
+    <ClInclude Include="$(BaseItemPath)\AudioPortaudio.h" />
+    <ClInclude Include="$(BaseItemPath)\Backend.h" />
+    <ClInclude Include="$(BaseItemPath)\BackendWin32.h" />
+    <ClInclude Include="$(BaseItemPath)\Debugging.h" />
+    <ClInclude Include="$(BaseItemPath)\EngineController.h" />
+    <ClInclude Include="$(BaseItemPath)\EngineState.h" />
+    <ClInclude Include="$(BaseItemPath)\Logger.h" />
+    <ClInclude Include="$(BaseItemPath)\Logging.h" />
+    <ClInclude Include="$(BaseItemPath)\MiniMath.h" />
+    <ClInclude Include="$(BaseItemPath)\RendererVulkan.h" />
+    <ClInclude Include="$(BaseItemPath)\ShaderCompiler.h" />
+    <ClInclude Include="$(BaseItemPath)\Clock.h" />
+    <ClInclude Include="$(BaseItemPath)\TimerWin32.h" />
+    <ClInclude Include="$(BaseItemPath)\UI.h" />
+    <ClInclude Include="$(BaseItemPath)\resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
-    <None Include="..\src\GameBoy\main.glsl" />
+    <None Include="$(BaseItemPath)\main.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\src\GameBoy\main.glsl">
+    <Content Include="$(BaseItemPath)\main.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -48,7 +48,7 @@
     <ClCompile Include="$(BaseItemPath)\FileParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\YAGEFrontend.cpp">
+    <ClCompile Include="$(BaseItemPath)\YAGEFrontend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\miniz.c">
@@ -60,40 +60,40 @@
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Logging.cpp">
+    <ClCompile Include="$(BaseItemPath)\Logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\RendererVulkan.cpp">
+    <ClCompile Include="$(BaseItemPath)\RendererVulkan.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\ShaderCompiler.cpp">
+    <ClCompile Include="$(BaseItemPath)\ShaderCompiler.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\MiniMath.cpp">
+    <ClCompile Include="$(BaseItemPath)\MiniMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Audio.cpp">
+    <ClCompile Include="$(BaseItemPath)\Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\AudioPortaudio.cpp">
+    <ClCompile Include="$(BaseItemPath)\AudioPortaudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Clock.cpp">
+    <ClCompile Include="$(BaseItemPath)\Clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\TimerWin32.cpp">
+    <ClCompile Include="$(BaseItemPath)\TimerWin32.cpp">
       <Filter>Source Files\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\BackendWin32.cpp">
+    <ClCompile Include="$(BaseItemPath)\BackendWin32.cpp">
       <Filter>Source Files\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Logger.cpp">
+    <ClCompile Include="$(BaseItemPath)\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\Debugging.cpp">
+    <ClCompile Include="$(BaseItemPath)\Debugging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\UI.cpp">
+    <ClCompile Include="$(BaseItemPath)\UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\externalLibs\imgui\imgui.cpp">
@@ -120,10 +120,10 @@
     <ClCompile Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\EngineController.cpp">
+    <ClCompile Include="$(BaseItemPath)\EngineController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\GameBoy\EngineState.cpp">
+    <ClCompile Include="$(BaseItemPath)\EngineState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -143,40 +143,40 @@
     <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\RendererVulkan.h">
+    <ClInclude Include="$(BaseItemPath)\RendererVulkan.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\ShaderCompiler.h">
+    <ClInclude Include="$(BaseItemPath)\ShaderCompiler.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\MiniMath.h">
+    <ClInclude Include="$(BaseItemPath)\MiniMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Audio.h">
+    <ClInclude Include="$(BaseItemPath)\Audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\AudioPortaudio.h">
+    <ClInclude Include="$(BaseItemPath)\AudioPortaudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Clock.h">
+    <ClInclude Include="$(BaseItemPath)\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\BackendWin32.h">
+    <ClInclude Include="$(BaseItemPath)\BackendWin32.h">
       <Filter>Header Files\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\TimerWin32.h">
+    <ClInclude Include="$(BaseItemPath)\TimerWin32.h">
       <Filter>Header Files\Platforms\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Logger.h">
+    <ClInclude Include="$(BaseItemPath)\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Logging.h">
+    <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Debugging.h">
+    <ClInclude Include="$(BaseItemPath)\Debugging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\UI.h">
+    <ClInclude Include="$(BaseItemPath)\UI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\externalLibs\imgui\imconfig.h">
@@ -206,21 +206,21 @@
     <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\EngineController.h">
+    <ClInclude Include="$(BaseItemPath)\EngineController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\EngineState.h">
+    <ClInclude Include="$(BaseItemPath)\EngineState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\Backend.h">
+    <ClInclude Include="$(BaseItemPath)\Backend.h">
       <Filter>Header Files\Platforms</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\GameBoy\resource.h">
+    <ClInclude Include="$(BaseItemPath)\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\GameBoy\main.glsl">
+    <None Include="$(BaseItemPath)\main.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter">
