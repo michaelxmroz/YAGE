@@ -316,7 +316,7 @@ uint32_t MemoryBankController::GetRAMAddr(uint16_t addr) const
 	switch (m_type)
 	{
 	case Type::None:
-		return addr;
+		return addr - EXTERNAL_RAM_BEGIN;
 	case Type::MBC1:
 		return MBC_Internal::MBC1::GetRAMAddr(addr, m_registers);
 	case Type::MBC3:
