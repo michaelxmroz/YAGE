@@ -92,7 +92,6 @@ Global
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|x64.Build.0 = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|x86.ActiveCfg = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug-Freestanding|Any CPU.ActiveCfg = Debug-Freestanding|x64
-		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug-Freestanding|Any CPU.Build.0 = Debug-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug-Freestanding|ARM.ActiveCfg = Debug-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug-Freestanding|ARM64.ActiveCfg = Debug-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug-Freestanding|x64.ActiveCfg = Debug-Freestanding|x64
@@ -107,7 +106,6 @@ Global
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|x64.Build.0 = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|x86.ActiveCfg = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release-Freestanding|Any CPU.ActiveCfg = Release-Freestanding|x64
-		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release-Freestanding|Any CPU.Build.0 = Release-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release-Freestanding|ARM.ActiveCfg = Release-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release-Freestanding|ARM64.ActiveCfg = Release-Freestanding|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release-Freestanding|x64.ActiveCfg = Release-Freestanding|x64
@@ -123,7 +121,6 @@ Global
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug|x86.ActiveCfg = Debug|Win32
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug|x86.Build.0 = Debug|Win32
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug-Freestanding|Any CPU.ActiveCfg = Debug-Freestanding|x64
-		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug-Freestanding|Any CPU.Build.0 = Debug-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug-Freestanding|ARM.ActiveCfg = Debug-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug-Freestanding|ARM64.ActiveCfg = Debug-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Debug-Freestanding|x64.ActiveCfg = Debug-Freestanding|x64
@@ -138,19 +135,16 @@ Global
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release|x86.ActiveCfg = Release|Win32
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release|x86.Build.0 = Release|Win32
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|Any CPU.ActiveCfg = Release-Freestanding|x64
-		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|Any CPU.Build.0 = Release-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|ARM.ActiveCfg = Release-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|ARM64.ActiveCfg = Release-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|x64.ActiveCfg = Release-Freestanding|x64
 		{12457F7F-7F8F-45AD-A9E8-B1FED4B290E6}.Release-Freestanding|x86.ActiveCfg = Release-Freestanding|x64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|ARM.ActiveCfg = Debug|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|ARM.Build.0 = Debug|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|ARM64.Build.0 = Debug|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|x64.ActiveCfg = Debug|X64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|x64.Build.0 = Debug|X64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|x86.ActiveCfg = Debug|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug|x86.Build.0 = Debug|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|Any CPU.ActiveCfg = Debug|Any CPU
@@ -159,18 +153,16 @@ Global
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|ARM.Build.0 = Debug|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|ARM64.ActiveCfg = Debug|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|ARM64.Build.0 = Debug|ARM64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x64.ActiveCfg = Debug|X64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x64.Build.0 = Debug|X64
+		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x64.ActiveCfg = Debug-Freestanding|X64
+		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x64.Build.0 = Debug-Freestanding|X64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x86.ActiveCfg = Debug|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Debug-Freestanding|x86.Build.0 = Debug|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|ARM.ActiveCfg = Release|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|ARM.Build.0 = Release|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|ARM64.ActiveCfg = Release|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|ARM64.Build.0 = Release|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|x64.ActiveCfg = Release|X64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|x64.Build.0 = Release|X64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|x86.ActiveCfg = Release|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release|x86.Build.0 = Release|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|Any CPU.ActiveCfg = Release|Any CPU
@@ -179,8 +171,8 @@ Global
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|ARM.Build.0 = Release|ARM
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|ARM64.ActiveCfg = Release|ARM64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|ARM64.Build.0 = Release|ARM64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x64.ActiveCfg = Release|X64
-		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x64.Build.0 = Release|X64
+		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x64.ActiveCfg = Release-Freestanding|X64
+		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x64.Build.0 = Release-Freestanding|X64
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x86.ActiveCfg = Release|x86
 		{058D912D-0F99-430B-B7C7-99ACA27FC2A1}.Release-Freestanding|x86.Build.0 = Release|x86
 	EndGlobalSection

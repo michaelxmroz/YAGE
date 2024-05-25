@@ -11,8 +11,16 @@ const cpp_header = @cImport({
     @cInclude("cpp_header.h");
 });
 
+const emulator = @cImport({
+    @cInclude("Emulator_C.h");
+});
+
 pub fn main() !void
 {
+    const emu = emulator.CreatEmulatorHandle();
+
+    defer emulator.Delete(emu);
+
     print("hello, world\n",.{});
 
     const a  = c_header.c_add(1,1);
