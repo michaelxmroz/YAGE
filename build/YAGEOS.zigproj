@@ -271,5 +271,6 @@
   <Target Name="ReBuild" DependsOnTargets="Clean;Build">
   </Target>
   <Target Name="AllProjectOutputGroups" />
+  <Target Name="BuildWithOutBuildDotZig" Condition="'$(UseBuildDotZig)' == 'false'" Inputs="@(Compile);@(ClCompile);@(Content)" Outputs="$(OutDir)$(OutputName)" />
   <!-- clear target defined in Microsoft.CppBuild.targets to avoid OutputGroup.cs DebugAssert()-->
 </Project>
