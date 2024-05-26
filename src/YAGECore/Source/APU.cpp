@@ -58,7 +58,7 @@ typedef AudioChannel<NoSweep, PulseFrequency, Length, Envelope, PulseAmplitude> 
 typedef AudioChannel<NoSweep, WaveFrequency, Length, NoEnvelope, WaveAmplitude> Channel3;
 typedef AudioChannel<NoSweep, NoiseFrequency, Length, Envelope, NoiseAmplitude> Channel4;
 
-namespace APU_Internal
+namespace
 {
 	void TriggerChannel(Memory& memory, ChannelData& data, uint32_t index)
 	{
@@ -220,7 +220,7 @@ APU::APU(GamestateSerializer* serializer) : ISerializable(serializer)
 
 void APU::Init(Memory& memory)
 {
-	APU_Internal::SetupRegisterBitsOverrides(memory);
+	SetupRegisterBitsOverrides(memory);
 
 	memory.RegisterCallback(AUDIO_MASTER_CONTROL_REGISTER, CheckForReset, this);
 
@@ -235,9 +235,9 @@ void APU::Init(Memory& memory)
 	memory.RegisterCallback(CHANNEL2_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 	memory.RegisterCallback(CHANNEL4_ENVELOPE_REGISTER, SetChannelsDACActive, this);
 
-	APU_Internal::ResetAudioRegistersToBootValues(memory);
+	ResetAudioRegistersToBootValues(memory);
 
-	APU_Internal::InitWaveRamToDefaults(memory);
+	InitWaveRamToDefaults(memory);
 
 	memory.RegisterCallback(CHANNEL1_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
 	memory.RegisterCallback(CHANNEL2_CONTROL_FREQ_HIGH_REGISTER, IsChannelTriggered, this);
@@ -332,7 +332,7 @@ uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 		sample.m_right /= sample.m_activeChannels;
 	}
 	
-	APU_Internal::UpdateMasterVolume(memory, sample);
+	UpdateMasterVolume(memory, sample);
 
 	GenerateSamples(m_externalAudioBuffer, sample, m_HPFLeft, m_HPFRight);
 
@@ -497,10 +497,10 @@ void APU::IsChannelTriggered(Memory* memory, uint16_t addr, uint8_t prevValue, u
 				SetChannelActive(*memory, channel, true);
 			}
 
-			APU_Internal::TriggerChannel(*memory, apu->m_channels[i], i);
+			TriggerChannel(*memory, apu->m_channels[i], i);
 		}	
 
-		APU_Internal::CheckForLengthEnableBug(apu->m_frameSequencerStep, newValue, prevValue, resetLength, channel, triggered, memory);
+		CheckForLengthEnableBug(apu->m_frameSequencerStep, newValue, prevValue, resetLength, channel, triggered, memory);
 		
 		break;
 	}

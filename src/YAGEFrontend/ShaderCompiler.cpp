@@ -9,7 +9,7 @@
 
 namespace ShaderCompiler
 {
-    namespace ShaderCompilerInternal
+    namespace
     {
         const char* PREPROCESSOR_DEFINES[static_cast<uint32_t>(Types::COUNT)] =
         {
@@ -81,7 +81,7 @@ namespace ShaderCompiler
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
 
-        const char* preprocessor = ShaderCompilerInternal::GetPreprocessorDefines(type);
+        const char* preprocessor = GetPreprocessorDefines(type);
         if (preprocessor != nullptr)
         {
             options.AddMacroDefinition(preprocessor, "1");
@@ -92,7 +92,7 @@ namespace ShaderCompiler
             options.SetOptimizationLevel(shaderc_optimization_level_size);
         }
 
-        shaderc_shader_kind kind = ShaderCompilerInternal::GetShaderKindFromType(type);
+        shaderc_shader_kind kind = GetShaderKindFromType(type);
 
         shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(shaderBlob.data(),shaderBlob.size(), kind, name, options);
 
@@ -111,10 +111,10 @@ namespace ShaderCompiler
         CombinedShaderBinary shaders;
         std::string strippedName = FileParser::StripFileEnding(name);
         std::string fmt("%s/%s_%s.%s");
-        std::string vsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), ShaderCompilerInternal::PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Vertex)], SHADER_CACHE_SUFFIX);
-        std::string fsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), ShaderCompilerInternal::PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Fragment)], SHADER_CACHE_SUFFIX);
+        std::string vsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Vertex)], SHADER_CACHE_SUFFIX);
+        std::string fsCacheName = string_format(fmt, SHADER_CACHE_DIR, strippedName.c_str(), PREPROCESSOR_DEFINES[static_cast<uint32_t>(ShaderCompiler::Types::Fragment)], SHADER_CACHE_SUFFIX);
 
-        if (ShaderCompilerInternal::ReadShaderCache(vsCacheName, fsCacheName, shaders))
+        if (ReadShaderCache(vsCacheName, fsCacheName, shaders))
         {
             return shaders;
         }
@@ -129,7 +129,7 @@ namespace ShaderCompiler
         shaders.m_vs = ShaderCompiler::Compile(name, shaderBlob, ShaderCompiler::Types::Vertex);
         shaders.m_fs = ShaderCompiler::Compile(name, shaderBlob, ShaderCompiler::Types::Fragment);
 
-        ShaderCompilerInternal::WriteShaderCache(vsCacheName, fsCacheName, shaders);
+        WriteShaderCache(vsCacheName, fsCacheName, shaders);
 
         return shaders;
     }

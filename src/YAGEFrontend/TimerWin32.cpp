@@ -1,7 +1,7 @@
 #include "TimerWin32.h"
 #include "synchapi.h"
 
-namespace TimerWin32Internal
+namespace
 {
     inline void WinSleep(uint32_t ms) {
         if (ms == 0) {
@@ -65,11 +65,11 @@ void TimerWin32::Limit(int64_t microSeconds)
             if (sleepUs > 2000) 
             {
                 uint32_t ms = static_cast<uint32_t>((sleepUs - 2000) / 1000);
-                TimerWin32Internal::WinSleep(ms);
+                WinSleep(ms);
             }
             else 
             {
-                TimerWin32Internal::WinSleep(0);
+                WinSleep(0);
             }
         }
     }

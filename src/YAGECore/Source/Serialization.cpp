@@ -6,7 +6,7 @@
 #define HEADER_MAGIC_TOKEN 4242
 #define HEADER_CURRENT_VERSION 1
 
-namespace Serializer_Internal
+namespace
 {
 	struct FileHeader
 	{
@@ -175,7 +175,7 @@ void SerializationFactory::Finish(std::vector<uint8_t>& dataOut)
 		return;
 	}
 
-	uint32_t headerSize = sizeof(Serializer_Internal::FileHeader);
+	uint32_t headerSize = sizeof(FileHeader);
 	uint32_t romNameSize = SERIALIZER_HEADER_NAME_MAXLENGTH;
 	uint32_t chunkSize = sizeof(Chunk) * static_cast<uint32_t>(m_chunks.size());
 	uint32_t dataSize = static_cast<uint32_t>(m_data.size());
@@ -183,7 +183,7 @@ void SerializationFactory::Finish(std::vector<uint8_t>& dataOut)
 	uint32_t totalSize = headerSize + romNameSize + chunkSize + dataSize;
 	dataOut.resize(totalSize);
 
-	Serializer_Internal::FileHeader& header = Serializer_Internal::WriteHeader(m_parameters.m_dataName, m_parameters.m_version, dataOut);
+	FileHeader& header = WriteHeader(m_parameters.m_dataName, m_parameters.m_version, dataOut);
 
 	header.m_romChecksum = m_parameters.m_romChecksum;
 	header.m_romNameStartOffset = headerSize;
@@ -214,9 +214,9 @@ DeserializationFactory::DeserializationFactory(SerializationParameters parameter
 {
 	//TODO also compare header file names & version
 
-	Serializer_Internal::FileHeader header = Serializer_Internal::ParseHeader(buffer);
+	FileHeader header = ParseHeader(buffer);
 
-	uint32_t expectedSize = sizeof(Serializer_Internal::FileHeader) + header.m_romNameLength + header.m_chunkSize + header.m_dataSize;
+	uint32_t expectedSize = sizeof(FileHeader) + header.m_romNameLength + header.m_chunkSize + header.m_dataSize;
 
 	if (size != expectedSize)
 	{

@@ -15,7 +15,7 @@ const uint32_t TIMER_SPEED_BITS[4]
 	128
 };
 
-namespace Helpers
+namespace
 {
 	FORCE_INLINE bool IsTimerEnabled(Memory& memory)
 	{
@@ -59,8 +59,8 @@ void Timer::Increment(uint32_t mCycles, Memory& memory)
 {
 	uint32_t cyclesToStep = mCycles * MCYCLES_TO_CYCLES;
 
-	bool isTimerEnabled = Helpers::IsTimerEnabled(memory);
-	uint16_t timerBits = Helpers::GetTimerFrequency(memory);
+	bool isTimerEnabled = IsTimerEnabled(memory);
+	uint16_t timerBits = GetTimerFrequency(memory);
 
 	while (cyclesToStep > 0)
 	{

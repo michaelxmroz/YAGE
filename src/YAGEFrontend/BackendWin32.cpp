@@ -33,7 +33,7 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 extern void ResizeWindowProcHandler(void* userData, bool isMinimizing);
 
-namespace Win32Internal
+namespace
 {
     std::string ConvertUTF16ToUTF8(const std::wstring& utf16String)
     {
@@ -170,14 +170,14 @@ namespace Win32Internal
         // Set the options on the dialog.
         DWORD dwFlags;
         // Before setting, always get the options first in order not to override existing options.
-        Win32Internal::check_winapi_result(pfd->GetOptions(&dwFlags));
+        check_winapi_result(pfd->GetOptions(&dwFlags));
 
         // In this case, get shell items only for file system items.
-        Win32Internal::check_winapi_result(pfd->SetOptions(dwFlags | options));
+        check_winapi_result(pfd->SetOptions(dwFlags | options));
 
         // Set the file types to display only. Notice that, this is a 1-based array.
         const COMDLG_FILTERSPEC c_rgTypes[] = { fileTypeDescription, fileTypeEndings };
-        Win32Internal::check_winapi_result(pfd->SetFileTypes(ARRAYSIZE(c_rgTypes), c_rgTypes));
+        check_winapi_result(pfd->SetFileTypes(ARRAYSIZE(c_rgTypes), c_rgTypes));
 
         // Show the dialog
         HRESULT hr = pfd->Show(NULL);
@@ -194,7 +194,7 @@ namespace Win32Internal
                 hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
                 if (SUCCEEDED(hr))
                 {
-                    result = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
+                    result = ConvertUTF16ToUTF8(pszFilePath);
                 }
                 CoTaskMemFree(pszFilePath);
                 psiResult->Release();
@@ -217,7 +217,7 @@ void BackendWin32::InitWindow(uint32_t width, uint32_t height, void* userData)
     m_data.m_icon = LoadIcon(instanceID, MAKEINTRESOURCE(IDI_ICON1)); // IDI_MYICON is the resource ID of your small icon
     m_data.m_renderer = userData;
 
-    m_window.m_hwnd = Win32Internal::CreateWin32Window(width, height, instanceID, &m_data);
+    m_window.m_hwnd = CreateWin32Window(width, height, instanceID, &m_data);
 }
 
 
@@ -316,9 +316,9 @@ std::string BackendWin32::OpenFileLoadDialog(const wchar_t* fileTypeDescription,
 {
     IFileDialog* pfd = NULL;
 
-    Win32Internal::check_winapi_result(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
+    check_winapi_result(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
 
-    std::string result = Win32Internal::OpenFileDialog(pfd, FOS_FORCEFILESYSTEM, fileTypeDescription, fileTypeEndings);
+    std::string result = OpenFileDialog(pfd, FOS_FORCEFILESYSTEM, fileTypeDescription, fileTypeEndings);
     pfd->Release();
 
     return result;
@@ -328,10 +328,10 @@ std::string BackendWin32::OpenFileSaveDialog(const wchar_t* fileTypeDescription,
 {
     IFileSaveDialog* pfd = NULL;
 
-    Win32Internal::check_winapi_result(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
+    check_winapi_result(CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd)));
     pfd->SetDefaultExtension(fileExtension);
 
-    std::string result = Win32Internal::OpenFileDialog(pfd, NULL, fileTypeDescription, fileTypeEndings);
+    std::string result = OpenFileDialog(pfd, NULL, fileTypeDescription, fileTypeEndings);
     pfd->Release();
 
     return result;
@@ -341,7 +341,7 @@ std::string BackendWin32::GetPersistentDataPath()
 {
     PWSTR pszFilePath = NULL;
     SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &pszFilePath);
-    std::string path = Win32Internal::ConvertUTF16ToUTF8(pszFilePath);
+    std::string path = ConvertUTF16ToUTF8(pszFilePath);
     CoTaskMemFree(pszFilePath);
     return path;
 }

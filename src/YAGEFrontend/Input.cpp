@@ -2,7 +2,7 @@
 #include "Backend.h"
 
 
-namespace InputHandler_Internal
+namespace
 {
 
 	InputActions RawInputToAction(uint32_t rawInput, const std::unordered_map<uint32_t, InputActions>& inputMap)
@@ -81,7 +81,7 @@ void InputHandler::Update(EngineData& data, const std::unordered_map<uint32_t, b
 {
 	for (auto& rawInputs : rawInputEvents)
 	{
-		InputActions action = InputHandler_Internal::RawInputToAction(rawInputs.first, m_inputMap);
+		InputActions action = RawInputToAction(rawInputs.first, m_inputMap);
 		bool isPressed = rawInputs.second;
 		UpdateButtonStates(action, isPressed);
 

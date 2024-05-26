@@ -49,7 +49,7 @@ const StatFlags ModeIndexToStatFlags[3]
 	StatFlags::Mode2Interrupt
 };
 
-namespace PPUHelpers
+namespace
 {
 	RGBA ResolvePixelColor(uint8_t colorIndex, uint16_t paletteAddr, Memory& memory)
 	{
@@ -135,7 +135,7 @@ void PPU::Init(Memory& memory)
 //TODO handle stat blocking for interrupts
 void PPU::Render(uint32_t mCycles, Memory& memory)
 {
-	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
+	if (!IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
 		return;
 	}
@@ -149,7 +149,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	{
 		data.m_previousState = data.m_state;
 		data.m_cyclesSinceStateChange = 0;
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+		ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
 
@@ -183,7 +183,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				processedCycles += 2;
 
-				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
+				if (IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
 					if (data.m_totalCycles % 2 != 0)
 					{
@@ -209,7 +209,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::VBlank:
 			{
-				if (PPUHelpers::IsNewScanline(totalCycles, data.m_lineY, memory))
+				if (IsNewScanline(totalCycles, data.m_lineY, memory))
 				{
 					if (data.m_lineY == 0)
 					{
@@ -244,11 +244,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	memory.WriteIO(LY_REGISTER, writtenLine);
 	if (writtenLine == memory.ReadIO(LYC_REGISTER))
 	{
-		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
+		SetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 	else
 	{
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+		ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
 
@@ -256,11 +256,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	{
 		if ((data.m_state == PPUState::OAMScan || data.m_state == PPUState::VBlank) && writtenLine == memory.ReadIO(LYC_REGISTER))
 		{
-			if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
+			if (IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
 			{
 				Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 			}
-			PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
+			SetStatFlag(StatFlags::LCYEqLC, memory);
 		}
 
 		if (data.m_state == PPUState::VBlank)
@@ -268,12 +268,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
 		}
 
-		if (PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
+		if (IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
 		{
 			Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 		}
 
-		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+		SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
 	}
 
 	data.m_cycleDebt =  targetCycles - processedCycles;
@@ -322,7 +322,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_lineSpriteCount = 0;
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
-	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
+	data.m_windowState = IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 	memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
 	data.m_state = PPUState::OAMScan;
 }
@@ -334,7 +334,7 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_totalCycles = 4; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
+	SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 }
@@ -432,9 +432,9 @@ void PPU::RenderNextPixel(Memory& memory)
 	if (data.m_spriteFIFO.Size() > 0)
 	{
 		Pixel spritePixel = data.m_spriteFIFO.Pop();
-		RGBA spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
+		RGBA spritePixelColor = ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
 
-		if (PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
+		if (IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
 			(spritePixel.m_color != 0 && (!spritePixel.m_backgroundPriority || pixelColor == SCREEN_COLORS[0])))
 		{
 			pixelColor = spritePixelColor;
@@ -451,7 +451,7 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
 	uint8_t oamEntry = (positionInLine / 2);
 
 	SpriteAttributes attr = memory.ReadOAMEntry(oamEntry);
-	bool doubleSize = PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjSize, memory);
+	bool doubleSize = IsControlFlagSet(LCDControlFlags::ObjSize, memory);
 	uint8_t doubleSizeAdjustment = doubleSize ? 0 : SPRITE_SINGLE_SIZE;
 
 	bool isInLine = data.m_lineY + doubleSizeAdjustment < attr.m_posY && data.m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY;

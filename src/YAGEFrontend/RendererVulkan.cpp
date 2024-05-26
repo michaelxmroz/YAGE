@@ -39,7 +39,7 @@ void ResizeWindowProcHandler(void* userData, bool isMinimizing)
 	}
 }
 
-namespace RendererVulkanInternal
+namespace
 {
 	struct SwapChainSupportDetails 
 	{
@@ -539,7 +539,7 @@ void RendererVulkan::CreateInstance()
 	active_instance_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-	if (!RendererVulkanInternal::ValidateExtensions(active_instance_extensions, instance_extensions))
+	if (!ValidateExtensions(active_instance_extensions, instance_extensions))
 	{
 		throw std::runtime_error("Required instance extensions are missing.");
 	}
@@ -571,7 +571,7 @@ void RendererVulkan::CreateInstance()
 #if VALIDATION_LAYERS
 	validationLayers.push_back("VK_LAYER_KHRONOS_validation");
 
-	if (RendererVulkanInternal::ValidateLayers(validationLayers, supported_validation_layers))
+	if (ValidateLayers(validationLayers, supported_validation_layers))
 	{
 		LOG_INFO("Enabled Validation Layers:")
 			for (const auto& layer : validationLayers)
@@ -607,7 +607,7 @@ void RendererVulkan::SelectPhysicalDevice()
 	VK_CHECK(vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data()));
 
 	for (const auto& device : devices) {
-		if (RendererVulkanInternal::IsDeviceSupported(device, m_surface)) {
+		if (IsDeviceSupported(device, m_surface)) {
 			m_physicalDevice = device;
 			break;
 		}
@@ -620,11 +620,11 @@ void RendererVulkan::SelectPhysicalDevice()
 
 void RendererVulkan::CreateLogicalDevice()
 {
-	RendererVulkanInternal::QueueFamilyIndices indices;
-	RendererVulkanInternal::FindQueueFamilies(m_physicalDevice, m_surface, indices);
+	QueueFamilyIndices indices;
+	FindQueueFamilies(m_physicalDevice, m_surface, indices);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	std::set<uint32_t> uniqueQueueFamilies = { indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Graphics), indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Present) };
+	std::set<uint32_t> uniqueQueueFamilies = { indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Graphics), indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Present) };
 
 	float queuePriority = 1.0f;
 	for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -653,17 +653,17 @@ void RendererVulkan::CreateLogicalDevice()
 
 	VK_CHECK(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_logicalDevice));
 
-	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Graphics), 0, &m_graphicsQueue);
-	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Present), 0, &m_presentQueue);
+	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Graphics), 0, &m_graphicsQueue);
+	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Present), 0, &m_presentQueue);
 }
 
 void RendererVulkan::CreateSwapChain()
 {
-	RendererVulkanInternal::SwapChainSupportDetails swapChainSupport = RendererVulkanInternal::QuerySwapChainSupport(m_physicalDevice, m_surface);
+	SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_physicalDevice, m_surface);
 
-	VkSurfaceFormatKHR surfaceFormat = RendererVulkanInternal::ChooseSwapSurfaceFormat(swapChainSupport.formats);
-	VkPresentModeKHR presentMode = RendererVulkanInternal::ChooseSwapPresentMode(swapChainSupport.presentModes);
-	VkExtent2D extent = RendererVulkanInternal::ChooseSwapExtent(swapChainSupport.capabilities, m_scaledWidth, m_scaledHeight);
+	VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+	VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+	VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities, m_scaledWidth, m_scaledHeight);
 
 	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
@@ -680,9 +680,9 @@ void RendererVulkan::CreateSwapChain()
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	RendererVulkanInternal::QueueFamilyIndices indices;
-	RendererVulkanInternal::FindQueueFamilies(m_physicalDevice, m_surface, indices);
-	uint32_t queueFamilyIndices[] = { indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Graphics), indices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Present) };
+	QueueFamilyIndices indices;
+	FindQueueFamilies(m_physicalDevice, m_surface, indices);
+	uint32_t queueFamilyIndices[] = { indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Graphics), indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Present) };
 
 	if (queueFamilyIndices[0] != queueFamilyIndices[1]) {
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -777,8 +777,8 @@ void RendererVulkan::CreateGraphicsPipeline()
 {
 	ShaderCompiler::CombinedShaderBinary shaders = ShaderCompiler::GetCompiledShaders(m_mainShaderName);
 
-	VkShaderModule vertShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, shaders.m_vs);
-	VkShaderModule fragShaderModule = RendererVulkanInternal::CreateShaderModule(m_logicalDevice, shaders.m_fs);
+	VkShaderModule vertShaderModule = CreateShaderModule(m_logicalDevice, shaders.m_vs);
+	VkShaderModule fragShaderModule = CreateShaderModule(m_logicalDevice, shaders.m_fs);
 
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
 	vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -794,8 +794,8 @@ void RendererVulkan::CreateGraphicsPipeline()
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
-	VkVertexInputBindingDescription bindingDescription = RendererVulkanInternal::GetVertexBindingDescription();
-	auto attributeDescriptions = RendererVulkanInternal::GetVertexAttributeDescriptions();
+	VkVertexInputBindingDescription bindingDescription = GetVertexBindingDescription();
+	auto attributeDescriptions = GetVertexAttributeDescriptions();
 
 	vertexInputInfo.vertexBindingDescriptionCount = 1;
 	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
@@ -907,11 +907,11 @@ void RendererVulkan::CreateFramebuffers()
 
 void RendererVulkan::CreateCommandPool()
 {
-	RendererVulkanInternal::QueueFamilyIndices queueFamilyIndices;
-	RendererVulkanInternal::FindQueueFamilies(m_physicalDevice, m_surface, queueFamilyIndices);
+	QueueFamilyIndices queueFamilyIndices;
+	FindQueueFamilies(m_physicalDevice, m_surface, queueFamilyIndices);
 
 	VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-	poolInfo.queueFamilyIndex = queueFamilyIndices.GetFamilyIndex(RendererVulkanInternal::QueueFamilyIndices::QueueTypes::Graphics);
+	poolInfo.queueFamilyIndex = queueFamilyIndices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Graphics);
 	m_graphicsQueueFamilyIndex = poolInfo.queueFamilyIndex;
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
@@ -990,7 +990,7 @@ void RendererVulkan::CreateDescriptorSets()
 void RendererVulkan::CreateVertexBuffer()
 {
 	uint32_t size = sizeof(Vertex) * 4;
-	RendererVulkanInternal::CreateBuffer(m_logicalDevice, m_physicalDevice, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_vertexBuffer, m_vertexBufferMemory);
+	CreateBuffer(m_logicalDevice, m_physicalDevice, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_vertexBuffer, m_vertexBufferMemory);
 
 	void* data;
 	vkMapMemory(m_logicalDevice, m_vertexBufferMemory, 0, size, 0, &data);
@@ -1001,7 +1001,7 @@ void RendererVulkan::CreateVertexBuffer()
 void RendererVulkan::CreateTextureImage()
 {
 	VkDeviceSize imageSize = m_sourceWidth * m_sourceHeight * 4;
-	RendererVulkanInternal::CreateBuffer(m_logicalDevice, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_imageUploadBuffer, m_imageUploadBufferMemory);
+	CreateBuffer(m_logicalDevice, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_imageUploadBuffer, m_imageUploadBufferMemory);
 
 	void* data;
 	vkMapMemory(m_logicalDevice, m_imageUploadBufferMemory, 0, imageSize, 0, &data);
@@ -1030,19 +1030,19 @@ void RendererVulkan::CreateTextureImage()
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = RendererVulkanInternal::FindMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	allocInfo.memoryTypeIndex = FindMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	vkAllocateMemory(m_logicalDevice, &allocInfo, nullptr, &m_textureImageMemory);
 	vkBindImageMemory(m_logicalDevice, m_textureImage, m_textureImageMemory, 0);
 
 	VkCommandBuffer cb1 = BeginRecording();
-	RendererVulkanInternal::TransitionImageLayout(cb1, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	TransitionImageLayout(cb1, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	EndRecording(cb1);
 	VkCommandBuffer cb2 = BeginRecording();
-	RendererVulkanInternal::CopyBufferToImage(cb2, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
+	CopyBufferToImage(cb2, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
 	EndRecording(cb2);
 	VkCommandBuffer cb3 = BeginRecording();
-	RendererVulkanInternal::TransitionImageLayout(cb3, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	TransitionImageLayout(cb3, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	EndRecording(cb3);
 }
 
@@ -1167,7 +1167,7 @@ void RendererVulkan::EndRecording(VkCommandBuffer buffer)
 void RendererVulkan::CreateIndexBuffer()
 {
 	uint32_t size = sizeof(uint16_t) * 6;
-	RendererVulkanInternal::CreateBuffer(m_logicalDevice, m_physicalDevice, size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indexBuffer, m_indexBufferMemory);
+	CreateBuffer(m_logicalDevice, m_physicalDevice, size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indexBuffer, m_indexBufferMemory);
 
 	void* data;
 	vkMapMemory(m_logicalDevice, m_indexBufferMemory, 0, size, 0, &data);
@@ -1180,7 +1180,7 @@ void RendererVulkan::Init()
 	m_backend.InitWindow(m_scaledWidth, m_scaledHeight, this);
     CreateInstance();
 #if VALIDATION_LAYERS
-	RendererVulkanInternal::InitValidationCallback(m_instance, m_debugMessenger);
+	InitValidationCallback(m_instance, m_debugMessenger);
 #endif
 
 	m_backend.CreateSurface(m_instance, m_surface);
@@ -1311,9 +1311,9 @@ bool RendererVulkan::BeginDraw(const void* renderedImage)
 	vkCmdSetScissor(activeBuffer, 0, 1, &scissor);
 
 	
-	RendererVulkanInternal::TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	RendererVulkanInternal::CopyBufferToImage(activeBuffer, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
-	RendererVulkanInternal::TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	CopyBufferToImage(activeBuffer, m_imageUploadBuffer, m_textureImage, m_sourceWidth, m_sourceHeight);
+	TransitionImageLayout(activeBuffer, m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 	renderPassInfo.renderPass = m_renderPass;

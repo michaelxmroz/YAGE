@@ -22,7 +22,7 @@
 #define PERSISTENT_DATA_NAME "GameboySavegame"
 #define PERSISTENT_DATA_VERSION 1
 
-namespace MBC_Internal
+namespace
 {
 	namespace MBC1
 	{
@@ -222,10 +222,10 @@ MemoryBankController::MemoryBankController()
 MemoryBankController::MemoryBankController(GamestateSerializer* serializer, const char* rom, uint32_t size)
 	: ISerializable(serializer)
 	, m_type(GetTypeFromHeaderCode(rom[HEADER_CARTRIDGE_TYPE]))
-	, m_hasRTC(m_type == Type::MBC3 && MBC_Internal::MBC3::HasRTC(rom[HEADER_CARTRIDGE_TYPE]))
+	, m_hasRTC(m_type == Type::MBC3 && MBC3::HasRTC(rom[HEADER_CARTRIDGE_TYPE]))
 	, m_registers()
 	, m_romBankCount(static_cast<uint16_t>(pow(2, rom[HEADER_ROM_SIZE] + 1)))
-	, m_ramBankCount(MBC_Internal::GetRAMBankCountFromHeader(rom[HEADER_RAM_SIZE]))
+	, m_ramBankCount(GetRAMBankCountFromHeader(rom[HEADER_RAM_SIZE]))
 	, m_onRamSave(nullptr)
 {
 
@@ -252,11 +252,11 @@ void MemoryBankController::WriteRegister(uint16_t addr, uint8_t value)
 	case Type::None:
 		break;
 	case Type::MBC1:
-		MBC_Internal::MBC1::WriteRegister(addr, value, m_registers);
+		MBC1::WriteRegister(addr, value, m_registers);
 	case Type::MBC3:
-		MBC_Internal::MBC3::WriteRegister(addr, value, m_registers, m_hasRTC);
+		MBC3::WriteRegister(addr, value, m_registers, m_hasRTC);
 	case Type::MBC5:
-		MBC_Internal::MBC5::WriteRegister(addr, value, m_registers);
+		MBC5::WriteRegister(addr, value, m_registers);
 	}
 	
 	if (m_ram != nullptr && !m_registers.m_isRAMEnabled && previousRamEnable)
@@ -318,11 +318,11 @@ uint32_t MemoryBankController::GetRAMAddr(uint16_t addr) const
 	case Type::None:
 		return addr - EXTERNAL_RAM_BEGIN;
 	case Type::MBC1:
-		return MBC_Internal::MBC1::GetRAMAddr(addr, m_registers);
+		return MBC1::GetRAMAddr(addr, m_registers);
 	case Type::MBC3:
-		return MBC_Internal::MBC3::GetRAMAddr(addr, m_registers);
+		return MBC3::GetRAMAddr(addr, m_registers);
 	case Type::MBC5:
-		return MBC_Internal::MBC5::GetRAMAddr(addr, m_registers);
+		return MBC5::GetRAMAddr(addr, m_registers);
 	}
 	
 	return addr;
@@ -335,11 +335,11 @@ uint32_t MemoryBankController::GetROMAddr(uint16_t addr) const
 	case Type::None:
 		return addr;
 	case Type::MBC1:
-		return MBC_Internal::MBC1::GetROMAddr(addr, m_registers, m_romBankCount);
+		return MBC1::GetROMAddr(addr, m_registers, m_romBankCount);
 	case Type::MBC3:
-		return MBC_Internal::MBC3::GetROMAddr(addr, m_registers, m_romBankCount);
+		return MBC3::GetROMAddr(addr, m_registers, m_romBankCount);
 	case Type::MBC5:
-		return MBC_Internal::MBC5::GetROMAddr(addr, m_registers, m_romBankCount);
+		return MBC5::GetROMAddr(addr, m_registers, m_romBankCount);
 	}
 
 	return addr;

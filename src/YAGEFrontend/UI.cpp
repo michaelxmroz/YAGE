@@ -49,7 +49,7 @@ const ImVec4 logMessageColors[3] =
 	ImVec4(1.0f, 0.0f, 0.0f, 1.0f)  //ERROR
 };
 
-namespace UI_Internal
+namespace
 {
 
     ImVec4 GetColorForLogLevel(Logger::LogLevel level)
@@ -566,14 +566,14 @@ void UI::Prepare(EngineData& data)
     bool show = true;
     //ImGui::ShowDemoWindow(&show);
 
-    UI_Internal::DrawMainMenuBar(m_state, data);
+    DrawMainMenuBar(m_state, data);
 
-    UI_Internal::DrawLogWindow(m_state);
+    DrawLogWindow(m_state);
 
-    UI_Internal::ShowSystemOptions(m_state, data);
-    UI_Internal::ShowGraphicsOptions(m_state, data);
-    UI_Internal::ShowAudioOptions(m_state, data);
-    UI_Internal::ShowInputOptions(m_state, data);
+    ShowSystemOptions(m_state, data);
+    ShowGraphicsOptions(m_state, data);
+    ShowAudioOptions(m_state, data);
+    ShowInputOptions(m_state, data);
 
     if (m_state.m_submenuState.HasOpened() && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
     {

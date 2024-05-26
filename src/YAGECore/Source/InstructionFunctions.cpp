@@ -5,7 +5,7 @@
 
 namespace InstructionFunctions
 {
-	namespace Helpers
+	namespace
 	{
 		FORCE_INLINE uint16_t u16(uint8_t lsb, uint8_t msb)
 		{
@@ -91,14 +91,14 @@ namespace InstructionFunctions
 		{
 			uint8_t prevReg = operand1;
 			operand1 += operand2;
-			Helpers::SetFlags(prevReg, operand2, operand1, false, registers);
+			SetFlags(prevReg, operand2, operand1, false, registers);
 		}
 
 		FORCE_INLINE void Subtraction(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t prevReg = operand1;
 			operand1 -= operand2;
-			Helpers::SetFlags(prevReg, operand2, operand1, true, registers);
+			SetFlags(prevReg, operand2, operand1, true, registers);
 		}
 
 		FORCE_INLINE void CompareSubtraction(uint8_t operand1, uint8_t operand2, Registers* registers)
@@ -110,10 +110,10 @@ namespace InstructionFunctions
 		FORCE_INLINE void SubtractionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
-			Helpers::Subtraction(operand1, cy, registers);
+			Subtraction(operand1, cy, registers);
 			uint8_t tmpCy = registers->GetFlag(Registers::Flags::cy);
 			uint8_t tmpH = registers->GetFlag(Registers::Flags::h);
-			Helpers::Subtraction(operand1, operand2, registers);
+			Subtraction(operand1, operand2, registers);
 			registers->OrFlag(Registers::Flags::cy, tmpCy);
 			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
@@ -121,10 +121,10 @@ namespace InstructionFunctions
 		FORCE_INLINE void AdditionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
-			Helpers::Addition(operand1, cy, registers);
+			Addition(operand1, cy, registers);
 			uint8_t tmpCy = registers->GetFlag(Registers::Flags::cy);
 			uint8_t tmpH = registers->GetFlag(Registers::Flags::h);
-			Helpers::Addition(operand1, operand2, registers);
+			Addition(operand1, operand2, registers);
 			registers->OrFlag(Registers::Flags::cy, tmpCy);
 			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
@@ -132,7 +132,7 @@ namespace InstructionFunctions
 		FORCE_INLINE void BitwiseAnd(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 & operand2;
-			Helpers::SetZeroFlag(operand1, registers);
+			SetZeroFlag(operand1, registers);
 			registers->SetFlag(Registers::Flags::h);
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::cy);
@@ -141,7 +141,7 @@ namespace InstructionFunctions
 		FORCE_INLINE void BitwiseXor(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 ^ operand2;
-			Helpers::SetZeroFlag(operand1, registers);
+			SetZeroFlag(operand1, registers);
 			registers->ResetFlag(Registers::Flags::h);
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::cy);
@@ -150,7 +150,7 @@ namespace InstructionFunctions
 		FORCE_INLINE void BitwiseOr(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 | operand2;
-			Helpers::SetZeroFlag(operand1, registers);
+			SetZeroFlag(operand1, registers);
 			registers->ResetFlag(Registers::Flags::h);
 			registers->ResetFlag(Registers::Flags::n);
 			registers->ResetFlag(Registers::Flags::cy);
@@ -441,13 +441,13 @@ InstructionResult InstructionFunctions::JP_NZ_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -463,13 +463,13 @@ InstructionResult InstructionFunctions::JP_Z_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -485,13 +485,13 @@ InstructionResult InstructionFunctions::JP_NC_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -507,13 +507,13 @@ InstructionResult InstructionFunctions::JP_C_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 	
@@ -529,13 +529,13 @@ InstructionResult InstructionFunctions::JP_nn(const char* mnemonic, InstructionT
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -558,19 +558,19 @@ InstructionResult InstructionFunctions::CALL_NZ_nn(const char* mnemonic, Instruc
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (!registers->IsFlagSet(Registers::Flags::zf))
 	{
-		return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
+		return Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
 	}
 	return InstructionResult::Finished;
 }
@@ -579,19 +579,19 @@ InstructionResult InstructionFunctions::CALL_Z_nn(const char* mnemonic, Instruct
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (registers->IsFlagSet(Registers::Flags::zf))
 	{
-		return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
+		return Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
 	}
 	return InstructionResult::Finished;
 }
@@ -600,19 +600,19 @@ InstructionResult InstructionFunctions::CALL_NC_nn(const char* mnemonic, Instruc
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (!registers->IsFlagSet(Registers::Flags::cy))
 	{
-		return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
+		return Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
 	}
 	return InstructionResult::Finished;
 }
@@ -621,19 +621,19 @@ InstructionResult InstructionFunctions::CALL_C_nn(const char* mnemonic, Instruct
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (registers->IsFlagSet(Registers::Flags::cy))
 	{
-		return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
+		return Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
 	}
 	return InstructionResult::Finished;
 }
@@ -642,57 +642,57 @@ InstructionResult InstructionFunctions::CALL_nn(const char* mnemonic, Instructio
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
-	return Helpers::Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
+	return Call(data.m_tmp_16, data.m_cycles - 2, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_00(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x00, data.m_cycles, registers, memory);
+	return Call(0x00, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_10(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x10, data.m_cycles, registers, memory);
+	return Call(0x10, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_20(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x20, data.m_cycles, registers, memory);
+	return Call(0x20, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_30(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x30, data.m_cycles, registers, memory);
+	return Call(0x30, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_08(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x08, data.m_cycles, registers, memory);
+	return Call(0x08, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_18(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x18, data.m_cycles, registers, memory);
+	return Call(0x18, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_28(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x28, data.m_cycles, registers, memory);
+	return Call(0x28, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RST_38(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Call(0x38, data.m_cycles, registers, memory);
+	return Call(0x38, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::RET_NZ(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
@@ -707,13 +707,13 @@ InstructionResult InstructionFunctions::RET_NZ(const char* mnemonic, Instruction
 	{
 		if (data.m_cycles == 1)
 		{
-			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 			return InstructionResult::Continue;
 		}
 
 		if (data.m_cycles == 2)
 		{
-			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 			return InstructionResult::Delay_2;
 		}
 	}
@@ -732,13 +732,13 @@ InstructionResult InstructionFunctions::RET_Z(const char* mnemonic, InstructionT
 	{
 		if (data.m_cycles == 1)
 		{
-			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 			return InstructionResult::Continue;
 		}
 
 		if (data.m_cycles == 2)
 		{
-			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 			return InstructionResult::Delay_2;
 		}
 	}
@@ -757,13 +757,13 @@ InstructionResult InstructionFunctions::RET_NC(const char* mnemonic, Instruction
 	{
 		if (data.m_cycles == 1)
 		{
-			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 			return InstructionResult::Continue;
 		}
 
 		if (data.m_cycles == 2)
 		{
-			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 			return InstructionResult::Delay_2;
 		}
 	}
@@ -782,13 +782,13 @@ InstructionResult InstructionFunctions::RET_C(const char* mnemonic, InstructionT
 	{
 		if (data.m_cycles == 1)
 		{
-			Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+			Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 			return InstructionResult::Continue;
 		}
 
 		if (data.m_cycles == 2)
 		{
-			registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+			registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 			return InstructionResult::Delay_2;
 		}
 	}
@@ -799,13 +799,13 @@ InstructionResult InstructionFunctions::RET(const char* mnemonic, InstructionTem
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Delay_2;
 	}
 
@@ -816,13 +816,13 @@ InstructionResult InstructionFunctions::RETI(const char* mnemonic, InstructionTe
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		registers->PC = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		registers->PC = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		registers->IMEF = true;
 		return InstructionResult::Delay_2;
 	}
@@ -1586,7 +1586,7 @@ InstructionResult InstructionFunctions::LDH_mn_A(const char* mnemonic, Instructi
 	}
 	else if (data.m_cycles == 1)
 	{
-		uint16_t addr = Helpers::u16(data.m_tmp_u8, 0xFF);
+		uint16_t addr = u16(data.m_tmp_u8, 0xFF);
 		memory.Write(addr, registers->A);
 		return InstructionResult::Continue;
 	}
@@ -1603,7 +1603,7 @@ InstructionResult InstructionFunctions::LDH_A_mn(const char* mnemonic, Instructi
 	}
 	else if (data.m_cycles == 1)
 	{
-		uint16_t addr = Helpers::u16(data.m_tmp_u8, 0xFF);
+		uint16_t addr = u16(data.m_tmp_u8, 0xFF);
 		registers->A = memory[addr];
 		return InstructionResult::Continue;
 	}
@@ -1615,7 +1615,7 @@ InstructionResult InstructionFunctions::LDH_mC_A(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		uint16_t addr = Helpers::u16(registers->C, 0xFF);
+		uint16_t addr = u16(registers->C, 0xFF);
 		memory.Write(addr, registers->A);
 		return InstructionResult::Continue;
 	}
@@ -1627,7 +1627,7 @@ InstructionResult InstructionFunctions::LDH_A_mC(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		uint16_t addr = Helpers::u16(registers->C, 0xFF);
+		uint16_t addr = u16(registers->C, 0xFF);
 		registers->A = memory[addr];
 		return InstructionResult::Continue;
 	}
@@ -1639,13 +1639,13 @@ InstructionResult InstructionFunctions::LD_mnn_A(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -1662,13 +1662,13 @@ InstructionResult InstructionFunctions::LD_A_mnn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 	
@@ -1688,7 +1688,7 @@ InstructionResult InstructionFunctions::INC_B(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->B;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 
 	
 	return InstructionResult::Finished;
@@ -1699,7 +1699,7 @@ InstructionResult InstructionFunctions::INC_D(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->D;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1709,7 +1709,7 @@ InstructionResult InstructionFunctions::INC_H(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->H;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1725,7 +1725,7 @@ InstructionResult InstructionFunctions::INC_mHL(const char* mnemonic, Instructio
 	{
 		uint8_t reg = data.m_tmp_u8 + 1;
 		memory.Write(registers->HL, reg);
-		Helpers::SetFlagsNoCarry(data.m_tmp_u8, 1, reg, false, registers);
+		SetFlagsNoCarry(data.m_tmp_u8, 1, reg, false, registers);
 		return InstructionResult::Continue;
 	}
 	
@@ -1737,7 +1737,7 @@ InstructionResult InstructionFunctions::INC_C(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->C;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 
 	
 	return InstructionResult::Finished;
@@ -1748,7 +1748,7 @@ InstructionResult InstructionFunctions::INC_E(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->E;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 
 	
 	return InstructionResult::Finished;
@@ -1759,7 +1759,7 @@ InstructionResult InstructionFunctions::INC_L(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->L;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 
 	
 	return InstructionResult::Finished;
@@ -1770,7 +1770,7 @@ InstructionResult InstructionFunctions::INC_A(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->A;
 	uint8_t prevReg = reg;
 	reg++;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, false, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, false, registers);
 
 	
 	return InstructionResult::Finished;
@@ -1781,7 +1781,7 @@ InstructionResult InstructionFunctions::DEC_B(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->B;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1791,7 +1791,7 @@ InstructionResult InstructionFunctions::DEC_D(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->D;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1801,7 +1801,7 @@ InstructionResult InstructionFunctions::DEC_H(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->H;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1817,7 +1817,7 @@ InstructionResult InstructionFunctions::DEC_mHL(const char* mnemonic, Instructio
 	{
 		uint8_t reg = data.m_tmp_u8 - 1;
 		memory.Write(registers->HL, reg);
-		Helpers::SetFlagsNoCarry(data.m_tmp_u8, 1, reg, true, registers);
+		SetFlagsNoCarry(data.m_tmp_u8, 1, reg, true, registers);
 		return InstructionResult::Continue;
 	}
 	
@@ -1829,7 +1829,7 @@ InstructionResult InstructionFunctions::DEC_C(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->C;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1839,7 +1839,7 @@ InstructionResult InstructionFunctions::DEC_E(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->E;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1849,7 +1849,7 @@ InstructionResult InstructionFunctions::DEC_L(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->L;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1859,7 +1859,7 @@ InstructionResult InstructionFunctions::DEC_A(const char* mnemonic, InstructionT
 	uint8_t& reg = registers->A;
 	uint8_t prevReg = reg;
 	reg--;
-	Helpers::SetFlagsNoCarry(prevReg, 1, reg, true, registers);
+	SetFlagsNoCarry(prevReg, 1, reg, true, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1875,42 +1875,42 @@ InstructionResult InstructionFunctions::CPL(const char* mnemonic, InstructionTem
 
 InstructionResult InstructionFunctions::ADD_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->B, registers);
+	Addition(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->C, registers);
+	Addition(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->D, registers);
+	Addition(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->E, registers);
+	Addition(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->H, registers);
+	Addition(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->L, registers);
+	Addition(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1923,56 +1923,56 @@ InstructionResult InstructionFunctions::ADD_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::Addition(registers->A, data.m_tmp_u8, registers);
+	Addition(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADD_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Addition(registers->A, registers->A, registers);
+	Addition(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->B, registers);
+	AdditionWithCarry(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->C, registers);
+	AdditionWithCarry(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->D, registers);
+	AdditionWithCarry(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->E, registers);
+	AdditionWithCarry(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->H, registers);
+	AdditionWithCarry(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->L, registers);
+	AdditionWithCarry(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -1985,56 +1985,56 @@ InstructionResult InstructionFunctions::ADC_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::AdditionWithCarry(registers->A, data.m_tmp_u8, registers);
+	AdditionWithCarry(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::ADC_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::AdditionWithCarry(registers->A, registers->A, registers);
+	AdditionWithCarry(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->B, registers);
+	Subtraction(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->C, registers);
+	Subtraction(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->D, registers);
+	Subtraction(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->E, registers);
+	Subtraction(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->H, registers);
+	Subtraction(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->L, registers);
+	Subtraction(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2047,56 +2047,56 @@ InstructionResult InstructionFunctions::SUB_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::Subtraction(registers->A, data.m_tmp_u8, registers);
+	Subtraction(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SUB_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::Subtraction(registers->A, registers->A, registers);
+	Subtraction(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->B, registers);
+	SubtractionWithCarry(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->C, registers);
+	SubtractionWithCarry(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->D, registers);
+	SubtractionWithCarry(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->E, registers);
+	SubtractionWithCarry(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->H, registers);
+	SubtractionWithCarry(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->L, registers);
+	SubtractionWithCarry(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2109,56 +2109,56 @@ InstructionResult InstructionFunctions::SBC_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SubtractionWithCarry(registers->A, data.m_tmp_u8, registers);
+	SubtractionWithCarry(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SBC_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SubtractionWithCarry(registers->A, registers->A, registers);
+	SubtractionWithCarry(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->B, registers);
+	BitwiseAnd(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->C, registers);
+	BitwiseAnd(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->D, registers);
+	BitwiseAnd(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->E, registers);
+	BitwiseAnd(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->H, registers);
+	BitwiseAnd(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->L, registers);
+	BitwiseAnd(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2171,56 +2171,56 @@ InstructionResult InstructionFunctions::AND_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseAnd(registers->A, data.m_tmp_u8, registers);
+	BitwiseAnd(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::AND_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseAnd(registers->A, registers->A, registers);
+	BitwiseAnd(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->B, registers);
+	BitwiseXor(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->C, registers);
+	BitwiseXor(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->D, registers);
+	BitwiseXor(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->E, registers);
+	BitwiseXor(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->H, registers);
+	BitwiseXor(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->L, registers);
+	BitwiseXor(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2233,56 +2233,56 @@ InstructionResult InstructionFunctions::XOR_A_mHL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseXor(registers->A, data.m_tmp_u8, registers);
+	BitwiseXor(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::XOR_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseXor(registers->A, registers->A, registers);
+	BitwiseXor(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->B, registers);
+	BitwiseOr(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->C, registers);
+	BitwiseOr(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->D, registers);
+	BitwiseOr(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->E, registers);
+	BitwiseOr(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->H, registers);
+	BitwiseOr(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->L, registers);
+	BitwiseOr(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2295,56 +2295,56 @@ InstructionResult InstructionFunctions::OR_A_mHL(const char* mnemonic, Instructi
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseOr(registers->A, data.m_tmp_u8, registers);
+	BitwiseOr(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::OR_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::BitwiseOr(registers->A, registers->A, registers);
+	BitwiseOr(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->B, registers);
+	CompareSubtraction(registers->A, registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->C, registers);
+	CompareSubtraction(registers->A, registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->D, registers);
+	CompareSubtraction(registers->A, registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->E, registers);
+	CompareSubtraction(registers->A, registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->H, registers);
+	CompareSubtraction(registers->A, registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->L, registers);
+	CompareSubtraction(registers->A, registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2357,14 +2357,14 @@ InstructionResult InstructionFunctions::CP_A_mHL(const char* mnemonic, Instructi
 		return InstructionResult::Continue;
 	}
 
-	Helpers::CompareSubtraction(registers->A, data.m_tmp_u8, registers);
+	CompareSubtraction(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::CP_A_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::CompareSubtraction(registers->A, registers->A, registers);
+	CompareSubtraction(registers->A, registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2377,7 +2377,7 @@ InstructionResult InstructionFunctions::ADD_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::Addition(registers->A, data.m_tmp_u8, registers);
+	Addition(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2390,7 +2390,7 @@ InstructionResult InstructionFunctions::SUB_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::Subtraction(registers->A, data.m_tmp_u8, registers);
+	Subtraction(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2403,7 +2403,7 @@ InstructionResult InstructionFunctions::AND_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseAnd(registers->A, data.m_tmp_u8, registers);
+	BitwiseAnd(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2416,7 +2416,7 @@ InstructionResult InstructionFunctions::OR_A_n(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseOr(registers->A, data.m_tmp_u8, registers);
+	BitwiseOr(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2429,7 +2429,7 @@ InstructionResult InstructionFunctions::ADC_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::AdditionWithCarry(registers->A, data.m_tmp_u8, registers);
+	AdditionWithCarry(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2442,7 +2442,7 @@ InstructionResult InstructionFunctions::SBC_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SubtractionWithCarry(registers->A, data.m_tmp_u8, registers);
+	SubtractionWithCarry(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2455,7 +2455,7 @@ InstructionResult InstructionFunctions::XOR_A_n(const char* mnemonic, Instructio
 		return InstructionResult::Continue;
 	}
 
-	Helpers::BitwiseXor(registers->A, data.m_tmp_u8, registers);
+	BitwiseXor(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2468,7 +2468,7 @@ InstructionResult InstructionFunctions::CP_A_n(const char* mnemonic, Instruction
 		return InstructionResult::Continue;
 	}
 
-	Helpers::CompareSubtraction(registers->A, data.m_tmp_u8, registers);
+	CompareSubtraction(registers->A, data.m_tmp_u8, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2492,7 +2492,7 @@ InstructionResult InstructionFunctions::DAA(const char* mnemonic, InstructionTem
 
 	registers->A &= 0xff;
 
-	Helpers::SetZeroFlag(registers->A, registers);
+	SetZeroFlag(registers->A, registers);
 	registers->ResetFlag(Registers::Flags::h);
 		
 	return InstructionResult::Finished;
@@ -2500,7 +2500,7 @@ InstructionResult InstructionFunctions::DAA(const char* mnemonic, InstructionTem
 
 InstructionResult InstructionFunctions::RLCA(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->A, registers);
+	RotateLeft(registers->A, registers);
 	registers->SetFlag(Registers::Flags::zf, 0);
 	
 	return InstructionResult::Finished;
@@ -2508,7 +2508,7 @@ InstructionResult InstructionFunctions::RLCA(const char* mnemonic, InstructionTe
 
 InstructionResult InstructionFunctions::RLA(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->A, registers);
+	RotateLeftWithCarry(registers->A, registers);
 	registers->SetFlag(Registers::Flags::zf, 0);
 	
 	return InstructionResult::Finished;
@@ -2516,7 +2516,7 @@ InstructionResult InstructionFunctions::RLA(const char* mnemonic, InstructionTem
 
 InstructionResult InstructionFunctions::RRCA(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->A, registers);
+	RotateRight(registers->A, registers);
 	registers->SetFlag(Registers::Flags::zf, 0);
 	
 	return InstructionResult::Finished;
@@ -2524,7 +2524,7 @@ InstructionResult InstructionFunctions::RRCA(const char* mnemonic, InstructionTe
 
 InstructionResult InstructionFunctions::RRA(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->A, registers);
+	RotateRightWithCarry(registers->A, registers);
 	registers->SetFlag(Registers::Flags::zf, 0);
 	
 	return InstructionResult::Finished;
@@ -2532,42 +2532,42 @@ InstructionResult InstructionFunctions::RRA(const char* mnemonic, InstructionTem
 
 InstructionResult InstructionFunctions::RLC_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->B, registers);
+	RotateLeft(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RLC_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->C, registers);
+	RotateLeft(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RLC_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->D, registers);
+	RotateLeft(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RLC_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->E, registers);
+	RotateLeft(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RLC_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->H, registers);
+	RotateLeft(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RLC_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->L, registers);
+	RotateLeft(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2581,7 +2581,7 @@ InstructionResult InstructionFunctions::RLC_mHL(const char* mnemonic, Instructio
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::RotateLeft(data.m_tmp_u8, registers);
+		RotateLeft(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2591,49 +2591,49 @@ InstructionResult InstructionFunctions::RLC_mHL(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::RLC_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeft(registers->A, registers);
+	RotateLeft(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->B, registers);
+	RotateRight(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->C, registers);
+	RotateRight(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->D, registers);
+	RotateRight(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->E, registers);
+	RotateRight(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->H, registers);
+	RotateRight(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RRC_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->L, registers);
+	RotateRight(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2647,7 +2647,7 @@ InstructionResult InstructionFunctions::RRC_mHL(const char* mnemonic, Instructio
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::RotateRight(data.m_tmp_u8, registers);
+		RotateRight(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2657,49 +2657,49 @@ InstructionResult InstructionFunctions::RRC_mHL(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::RRC_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRight(registers->A, registers);
+	RotateRight(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->B, registers);
+	RotateLeftWithCarry(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->C, registers);
+	RotateLeftWithCarry(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->D, registers);
+	RotateLeftWithCarry(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->E, registers);
+	RotateLeftWithCarry(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->H, registers);
+	RotateLeftWithCarry(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RL_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->L, registers);
+	RotateLeftWithCarry(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2713,7 +2713,7 @@ InstructionResult InstructionFunctions::RL_mHL(const char* mnemonic, Instruction
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::RotateLeftWithCarry(data.m_tmp_u8, registers);
+		RotateLeftWithCarry(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2723,49 +2723,49 @@ InstructionResult InstructionFunctions::RL_mHL(const char* mnemonic, Instruction
 
 InstructionResult InstructionFunctions::RL_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateLeftWithCarry(registers->A, registers);
+	RotateLeftWithCarry(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->B, registers);
+	RotateRightWithCarry(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->C, registers);
+	RotateRightWithCarry(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->D, registers);
+	RotateRightWithCarry(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->E, registers);
+	RotateRightWithCarry(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->H, registers);
+	RotateRightWithCarry(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RR_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->L, registers);
+	RotateRightWithCarry(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2779,7 +2779,7 @@ InstructionResult InstructionFunctions::RR_mHL(const char* mnemonic, Instruction
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::RotateRightWithCarry(data.m_tmp_u8, registers);
+		RotateRightWithCarry(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2789,49 +2789,49 @@ InstructionResult InstructionFunctions::RR_mHL(const char* mnemonic, Instruction
 
 InstructionResult InstructionFunctions::RR_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::RotateRightWithCarry(registers->A, registers);
+	RotateRightWithCarry(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->B, registers);
+	ShiftLeftArithmetic(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->C, registers);
+	ShiftLeftArithmetic(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->D, registers);
+	ShiftLeftArithmetic(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->E, registers);
+	ShiftLeftArithmetic(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->H, registers);
+	ShiftLeftArithmetic(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SLA_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->L, registers);
+	ShiftLeftArithmetic(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2845,7 +2845,7 @@ InstructionResult InstructionFunctions::SLA_mHL(const char* mnemonic, Instructio
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ShiftLeftArithmetic(data.m_tmp_u8, registers);
+		ShiftLeftArithmetic(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2855,49 +2855,49 @@ InstructionResult InstructionFunctions::SLA_mHL(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::SLA_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftLeftArithmetic(registers->A, registers);
+	ShiftLeftArithmetic(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->B, registers);
+	ShiftRightArithmetic(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->C, registers);
+	ShiftRightArithmetic(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->D, registers);
+	ShiftRightArithmetic(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->E, registers);
+	ShiftRightArithmetic(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->H, registers);
+	ShiftRightArithmetic(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRA_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->L, registers);
+	ShiftRightArithmetic(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2911,7 +2911,7 @@ InstructionResult InstructionFunctions::SRA_mHL(const char* mnemonic, Instructio
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ShiftRightArithmetic(data.m_tmp_u8, registers);
+		ShiftRightArithmetic(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2921,49 +2921,49 @@ InstructionResult InstructionFunctions::SRA_mHL(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::SRA_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightArithmetic(registers->A, registers);
+	ShiftRightArithmetic(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->B, registers);
+	SwapNibbles(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->C, registers);
+	SwapNibbles(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->D, registers);
+	SwapNibbles(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->E, registers);
+	SwapNibbles(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->H, registers);
+	SwapNibbles(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SWAP_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->L, registers);
+	SwapNibbles(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -2977,7 +2977,7 @@ InstructionResult InstructionFunctions::SWAP_mHL(const char* mnemonic, Instructi
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SwapNibbles(data.m_tmp_u8, registers);
+		SwapNibbles(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -2987,49 +2987,49 @@ InstructionResult InstructionFunctions::SWAP_mHL(const char* mnemonic, Instructi
 
 InstructionResult InstructionFunctions::SWAP_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SwapNibbles(registers->A, registers);
+	SwapNibbles(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->B, registers);
+	ShiftRightLogic(registers->B, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->C, registers);
+	ShiftRightLogic(registers->C, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->D, registers);
+	ShiftRightLogic(registers->D, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->E, registers);
+	ShiftRightLogic(registers->E, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->H, registers);
+	ShiftRightLogic(registers->H, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SRL_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->L, registers);
+	ShiftRightLogic(registers->L, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3043,7 +3043,7 @@ InstructionResult InstructionFunctions::SRL_mHL(const char* mnemonic, Instructio
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ShiftRightLogic(data.m_tmp_u8, registers);
+		ShiftRightLogic(data.m_tmp_u8, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3053,49 +3053,49 @@ InstructionResult InstructionFunctions::SRL_mHL(const char* mnemonic, Instructio
 
 InstructionResult InstructionFunctions::SRL_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ShiftRightLogic(registers->A, registers);
+	ShiftRightLogic(registers->A, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 0, registers);
+	TestBit(registers->B, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 0, registers);
+	TestBit(registers->C, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 0, registers);
+	TestBit(registers->D, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 0, registers);
+	TestBit(registers->E, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 0, registers);
+	TestBit(registers->H, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_0_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 0, registers);
+	TestBit(registers->L, 0, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3105,7 +3105,7 @@ InstructionResult InstructionFunctions::BIT_0_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 0, registers);
+		TestBit(data.m_tmp_u8, 0, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3114,49 +3114,49 @@ InstructionResult InstructionFunctions::BIT_0_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_0_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 0, registers);
+	TestBit(registers->A, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 1, registers);
+	TestBit(registers->B, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 1, registers);
+	TestBit(registers->C, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 1, registers);
+	TestBit(registers->D, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 1, registers);
+	TestBit(registers->E, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 1, registers);
+	TestBit(registers->H, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_1_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 1, registers);
+	TestBit(registers->L, 1, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3166,7 +3166,7 @@ InstructionResult InstructionFunctions::BIT_1_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 1, registers);
+		TestBit(data.m_tmp_u8, 1, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3175,49 +3175,49 @@ InstructionResult InstructionFunctions::BIT_1_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_1_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 1, registers);
+	TestBit(registers->A, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 2, registers);
+	TestBit(registers->B, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 2, registers);
+	TestBit(registers->C, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 2, registers);
+	TestBit(registers->D, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 2, registers);
+	TestBit(registers->E, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 2, registers);
+	TestBit(registers->H, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_2_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 2, registers);
+	TestBit(registers->L, 2, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3227,7 +3227,7 @@ InstructionResult InstructionFunctions::BIT_2_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 2, registers);
+		TestBit(data.m_tmp_u8, 2, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3236,49 +3236,49 @@ InstructionResult InstructionFunctions::BIT_2_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_2_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 2, registers);
+	TestBit(registers->A, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 3, registers);
+	TestBit(registers->B, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 3, registers);
+	TestBit(registers->C, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 3, registers);
+	TestBit(registers->D, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 3, registers);
+	TestBit(registers->E, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 3, registers);
+	TestBit(registers->H, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_3_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 3, registers);
+	TestBit(registers->L, 3, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3288,7 +3288,7 @@ InstructionResult InstructionFunctions::BIT_3_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 3, registers);
+		TestBit(data.m_tmp_u8, 3, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3297,49 +3297,49 @@ InstructionResult InstructionFunctions::BIT_3_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_3_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 3, registers);
+	TestBit(registers->A, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 4, registers);
+	TestBit(registers->B, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 4, registers);
+	TestBit(registers->C, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 4, registers);
+	TestBit(registers->D, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 4, registers);
+	TestBit(registers->E, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 4, registers);
+	TestBit(registers->H, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_4_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 4, registers);
+	TestBit(registers->L, 4, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3349,7 +3349,7 @@ InstructionResult InstructionFunctions::BIT_4_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 4, registers);
+		TestBit(data.m_tmp_u8, 4, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3358,49 +3358,49 @@ InstructionResult InstructionFunctions::BIT_4_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_4_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 4, registers);
+	TestBit(registers->A, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 5, registers);
+	TestBit(registers->B, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 5, registers);
+	TestBit(registers->C, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 5, registers);
+	TestBit(registers->D, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 5, registers);
+	TestBit(registers->E, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 5, registers);
+	TestBit(registers->H, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_5_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 5, registers);
+	TestBit(registers->L, 5, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3410,7 +3410,7 @@ InstructionResult InstructionFunctions::BIT_5_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 5, registers);
+		TestBit(data.m_tmp_u8, 5, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3419,49 +3419,49 @@ InstructionResult InstructionFunctions::BIT_5_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_5_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 5, registers);
+	TestBit(registers->A, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 6, registers);
+	TestBit(registers->B, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 6, registers);
+	TestBit(registers->C, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 6, registers);
+	TestBit(registers->D, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 6, registers);
+	TestBit(registers->E, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 6, registers);
+	TestBit(registers->H, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_6_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 6, registers);
+	TestBit(registers->L, 6, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3471,7 +3471,7 @@ InstructionResult InstructionFunctions::BIT_6_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 6, registers);
+		TestBit(data.m_tmp_u8, 6, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3480,49 +3480,49 @@ InstructionResult InstructionFunctions::BIT_6_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_6_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 6, registers);
+	TestBit(registers->A, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->B, 7, registers);
+	TestBit(registers->B, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->C, 7, registers);
+	TestBit(registers->C, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->D, 7, registers);
+	TestBit(registers->D, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->E, 7, registers);
+	TestBit(registers->E, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->H, 7, registers);
+	TestBit(registers->H, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::BIT_7_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->L, 7, registers);
+	TestBit(registers->L, 7, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3532,7 +3532,7 @@ InstructionResult InstructionFunctions::BIT_7_mHL(const char* mnemonic, Instruct
 	if (data.m_cycles == 0)
 	{
 		data.m_tmp_u8 = memory[registers->HL];
-		Helpers::TestBit(data.m_tmp_u8, 7, registers);
+		TestBit(data.m_tmp_u8, 7, registers);
 		return InstructionResult::Continue;
 	}
 
@@ -3541,49 +3541,49 @@ InstructionResult InstructionFunctions::BIT_7_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::BIT_7_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::TestBit(registers->A, 7, registers);
+	TestBit(registers->A, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 0, registers);
+	ResetBit(registers->B, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 0, registers);
+	ResetBit(registers->C, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 0, registers);
+	ResetBit(registers->D, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 0, registers);
+	ResetBit(registers->E, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 0, registers);
+	ResetBit(registers->H, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_0_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 0, registers);
+	ResetBit(registers->L, 0, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3597,7 +3597,7 @@ InstructionResult InstructionFunctions::RES_0_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 0, registers);
+		ResetBit(data.m_tmp_u8, 0, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3607,49 +3607,49 @@ InstructionResult InstructionFunctions::RES_0_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_0_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 0, registers);
+	ResetBit(registers->A, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 1, registers);
+	ResetBit(registers->B, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 1, registers);
+	ResetBit(registers->C, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 1, registers);
+	ResetBit(registers->D, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 1, registers);
+	ResetBit(registers->E, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 1, registers);
+	ResetBit(registers->H, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_1_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 1, registers);
+	ResetBit(registers->L, 1, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3663,7 +3663,7 @@ InstructionResult InstructionFunctions::RES_1_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 1, registers);
+		ResetBit(data.m_tmp_u8, 1, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3673,49 +3673,49 @@ InstructionResult InstructionFunctions::RES_1_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_1_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 1, registers);
+	ResetBit(registers->A, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 2, registers);
+	ResetBit(registers->B, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 2, registers);
+	ResetBit(registers->C, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 2, registers);
+	ResetBit(registers->D, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 2, registers);
+	ResetBit(registers->E, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 2, registers);
+	ResetBit(registers->H, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_2_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 2, registers);
+	ResetBit(registers->L, 2, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3729,7 +3729,7 @@ InstructionResult InstructionFunctions::RES_2_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 2, registers);
+		ResetBit(data.m_tmp_u8, 2, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3739,49 +3739,49 @@ InstructionResult InstructionFunctions::RES_2_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_2_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 2, registers);
+	ResetBit(registers->A, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 3, registers);
+	ResetBit(registers->B, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 3, registers);
+	ResetBit(registers->C, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 3, registers);
+	ResetBit(registers->D, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 3, registers);
+	ResetBit(registers->E, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 3, registers);
+	ResetBit(registers->H, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_3_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 3, registers);
+	ResetBit(registers->L, 3, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3795,7 +3795,7 @@ InstructionResult InstructionFunctions::RES_3_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 3, registers);
+		ResetBit(data.m_tmp_u8, 3, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3805,49 +3805,49 @@ InstructionResult InstructionFunctions::RES_3_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_3_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 3, registers);
+	ResetBit(registers->A, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 4, registers);
+	ResetBit(registers->B, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 4, registers);
+	ResetBit(registers->C, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 4, registers);
+	ResetBit(registers->D, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 4, registers);
+	ResetBit(registers->E, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 4, registers);
+	ResetBit(registers->H, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_4_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 4, registers);
+	ResetBit(registers->L, 4, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3861,7 +3861,7 @@ InstructionResult InstructionFunctions::RES_4_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 4, registers);
+		ResetBit(data.m_tmp_u8, 4, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3871,49 +3871,49 @@ InstructionResult InstructionFunctions::RES_4_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_4_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 4, registers);
+	ResetBit(registers->A, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 5, registers);
+	ResetBit(registers->B, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 5, registers);
+	ResetBit(registers->C, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 5, registers);
+	ResetBit(registers->D, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 5, registers);
+	ResetBit(registers->E, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 5, registers);
+	ResetBit(registers->H, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_5_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 5, registers);
+	ResetBit(registers->L, 5, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3927,7 +3927,7 @@ InstructionResult InstructionFunctions::RES_5_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 5, registers);
+		ResetBit(data.m_tmp_u8, 5, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -3937,49 +3937,49 @@ InstructionResult InstructionFunctions::RES_5_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_5_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 5, registers);
+	ResetBit(registers->A, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 6, registers);
+	ResetBit(registers->B, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 6, registers);
+	ResetBit(registers->C, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 6, registers);
+	ResetBit(registers->D, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 6, registers);
+	ResetBit(registers->E, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 6, registers);
+	ResetBit(registers->H, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_6_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 6, registers);
+	ResetBit(registers->L, 6, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -3993,7 +3993,7 @@ InstructionResult InstructionFunctions::RES_6_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 6, registers);
+		ResetBit(data.m_tmp_u8, 6, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4003,49 +4003,49 @@ InstructionResult InstructionFunctions::RES_6_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_6_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 6, registers);
+	ResetBit(registers->A, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->B, 7, registers);
+	ResetBit(registers->B, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->C, 7, registers);
+	ResetBit(registers->C, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->D, 7, registers);
+	ResetBit(registers->D, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->E, 7, registers);
+	ResetBit(registers->E, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->H, 7, registers);
+	ResetBit(registers->H, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::RES_7_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->L, 7, registers);
+	ResetBit(registers->L, 7, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4059,7 +4059,7 @@ InstructionResult InstructionFunctions::RES_7_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::ResetBit(data.m_tmp_u8, 7, registers);
+		ResetBit(data.m_tmp_u8, 7, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4069,49 +4069,49 @@ InstructionResult InstructionFunctions::RES_7_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::RES_7_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::ResetBit(registers->A, 7, registers);
+	ResetBit(registers->A, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 0, registers);
+	SetBit(registers->B, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 0, registers);
+	SetBit(registers->C, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 0, registers);
+	SetBit(registers->D, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 0, registers);
+	SetBit(registers->E, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 0, registers);
+	SetBit(registers->H, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_0_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 0, registers);
+	SetBit(registers->L, 0, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4125,7 +4125,7 @@ InstructionResult InstructionFunctions::SET_0_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 0, registers);
+		SetBit(data.m_tmp_u8, 0, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4135,49 +4135,49 @@ InstructionResult InstructionFunctions::SET_0_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_0_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 0, registers);
+	SetBit(registers->A, 0, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 1, registers);
+	SetBit(registers->B, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 1, registers);
+	SetBit(registers->C, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 1, registers);
+	SetBit(registers->D, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 1, registers);
+	SetBit(registers->E, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 1, registers);
+	SetBit(registers->H, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_1_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 1, registers);
+	SetBit(registers->L, 1, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4191,7 +4191,7 @@ InstructionResult InstructionFunctions::SET_1_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 1, registers);
+		SetBit(data.m_tmp_u8, 1, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4201,49 +4201,49 @@ InstructionResult InstructionFunctions::SET_1_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_1_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 1, registers);
+	SetBit(registers->A, 1, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 2, registers);
+	SetBit(registers->B, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 2, registers);
+	SetBit(registers->C, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 2, registers);
+	SetBit(registers->D, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 2, registers);
+	SetBit(registers->E, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 2, registers);
+	SetBit(registers->H, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_2_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 2, registers);
+	SetBit(registers->L, 2, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4257,7 +4257,7 @@ InstructionResult InstructionFunctions::SET_2_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 2, registers);
+		SetBit(data.m_tmp_u8, 2, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4267,49 +4267,49 @@ InstructionResult InstructionFunctions::SET_2_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_2_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 2, registers);
+	SetBit(registers->A, 2, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 3, registers);
+	SetBit(registers->B, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 3, registers);
+	SetBit(registers->C, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 3, registers);
+	SetBit(registers->D, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 3, registers);
+	SetBit(registers->E, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 3, registers);
+	SetBit(registers->H, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_3_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 3, registers);
+	SetBit(registers->L, 3, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4323,7 +4323,7 @@ InstructionResult InstructionFunctions::SET_3_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 3, registers);
+		SetBit(data.m_tmp_u8, 3, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4333,49 +4333,49 @@ InstructionResult InstructionFunctions::SET_3_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_3_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 3, registers);
+	SetBit(registers->A, 3, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 4, registers);
+	SetBit(registers->B, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 4, registers);
+	SetBit(registers->C, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 4, registers);
+	SetBit(registers->D, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 4, registers);
+	SetBit(registers->E, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 4, registers);
+	SetBit(registers->H, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_4_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 4, registers);
+	SetBit(registers->L, 4, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4389,7 +4389,7 @@ InstructionResult InstructionFunctions::SET_4_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 4, registers);
+		SetBit(data.m_tmp_u8, 4, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4399,49 +4399,49 @@ InstructionResult InstructionFunctions::SET_4_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_4_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 4, registers);
+	SetBit(registers->A, 4, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 5, registers);
+	SetBit(registers->B, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 5, registers);
+	SetBit(registers->C, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 5, registers);
+	SetBit(registers->D, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 5, registers);
+	SetBit(registers->E, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 5, registers);
+	SetBit(registers->H, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_5_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 5, registers);
+	SetBit(registers->L, 5, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4455,7 +4455,7 @@ InstructionResult InstructionFunctions::SET_5_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 5, registers);
+		SetBit(data.m_tmp_u8, 5, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4465,49 +4465,49 @@ InstructionResult InstructionFunctions::SET_5_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_5_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 5, registers);
+	SetBit(registers->A, 5, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 6, registers);
+	SetBit(registers->B, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 6, registers);
+	SetBit(registers->C, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 6, registers);
+	SetBit(registers->D, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 6, registers);
+	SetBit(registers->E, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 6, registers);
+	SetBit(registers->H, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_6_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 6, registers);
+	SetBit(registers->L, 6, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4521,7 +4521,7 @@ InstructionResult InstructionFunctions::SET_6_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 6, registers);
+		SetBit(data.m_tmp_u8, 6, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4531,49 +4531,49 @@ InstructionResult InstructionFunctions::SET_6_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_6_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 6, registers);
+	SetBit(registers->A, 6, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_B(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->B, 7, registers);
+	SetBit(registers->B, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_C(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->C, 7, registers);
+	SetBit(registers->C, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_D(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->D, 7, registers);
+	SetBit(registers->D, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_E(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->E, 7, registers);
+	SetBit(registers->E, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_H(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->H, 7, registers);
+	SetBit(registers->H, 7, registers);
 	
 	return InstructionResult::Finished;
 }
 
 InstructionResult InstructionFunctions::SET_7_L(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->L, 7, registers);
+	SetBit(registers->L, 7, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4587,7 +4587,7 @@ InstructionResult InstructionFunctions::SET_7_mHL(const char* mnemonic, Instruct
 	}
 	else if (data.m_cycles == 1)
 	{
-		Helpers::SetBit(data.m_tmp_u8, 7, registers);
+		SetBit(data.m_tmp_u8, 7, registers);
 		memory.Write(registers->HL, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
@@ -4597,7 +4597,7 @@ InstructionResult InstructionFunctions::SET_7_mHL(const char* mnemonic, Instruct
 
 InstructionResult InstructionFunctions::SET_7_A(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	Helpers::SetBit(registers->A, 7, registers);
+	SetBit(registers->A, 7, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4609,13 +4609,13 @@ InstructionResult InstructionFunctions::LD_BC_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4628,13 +4628,13 @@ InstructionResult InstructionFunctions::LD_DE_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4647,13 +4647,13 @@ InstructionResult InstructionFunctions::LD_HL_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4666,13 +4666,13 @@ InstructionResult InstructionFunctions::LD_SP_nn(const char* mnemonic, Instructi
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4686,17 +4686,17 @@ InstructionResult InstructionFunctions::LD_mnn_SP(const char* mnemonic, Instruct
 	switch (data.m_cycles)
 	{
 	case 0:
-		Helpers::Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->PC, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	case 1:
-		data.m_tmp_16 = Helpers::Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->PC, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	case 2:
-		Helpers::Write16BitLSB(registers->SP, data.m_tmp_16, memory);
+		Write16BitLSB(registers->SP, data.m_tmp_16, memory);
 		data.m_tmp_16++;
 		return InstructionResult::Continue;
 	case 3:
-		Helpers::Write16BitMSB(registers->SP, data.m_tmp_16, memory);
+		Write16BitMSB(registers->SP, data.m_tmp_16, memory);
 		return InstructionResult::Continue;
 	case 4:
 		return InstructionResult::Finished;
@@ -4719,8 +4719,8 @@ InstructionResult InstructionFunctions::LD_HL_SP_n(const char* mnemonic, Instruc
 	registers->ResetFlag(Registers::Flags::zf);
 	registers->ResetFlag(Registers::Flags::n);
 	uint8_t operand = static_cast<uint8_t>(data.m_tmp_s8);
-	Helpers::SetCarry(previous, operand, registers, false);
-	Helpers::SetHalfCarryFlag(previous, operand, false, registers);
+	SetCarry(previous, operand, registers, false);
+	SetHalfCarryFlag(previous, operand, false, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -4740,13 +4740,13 @@ InstructionResult InstructionFunctions::POP_BC(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4759,13 +4759,13 @@ InstructionResult InstructionFunctions::POP_DE(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4778,13 +4778,13 @@ InstructionResult InstructionFunctions::POP_HL(const char* mnemonic, Instruction
 {
 	if (data.m_cycles == 0)
 	{
-		Helpers::Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
+		Read16Bit(registers->SP, memory, 0, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
 	if (data.m_cycles == 1)
 	{
-		data.m_tmp_16 = Helpers::Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
+		data.m_tmp_16 = Read16Bit(registers->SP, memory, 1, data.m_tmp_u8);
 		return InstructionResult::Continue;
 	}
 
@@ -4811,22 +4811,22 @@ InstructionResult InstructionFunctions::POP_AF(const char* mnemonic, Instruction
 
 InstructionResult InstructionFunctions::PUSH_BC(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Push(registers->BC, data.m_cycles, registers, memory);
+	return Push(registers->BC, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::PUSH_DE(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Push(registers->DE, data.m_cycles, registers, memory);
+	return Push(registers->DE, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::PUSH_HL(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Push(registers->HL, data.m_cycles, registers, memory);
+	return Push(registers->HL, data.m_cycles, registers, memory);
 }
 
 InstructionResult InstructionFunctions::PUSH_AF(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	return Helpers::Push(registers->AF, data.m_cycles, registers, memory);
+	return Push(registers->AF, data.m_cycles, registers, memory);
 }
 
 //16 bit arithmatic/logic 
@@ -4882,7 +4882,7 @@ InstructionResult InstructionFunctions::ADD_HL_BC(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SetFlags16(registers->HL, registers->BC, registers);
+	SetFlags16(registers->HL, registers->BC, registers);
 	registers->HL += registers->BC;
 	
 	return InstructionResult::Finished;
@@ -4895,7 +4895,7 @@ InstructionResult InstructionFunctions::ADD_HL_DE(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SetFlags16(registers->HL, registers->DE, registers);
+	SetFlags16(registers->HL, registers->DE, registers);
 	registers->HL += registers->DE;
 	
 	return InstructionResult::Finished;
@@ -4908,7 +4908,7 @@ InstructionResult InstructionFunctions::ADD_HL_HL(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SetFlags16(registers->HL, registers->HL, registers);
+	SetFlags16(registers->HL, registers->HL, registers);
 	registers->HL += registers->HL;
 	
 	return InstructionResult::Finished;
@@ -4921,7 +4921,7 @@ InstructionResult InstructionFunctions::ADD_HL_SP(const char* mnemonic, Instruct
 		return InstructionResult::Continue;
 	}
 
-	Helpers::SetFlags16(registers->HL, registers->SP, registers);
+	SetFlags16(registers->HL, registers->SP, registers);
 	registers->HL += registers->SP;
 	
 	return InstructionResult::Finished;
@@ -4942,8 +4942,8 @@ InstructionResult InstructionFunctions::ADD_SP_n(const char* mnemonic, Instructi
 	registers->ResetFlag(Registers::Flags::zf);
 	uint8_t operand = static_cast<uint8_t>(data.m_tmp_s8);
 
-	Helpers::SetCarry(previous, operand, registers, false);
-	Helpers::SetHalfCarryFlag(previous, operand, false, registers);
+	SetCarry(previous, operand, registers, false);
+	SetHalfCarryFlag(previous, operand, false, registers);
 	
 	return InstructionResult::Finished;
 }
@@ -5004,12 +5004,12 @@ InstructionResult InstructionFunctions::INTERRUPT_HANDLING(const char* mnemonic,
 		registers->PC--;
 		return InstructionResult::Continue;
 	case 1:
-		return InstructionFunctions::Helpers::Call(0x00, 0, registers, memory);
+		return InstructionFunctions::Call(0x00, 0, registers, memory);
 	case 2:
 		data.m_tmp_16 = Interrupts::GetJumpAddrAndClear(memory);
-		return InstructionFunctions::Helpers::Call(data.m_tmp_16, 1, registers, memory);
+		return InstructionFunctions::Call(data.m_tmp_16, 1, registers, memory);
 	case 3:
-		return InstructionFunctions::Helpers::Call(data.m_tmp_16, 2, registers, memory);
+		return InstructionFunctions::Call(data.m_tmp_16, 2, registers, memory);
 	case 4:
 		return InstructionResult::Finished;
 	default:
