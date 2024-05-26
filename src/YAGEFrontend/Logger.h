@@ -177,7 +177,7 @@ namespace Logger
     };
 
     template<LogLevel level>
-    static constexpr const char* LogLevelToString()
+    constexpr const char* LogLevelToString()
     {
         switch (level)
         {
@@ -193,7 +193,7 @@ namespace Logger
     }
 
     template<LogLevel level>
-    static constexpr unsigned int LogLevelStringSize()
+    constexpr unsigned int LogLevelStringSize()
     {
         return Logging_Helpers::ConstLen(LogLevelToString<level>());
     }
@@ -225,7 +225,7 @@ namespace Logger
 
         void PeekAtPosition(EzString& messageOut, LogLevel& level, unsigned int n);
 
-        static const int BUFFER_SIZE = 1024;
+        static constexpr int BUFFER_SIZE = 1024;
         EzString m_messageBuffer[BUFFER_SIZE];
         LogLevel m_logLevelBuffer[BUFFER_SIZE];
         unsigned int m_addedMessages = 0;
