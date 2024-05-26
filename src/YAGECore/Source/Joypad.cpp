@@ -4,12 +4,12 @@
 
 #define P1_REGISTER 0xFF00
 
-FORCE_INLINE bool IsActionGroupSelected(uint8_t upperNibble)
+bool IsActionGroupSelected(uint8_t upperNibble)
 {
 	return (upperNibble & 0x20) == 0;
 }
 
-FORCE_INLINE bool IsDPadGroupSelected(uint8_t upperNibble)
+bool IsDPadGroupSelected(uint8_t upperNibble)
 {
 	return (upperNibble & 0x10) == 0;
 }

@@ -76,38 +76,38 @@ struct Registers
 
 	State CpuState;
 
-	FORCE_INLINE void SetFlag(Flags flag)
+	void SetFlag(Flags flag)
 	{
 		FLAGS |= static_cast<uint8_t>(flag);
 	}
 
-	FORCE_INLINE void SetFlag(Flags flag, uint8_t val)
+	void SetFlag(Flags flag, uint8_t val)
 	{
 		FLAGS &= (~static_cast<uint8_t>(flag));
 		FLAGS |= (static_cast<uint8_t>(flag) * val);
 	}
 
-	FORCE_INLINE void OrFlag(Flags flag, uint8_t val)
+	void OrFlag(Flags flag, uint8_t val)
 	{
 		FLAGS |= (static_cast<uint8_t>(flag) * val);
 	}
 
-	FORCE_INLINE void ResetFlag(Flags flag)
+	void ResetFlag(Flags flag)
 	{
 		FLAGS &= (~static_cast<uint8_t>(flag));
 	}
 
-	FORCE_INLINE bool IsFlagSet(Flags flag) const
+	bool IsFlagSet(Flags flag) const
 	{
 		return (FLAGS & static_cast<uint8_t>(flag)) != 0;
 	}
 
-	FORCE_INLINE uint8_t GetFlag(Flags flag) const
+	uint8_t GetFlag(Flags flag) const
 	{
 		return static_cast<uint8_t>(IsFlagSet(flag));
 	}
 	
-	FORCE_INLINE void SetAllFlags(uint8_t val)
+	void SetAllFlags(uint8_t val)
 	{
 		FLAGS &= ~static_cast<uint8_t>(Flags::all);
 		FLAGS |= (val & static_cast<uint8_t>(Flags::all));

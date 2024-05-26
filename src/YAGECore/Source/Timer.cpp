@@ -17,12 +17,12 @@ const uint32_t TIMER_SPEED_BITS[4]
 
 namespace
 {
-	FORCE_INLINE bool IsTimerEnabled(Memory& memory)
+	bool IsTimerEnabled(Memory& memory)
 	{
 		return (memory[TAC_REGISTER] & 0x4) > 0;
 	}
 
-	FORCE_INLINE uint16_t GetTimerFrequency(Memory& memory)
+	uint16_t GetTimerFrequency(Memory& memory)
 	{
 		return TIMER_SPEED_BITS[memory[TAC_REGISTER] & 0x3];
 	}

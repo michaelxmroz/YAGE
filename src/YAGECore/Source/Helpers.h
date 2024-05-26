@@ -8,8 +8,6 @@
 #define CYCLES_PER_FRAME 17556
 #define MCYCLES_TO_CYCLES 4
 
-#define FORCE_INLINE inline
-
 // Taken from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 // License: https://creativecommons.org/publicdomain/zero/1.0/ 
 template<typename ... Args>
@@ -25,8 +23,5 @@ std::string string_format(const std::string& format, Args ... args)
 
 namespace Helpers
 {
-    FORCE_INLINE unsigned int GetFirstSetBit(int n)
-    {
-        return static_cast<uint32_t>(log2(n & -n));
-    }
+    unsigned int GetFirstSetBit(int n);
 }

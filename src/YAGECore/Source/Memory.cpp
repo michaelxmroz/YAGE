@@ -375,7 +375,7 @@ void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const 
 	ReadAndMove(data, &m_DMAProgress, sizeof(uint32_t));
 }
 
-inline void Memory::WriteInternal(uint16_t addr, uint8_t value)
+void Memory::WriteInternal(uint16_t addr, uint8_t value)
 {
 	uint8_t prevValue = m_mappedMemory[addr];
 	m_mappedMemory[addr] = value;

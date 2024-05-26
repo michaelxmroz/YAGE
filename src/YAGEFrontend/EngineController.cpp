@@ -110,7 +110,7 @@ void EngineController::SavePersistentMemory(const void* data, uint32_t size)
     }
 }
 
-inline void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, const std::vector<char>& romBlob, const std::vector<char>& ramBlob)
+void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, const std::vector<char>& romBlob, const std::vector<char>& ramBlob)
 {
     m_emulator = Emulator::Create();
 
@@ -138,13 +138,13 @@ inline void EngineController::CreateEmulator(const std::vector<char>& bootromBlo
     m_emulator->SetAudioBuffer(m_audio->GetAudioBuffer(), m_audio->GetAudioBufferSize(), m_audio->GetSampleRate(), m_audio->GetWritePosition());
 }
 
-inline void EngineController::CleanupEmulator()
+void EngineController::CleanupEmulator()
 {
     Emulator::Delete(m_emulator);
     m_emulator = nullptr;
 }
 
-inline void EngineController::RunEmulatorLoop()
+void EngineController::RunEmulatorLoop()
 {
     if (m_emulator != nullptr)
     {

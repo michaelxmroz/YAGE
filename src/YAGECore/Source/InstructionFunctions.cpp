@@ -7,12 +7,12 @@ namespace InstructionFunctions
 {
 	namespace
 	{
-		FORCE_INLINE uint16_t u16(uint8_t lsb, uint8_t msb)
+		uint16_t u16(uint8_t lsb, uint8_t msb)
 		{
 			return static_cast<uint16_t>(msb) << 8 | static_cast<uint16_t>(lsb);
 		}
 
-		FORCE_INLINE uint16_t Read16Bit(uint16_t& addr, Memory& memory, uint8_t cycle, uint8_t& cache)
+		uint16_t Read16Bit(uint16_t& addr, Memory& memory, uint8_t cycle, uint8_t& cache)
 		{
 			if (cycle == 0)
 			{
@@ -26,19 +26,19 @@ namespace InstructionFunctions
 			}
 		}
 
-		FORCE_INLINE void Write16BitMSB(uint16_t data, uint16_t addr, Memory& memory)
+		void Write16BitMSB(uint16_t data, uint16_t addr, Memory& memory)
 		{
 			uint8_t msb = static_cast<uint8_t>(data >> 8);
 			memory.Write(addr, msb);
 		}
 
-		FORCE_INLINE void Write16BitLSB(uint16_t data, uint16_t addr, Memory& memory)
+		void Write16BitLSB(uint16_t data, uint16_t addr, Memory& memory)
 		{
 			uint8_t lsb = static_cast<uint8_t>(data);
 			memory.Write(addr, lsb);
 		}
 
-		FORCE_INLINE void SetZeroFlag(uint8_t result, Registers* registers)
+		void SetZeroFlag(uint8_t result, Registers* registers)
 		{
 			if (result == 0)
 			{
@@ -50,13 +50,13 @@ namespace InstructionFunctions
 			}
 		}
 
-		FORCE_INLINE void SetHalfCarryFlag(const uint8_t& previousReg, const uint8_t& operand, bool subtract, Registers* registers)
+		void SetHalfCarryFlag(const uint8_t& previousReg, const uint8_t& operand, bool subtract, Registers* registers)
 		{
 			bool halfCarry = !subtract && ((static_cast<uint16_t>(previousReg) & 0xF) + (operand & 0xF) > 0xF) || subtract && ((static_cast<int16_t>(previousReg & 0xF) - static_cast<int16_t>(operand & 0xF)) & 0x10) > 0;
 			registers->SetFlag(Registers::Flags::h, halfCarry);
 		}
 
-		FORCE_INLINE void SetFlagsNoCarry(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
+		void SetFlagsNoCarry(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
 		{
 			SetZeroFlag(result, registers);
 
@@ -64,19 +64,19 @@ namespace InstructionFunctions
 			registers->SetFlag(Registers::Flags::n, subtract);
 		}
 
-		FORCE_INLINE void SetCarry(uint8_t previousReg, uint8_t operand, Registers* registers, bool subtract)
+		void SetCarry(uint8_t previousReg, uint8_t operand, Registers* registers, bool subtract)
 		{
 			bool carry = (!subtract && (static_cast<uint16_t>(previousReg) + static_cast<uint16_t>(operand) > 0xFF)) || (subtract && (static_cast<uint16_t>(previousReg) < static_cast<uint16_t>(operand)));
 			registers->SetFlag(Registers::Flags::cy, carry);
 		}
 
-		FORCE_INLINE void SetFlags(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
+		void SetFlags(uint8_t previousReg, uint8_t operand, uint8_t result, bool subtract, Registers* registers)
 		{
 			SetCarry(previousReg, operand, registers, subtract);
 			SetFlagsNoCarry(previousReg, operand, result, subtract, registers);
 		}
 
-		FORCE_INLINE void SetFlags16(uint16_t previousReg, uint16_t operand, Registers* registers)
+		void SetFlags16(uint16_t previousReg, uint16_t operand, Registers* registers)
 		{
 			uint32_t res = static_cast<uint32_t>(previousReg) + operand;
 			registers->SetFlag(Registers::Flags::cy, res > 0xFFFF);
@@ -87,27 +87,27 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::n);
 		}
 
-		FORCE_INLINE void Addition(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void Addition(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t prevReg = operand1;
 			operand1 += operand2;
 			SetFlags(prevReg, operand2, operand1, false, registers);
 		}
 
-		FORCE_INLINE void Subtraction(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void Subtraction(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t prevReg = operand1;
 			operand1 -= operand2;
 			SetFlags(prevReg, operand2, operand1, true, registers);
 		}
 
-		FORCE_INLINE void CompareSubtraction(uint8_t operand1, uint8_t operand2, Registers* registers)
+		void CompareSubtraction(uint8_t operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t copyOperand = operand1;
 			Subtraction(copyOperand, operand2, registers);
 		}
 
-		FORCE_INLINE void SubtractionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void SubtractionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
 			Subtraction(operand1, cy, registers);
@@ -118,7 +118,7 @@ namespace InstructionFunctions
 			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
 
-		FORCE_INLINE void AdditionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void AdditionWithCarry(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			uint8_t cy = registers->GetFlag(Registers::Flags::cy);
 			Addition(operand1, cy, registers);
@@ -129,7 +129,7 @@ namespace InstructionFunctions
 			registers->OrFlag(Registers::Flags::h, tmpH);
 		}
 
-		FORCE_INLINE void BitwiseAnd(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void BitwiseAnd(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 & operand2;
 			SetZeroFlag(operand1, registers);
@@ -138,7 +138,7 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::cy);
 		}
 
-		FORCE_INLINE void BitwiseXor(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void BitwiseXor(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 ^ operand2;
 			SetZeroFlag(operand1, registers);
@@ -147,7 +147,7 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::cy);
 		}
 
-		FORCE_INLINE void BitwiseOr(uint8_t& operand1, uint8_t operand2, Registers* registers)
+		void BitwiseOr(uint8_t& operand1, uint8_t operand2, Registers* registers)
 		{
 			operand1 = operand1 | operand2;
 			SetZeroFlag(operand1, registers);
@@ -156,7 +156,7 @@ namespace InstructionFunctions
 			registers->ResetFlag(Registers::Flags::cy);
 		}
 
-		FORCE_INLINE InstructionResult Call(uint16_t addr, uint8_t cycle, Registers* registers, Memory& memory)
+		InstructionResult Call(uint16_t addr, uint8_t cycle, Registers* registers, Memory& memory)
 		{
 			switch (cycle)
 			{
@@ -178,7 +178,7 @@ namespace InstructionFunctions
 			return InstructionResult::Finished;
 		}
 
-		FORCE_INLINE InstructionResult Push(uint16_t value, uint8_t cycle, Registers* registers, Memory& memory)
+		InstructionResult Push(uint16_t value, uint8_t cycle, Registers* registers, Memory& memory)
 		{
 			switch (cycle)
 			{
@@ -199,7 +199,7 @@ namespace InstructionFunctions
 			return InstructionResult::Finished;
 		}
 
-		FORCE_INLINE void RotateLeft(uint8_t& reg, Registers* registers)
+		void RotateLeft(uint8_t& reg, Registers* registers)
 		{
 			uint16_t extendedReg = static_cast<uint16_t>(reg);
 			extendedReg = extendedReg << 1;
@@ -212,7 +212,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void RotateLeftWithCarry(uint8_t& reg, Registers* registers)
+		void RotateLeftWithCarry(uint8_t& reg, Registers* registers)
 		{
 			uint8_t carry = registers->GetFlag(Registers::Flags::cy);
 			uint16_t extendedReg = static_cast<uint16_t>(reg);
@@ -226,7 +226,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void RotateRight(uint8_t& reg, Registers* registers)
+		void RotateRight(uint8_t& reg, Registers* registers)
 		{
 			uint8_t carry = reg & 0x1;
 			registers->SetFlag(Registers::Flags::cy, carry);
@@ -239,7 +239,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void RotateRightWithCarry(uint8_t& reg, Registers* registers)
+		void RotateRightWithCarry(uint8_t& reg, Registers* registers)
 		{
 			uint8_t carry = registers->GetFlag(Registers::Flags::cy);
 
@@ -253,7 +253,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void ShiftLeftArithmetic(uint8_t& reg, Registers* registers)
+		void ShiftLeftArithmetic(uint8_t& reg, Registers* registers)
 		{
 			uint16_t extendedReg = static_cast<uint16_t>(reg);
 			extendedReg = extendedReg << 1;
@@ -265,7 +265,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void ShiftRightArithmetic(uint8_t& reg, Registers* registers)
+		void ShiftRightArithmetic(uint8_t& reg, Registers* registers)
 		{
 			uint8_t carry = reg & 0x1;
 			registers->SetFlag(Registers::Flags::cy, carry);
@@ -278,7 +278,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void SwapNibbles(uint8_t& reg, Registers* registers)
+		void SwapNibbles(uint8_t& reg, Registers* registers)
 		{
 			uint8_t lhb = reg << 4;
 			uint8_t rhb = reg >> 4;
@@ -290,7 +290,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void ShiftRightLogic(uint8_t& reg, Registers* registers)
+		void ShiftRightLogic(uint8_t& reg, Registers* registers)
 		{
 			uint8_t carry = reg & 0x1;
 			registers->SetFlag(Registers::Flags::cy, carry);
@@ -301,7 +301,7 @@ namespace InstructionFunctions
 			SetZeroFlag(reg, registers);
 		}
 
-		FORCE_INLINE void TestBit(uint8_t reg, uint8_t bit, Registers* registers)
+		void TestBit(uint8_t reg, uint8_t bit, Registers* registers)
 		{
 			uint8_t bitset = (reg >> bit) & 0x1;
 
@@ -310,12 +310,12 @@ namespace InstructionFunctions
 			registers->SetFlag(Registers::Flags::zf, bitset == 0);
 		}
 
-		FORCE_INLINE void ResetBit(uint8_t& reg, uint8_t bit, Registers* registers)
+		void ResetBit(uint8_t& reg, uint8_t bit, Registers* registers)
 		{
 			reg &= ~(0x1 << bit);
 		}
 
-		FORCE_INLINE void SetBit(uint8_t& reg, uint8_t bit, Registers* registers)
+		void SetBit(uint8_t& reg, uint8_t bit, Registers* registers)
 		{
 			reg |= (0x1 << bit);
 		}

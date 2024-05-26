@@ -26,7 +26,7 @@ namespace
 {
 	namespace MBC1
 	{
-		FORCE_INLINE bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
+		bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
 		{
 			if (addr >= MBC_ROM_BANK_MODE_SELECT_REGISTER)
 			{
@@ -49,7 +49,7 @@ namespace
 		}
 
 
-		FORCE_INLINE uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
+		uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
 		{
 			uint32_t bankId = 0;
 			if (addr >= ROM_BANK_SIZE)
@@ -70,7 +70,7 @@ namespace
 			return adjustedAddr;
 		}
 
-		FORCE_INLINE uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
+		uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
 		{
 			uint32_t bankId = 0;
 			if (registers.m_tertiaryBankRegister > 0)
@@ -96,7 +96,7 @@ namespace
 			}
 		}
 
-		FORCE_INLINE bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers, bool hasRTC)
+		bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers, bool hasRTC)
 		{
 			if (addr >= MBC_ROM_BANK_MODE_SELECT_REGISTER && hasRTC && registers.m_isRAMEnabled)
 			{
@@ -126,7 +126,7 @@ namespace
 		}
 
 
-		FORCE_INLINE uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
+		uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
 		{
 			if (addr < ROM_BANK_SIZE)
 			{
@@ -137,7 +137,7 @@ namespace
 			return (addr & (ROM_BANK_SIZE - 1)) + bankId * ROM_BANK_SIZE;
 		}
 
-		FORCE_INLINE uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
+		uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
 		{
 			uint32_t bankId = registers.m_secondaryBankRegister;
 			uint32_t offset = bankId * RAM_BANK_SIZE;
@@ -147,7 +147,7 @@ namespace
 
 	namespace MBC5
 	{
-		FORCE_INLINE bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
+		bool WriteRegister(uint16_t addr, uint8_t value, MemoryBankController::Registers& registers)
 		{
 			if (addr >= MBC_SECONDARY_BANK_REGISTER)
 			{
@@ -169,7 +169,7 @@ namespace
 			return false;
 		}
 
-		FORCE_INLINE uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
+		uint32_t GetROMAddr(uint16_t addr, const MemoryBankController::Registers& registers, uint16_t romBankCount)
 		{
 			if (addr < ROM_BANK_SIZE)
 			{
@@ -179,7 +179,7 @@ namespace
 			return (addr & (ROM_BANK_SIZE - 1)) + bankId * ROM_BANK_SIZE;
 		}
 
-		FORCE_INLINE uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
+		uint32_t GetRAMAddr(uint16_t addr, const MemoryBankController::Registers& registers)
 		{
 			return MBC3::GetRAMAddr(addr, registers);
 		}

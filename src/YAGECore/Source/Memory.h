@@ -105,7 +105,7 @@ private:
 	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
 	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
 
-	inline void WriteInternal(uint16_t addr, uint8_t value);
+	void WriteInternal(uint16_t addr, uint8_t value);
 
 	uint8_t CheckForIOUnusedBitOverride(uint16_t addr, uint8_t readValue) const;
 	uint8_t CheckForIOWriteOnlyBitOverride(uint16_t addr, uint8_t readValue) const;

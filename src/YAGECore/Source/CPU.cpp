@@ -19,14 +19,14 @@
 
 #define IO_REG_LOG 0xFF44
 
-inline void HexToString(uint8_t value, char* buffer)
+void HexToString(uint8_t value, char* buffer)
 {
 	const char* LUT = "0123456789ABCDEF";
 	buffer[0] = LUT[value >> 4];
 	buffer[1] = LUT[value & 0xF];
 }
 
-inline void HexToString(uint16_t value, char* buffer)
+void HexToString(uint16_t value, char* buffer)
 {
 	HexToString(static_cast<uint8_t>(value >> 8), buffer);
 	HexToString(static_cast<uint8_t>(value), buffer + 2);

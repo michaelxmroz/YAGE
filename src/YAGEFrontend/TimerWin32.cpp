@@ -3,11 +3,14 @@
 
 namespace
 {
-    inline void WinSleep(uint32_t ms) {
-        if (ms == 0) {
+    void WinSleep(uint32_t ms) 
+    {
+        if (ms == 0) 
+        {
             YieldProcessor();
         }
-        else {
+        else 
+        {
             Sleep(ms);
         }
     }

@@ -4,7 +4,7 @@
 
 #ifdef _CINTERFACE
 
-inline Emulator* FromHandle(EmulatorCHandle handle)
+Emulator* FromHandle(EmulatorCHandle handle)
 {
 	return reinterpret_cast<Emulator*>(handle);
 }
