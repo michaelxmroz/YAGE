@@ -208,7 +208,7 @@ void EngineController::RunEmulatorLoop()
 
         if (m_renderer->BeginDraw(frameBuffer))
         {
-            m_UI->Prepare(m_data);
+            m_UI->Prepare(m_data, deltaMs);
             m_UI->Draw(*m_renderer);
             m_renderer->EndDraw();
         }

@@ -123,6 +123,8 @@
     <ClCompile Include="$(BaseItemPath)\Clock.cpp" />
     <ClCompile Include="$(BaseItemPath)\TimerWin32.cpp" />
     <ClCompile Include="$(BaseItemPath)\UI.cpp" />
+    <ClCompile Include="..\src\YAGEFrontend\Tween.cpp" />
+    <ClCompile Include="..\src\YAGEFrontend\UIStrings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -155,6 +157,8 @@
     <ClInclude Include="$(BaseItemPath)\TimerWin32.h" />
     <ClInclude Include="$(BaseItemPath)\UI.h" />
     <ClInclude Include="$(BaseItemPath)\resource.h" />
+    <ClInclude Include="..\src\YAGEFrontend\Tween.h" />
+    <ClInclude Include="..\src\YAGEFrontend\UIStrings.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />

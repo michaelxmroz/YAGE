@@ -126,6 +126,12 @@
     <ClCompile Include="$(BaseItemPath)\EngineState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\YAGEFrontend\UIStrings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\YAGEFrontend\Tween.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h">
@@ -216,6 +222,12 @@
       <Filter>Header Files\Platforms</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YAGEFrontend\UIStrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YAGEFrontend\Tween.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

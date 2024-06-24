@@ -2,14 +2,27 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include "imgui.h"
+
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Logger.h"
 #include "Logging.h"
 #include "EngineState.h"
-#include <algorithm>
 #include "Input.h"
+#include "UIStrings.h"
+
+const char* FONT_PATH = "../../../externalLibs/imgui/misc/fonts/ProggyClean.ttf";
+
+namespace
+{
+    template<typename ... Args>
+    void ShowUIMessage(UIState& state, const char* message, Args ... args)
+    {
+        state.formatedMessage = string_format(message, args ...);
+
+        state.m_messageAlphaTween.Reset();
+    }
+}
 
 static void check_vk_result(VkResult err)
 {
@@ -51,7 +64,6 @@ const ImVec4 logMessageColors[3] =
 
 namespace
 {
-
     ImVec4 GetColorForLogLevel(Logger::LogLevel level)
     {
         switch (level)
@@ -66,6 +78,55 @@ namespace
 			return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	}
+
+    void DrawUIMessageBox(UIState& state, double deltaMs)
+    {
+        if (state.formatedMessage.empty() || state.m_messageAlphaTween.HasFinished())
+        {
+            return;
+        }
+
+        const ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+        const ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
+
+        ImGui::PushFont(state.m_fontLarge);
+
+        const char* message = state.formatedMessage.c_str();
+        ImVec2 textSize = ImGui::CalcTextSize(message);
+
+        const ImVec2 windowPadding = ImGui::GetStyle().WindowPadding;
+        if (textSize.x + windowPadding.x * 2.0f > viewportSize.x)
+
+        {
+            ImGui::PopFont();
+            ImGui::PushFont(state.m_fontSmall);
+            textSize = ImGui::CalcTextSize(message);
+        }
+
+        const float boxHeight = ImGui::GetFontSize() + windowPadding.y * 2;
+        const float boxWidth = viewportSize.x;
+        const ImVec2 boxPos = ImVec2(viewportPos.x, viewportSize.y + viewportPos.y - boxHeight);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, state.m_messageAlphaTween.Update(static_cast<float>(deltaMs))));
+        ImGui::SetNextWindowPos(boxPos);
+        ImGui::SetNextWindowSize(ImVec2(boxWidth, boxHeight));
+        ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+
+        if (ImGui::Begin("BottomLeftBox", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings)) 
+        {
+            ImGui::TextUnformatted(message);
+        }
+        ImGui::End();
+
+        ImGui::PopStyleColor();
+
+        ImGui::PopStyleVar(2);
+
+        ImGui::PopFont();
+    }
 
     void DrawLogWindow(UIState& state)
     {
@@ -134,7 +195,8 @@ namespace
             if (ImGui::Button("Save", ImVec2(120, 0))) 
             { 
                 data.m_userSettings.Save();
-                ImGui::CloseCurrentPopup(); 
+                ImGui::CloseCurrentPopup();
+                ShowUIMessage(state, UIStrings::OPTION_SAVED);
             }
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
@@ -175,6 +237,7 @@ namespace
             {
                 data.m_userSettings.Save();
                 ImGui::CloseCurrentPopup();
+                ShowUIMessage(state, UIStrings::OPTION_SAVED);
             }
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
@@ -255,6 +318,7 @@ namespace
             {
                 data.m_userSettings.Save();
                 ImGui::CloseCurrentPopup();
+                ShowUIMessage(state, UIStrings::OPTION_SAVED);
             }
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
@@ -362,6 +426,7 @@ namespace
             {
                 data.m_userSettings.Save();
                 ImGui::CloseCurrentPopup();
+                ShowUIMessage(state, UIStrings::OPTION_SAVED);
             }
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
@@ -374,31 +439,24 @@ namespace
         }
     }
 
-    void DrawMainMenuBar(UIState& state, EngineData& data)
+    void DrawMainMenuBar(UIState& state, EngineData& data, double deltaMs)
     {
         ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
         ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+
+        float menuAlpha = 1.0f;
         if (!data.m_gameLoaded || state.m_submenuState.IsOpen() || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
         {
-            state.m_showMenuBar = true;
+            state.m_menuBarAlphaTween.Reset();
         }
         else
         {
-            state.m_showMenuBar = false;
-        }
-
-        if (state.m_showMenuBar && state.m_menuBarAlpha < 2.0f)
-        {
-            state.m_menuBarAlpha += 0.2f;
-        }
-        else if (!state.m_showMenuBar && state.m_menuBarAlpha > 0.0f)
-        {
-            state.m_menuBarAlpha -= 0.01f;
+            menuAlpha = state.m_menuBarAlphaTween.Update(static_cast<float>(deltaMs));
         }
 
         state.m_submenuState.Update(false);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, std::min(1.0f,state.m_menuBarAlpha));
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, std::min(1.0f, menuAlpha));
 
         if (ImGui::BeginMainMenuBar())
         {
@@ -408,6 +466,7 @@ namespace
                 if (ImGui::MenuItem("Reset", 0, false, data.m_gameLoaded))
                 {
                 	data.m_engineState.SetState(StateMachine::EngineState::RESET);
+                    ShowUIMessage(state, UIStrings::EMULATOR_RESET);
                 }
                 if (ImGui::MenuItem("Load")) 
                 {
@@ -418,6 +477,7 @@ namespace
                         data.m_userSettings.AddRecentFile(path);
                         data.m_engineState.SetState(StateMachine::EngineState::RESET);
                         data.m_userSettings.Save();
+                        ShowUIMessage(state, UIStrings::SUCCESSFUL_LOAD);
                     }
                 }
                 if (ImGui::BeginMenu("Load Recent"))
@@ -436,6 +496,7 @@ namespace
 						{
 							data.m_gamePath = path;
 							data.m_engineState.SetState(StateMachine::EngineState::RESET);
+                            ShowUIMessage(state, UIStrings::SUCCESSFUL_LOAD);
 						}
 
                         hasAtLeastOne = true;
@@ -452,11 +513,13 @@ namespace
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
                     data.m_saveLoadPath = "";
+                    ShowUIMessage(state, UIStrings::STATE_SAVED);
                 }
                 if (ImGui::MenuItem("Quick Load", "CTRL+2", false, data.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
                     data.m_saveLoadPath = "";
+                    ShowUIMessage(state, UIStrings::STATE_LOADED);
                 }
                 if (ImGui::MenuItem("Save state as", 0, false, data.m_gameLoaded))
                 {
@@ -465,6 +528,7 @@ namespace
                     {
                         data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
                         data.m_saveLoadPath = path;
+                        ShowUIMessage(state, UIStrings::STATE_SAVED);
                     }
                 }
                 if (ImGui::MenuItem("Load state", 0, false, data.m_gameLoaded))
@@ -474,6 +538,7 @@ namespace
                     {
                         data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
                         data.m_saveLoadPath = path;
+                        ShowUIMessage(state, UIStrings::STATE_LOADED);
                     }
                 }
 
@@ -525,7 +590,9 @@ UI::UI(RendererVulkan& renderer)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    
+    m_state.m_fontSmall = io.Fonts->AddFontFromFileTTF(FONT_PATH, 13.0f);
+    m_state.m_fontLarge = io.Fonts->AddFontFromFileTTF(FONT_PATH, 26.0f);
+
     ImGui::GetPlatformIO().Platform_CreateVkSurface = ImGui_CreateVkSurface;
     
     HWND* windowHandle = static_cast<HWND*>(renderer.GetWindowHandle());
@@ -552,12 +619,15 @@ UI::UI(RendererVulkan& renderer)
         LOG_ERROR("Initializing imgui Vulkan back end failed");
     }
 
+    m_state.m_menuBarAlphaTween = Tween(1.0f, 0.0f, 2000.0f, 1000.0f);
+    m_state.m_messageAlphaTween = Tween(0.75f, 0.0f, 2000.0f, 1500.0f);
+
 #if _DEBUG
     m_state.m_showLogWindow = true;
 #endif
 }
 
-void UI::Prepare(EngineData& data)
+void UI::Prepare(EngineData& data, double deltaMs)
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -566,7 +636,7 @@ void UI::Prepare(EngineData& data)
     bool show = true;
     //ImGui::ShowDemoWindow(&show);
 
-    DrawMainMenuBar(m_state, data);
+    DrawMainMenuBar(m_state, data, deltaMs);
 
     DrawLogWindow(m_state);
 
@@ -574,6 +644,8 @@ void UI::Prepare(EngineData& data)
     ShowGraphicsOptions(m_state, data);
     ShowAudioOptions(m_state, data);
     ShowInputOptions(m_state, data);
+
+    DrawUIMessageBox(m_state, deltaMs);
 
     if (m_state.m_submenuState.HasOpened() && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
     {

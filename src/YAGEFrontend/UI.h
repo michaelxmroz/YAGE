@@ -1,6 +1,8 @@
 #pragma once
 #include "RendererVulkan.h"
 #include "EngineState.h"
+#include "imgui.h"
+#include "Tween.h"
 
 struct UIState
 {
@@ -45,20 +47,26 @@ struct UIState
 	};
 
 	bool m_showMenuBar = true;
-	float m_menuBarAlpha = 1.0f;
 	SubmenuState m_submenuState;
 	std::string m_keybindingTitle = "##";
 	uint32_t m_keybindingIndex = 0;
 	ActiveWindow m_activeWindow = ActiveWindow::NONE;
 	uint32_t m_lastMessageIndex = 0;
 	bool m_showLogWindow = false;
+	ImFont* m_fontSmall = nullptr;
+	ImFont* m_fontLarge = nullptr;
+
+	Tween m_menuBarAlphaTween;
+	Tween m_messageAlphaTween;
+
+	std::string formatedMessage;
 };
 
 class UI
 {
 public:
 	explicit UI(RendererVulkan& renderer);
-	void Prepare(EngineData& data);
+	void Prepare(EngineData& data, double deltaMs);
 	void Draw(RendererVulkan& renderer);
 	~UI();
 private:
