@@ -1,7 +1,14 @@
 #pragma once
 
+#ifdef _CPP
 extern "C"
 {
+#else
+#ifndef _CINTERFACE
+#define _CINTERFACE
+#endif
+#endif
+
 #ifdef _CINTERFACE
 #include <stdint.h>
 #endif
@@ -43,6 +50,10 @@ extern "C"
 		uint8_t m_buttons;
 	};
 
+	typedef enum EmulatorInputs_DPad EmulatorInputs_DPad;
+	typedef enum EmulatorInputs_Buttons EmulatorInputs_Buttons;
+	typedef struct EmulatorInputState EmulatorInputState;
+
 	EmulatorInputState GetDefaultInputState();
 
 	void SetDpadDown(EmulatorInputState* state, EmulatorInputs_DPad pad);
@@ -67,7 +78,7 @@ extern "C"
 	const void* GetFrameBuffer(EmulatorCHandle emulator);
 	uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator);
 
-	uint8_t* Serialize(EmulatorCHandle emulator, bool rawData);
+	uint8_t* Serialize(EmulatorCHandle emulator, uint8_t rawData);
 	void CleanupSerializedMemory(uint8_t* data);
 	void Deserialize(EmulatorCHandle emulator, const uint8_t* buffer, const uint32_t size);
 
@@ -81,4 +92,7 @@ extern "C"
 #endif
 
 #endif
+
+#ifdef _CPP
 }
+#endif

@@ -58,7 +58,6 @@ Global
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|ARM.ActiveCfg = Debug-Freestanding|ARM
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|ARM.Build.0 = Debug-Freestanding|ARM
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|ARM64.ActiveCfg = Debug-Freestanding|x64
-		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|ARM64.Build.0 = Debug-Freestanding|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|x64.ActiveCfg = Debug-Freestanding|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|x64.Build.0 = Debug-Freestanding|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug-Freestanding|x86.ActiveCfg = Debug-Freestanding|x64

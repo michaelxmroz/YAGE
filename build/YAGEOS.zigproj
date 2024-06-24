@@ -52,6 +52,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- this needs to be before Microsoft.Cpp.props-->
+    <!-- <OSType>Windows</OSType>-->
     <OSType>Windows</OSType>
     <ConfigurationType>Application</ConfigurationType>
     <!-- this will be changed by Project Property Page -->
@@ -91,6 +92,10 @@
     <ApplicationType>windows</ApplicationType>
     <!-- Microsoft.Cpp.props does not support macos-->
   </PropertyGroup>
+  <PropertyGroup Condition="'$(OSType)' == 'Freestanding'">
+    <ApplicationType>Freestanding</ApplicationType>
+    <!-- Microsoft.Cpp.props does not support macos-->
+  </PropertyGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
@@ -110,11 +115,13 @@
     <RootSourceName>..\src\YAGEOS\main.zig</RootSourceName>
     <AssemblyName>$(ProjectName)</AssemblyName>
     <AssemblyVersion>0.0.1</AssemblyVersion>
-    <BuildOption>-lc</BuildOption>
-    <UseBuildDotZig>false</UseBuildDotZig>
+    <BuildOption>
+    </BuildOption>
+    <UseBuildDotZig>true</UseBuildDotZig>
     <IncludeDirs>..\YAGECore\Include\;..\src\YAGEOS\</IncludeDirs>
-    <LibraryDirs>..\bin\x64\Debug-Freestanding</LibraryDirs>
-    <Libraries>YAGECore</Libraries>
+    <LibraryDirs>$(SolutionDir)..\bin\$(Platform)\$(Configuration)</LibraryDirs>
+    <Libraries>
+    </Libraries>
     <Dependencies>
     </Dependencies>
     <Modules>
@@ -123,7 +130,8 @@
     <OutDirName>bin</OutDirName>
     <GenerateBuildDotZig>false</GenerateBuildDotZig>
     <GenerateBuildDotZigDotZon>false</GenerateBuildDotZigDotZon>
-    <WorkingDirectory></WorkingDirectory>
+    <WorkingDirectory>
+    </WorkingDirectory>
     <StartProgram>
     </StartProgram>
     <CmdArgs>
@@ -139,6 +147,7 @@
     <ZigOS Condition=" '$(ApplicationType)' == 'linux' ">linux</ZigOS>
     <ZigOS Condition=" '$(ApplicationType)' == 'Android' ">linux</ZigOS>
     <ZigOS Condition=" '$(ApplicationType)' == 'iOS' ">ios</ZigOS>
+    <ZigOS Condition=" '$(ApplicationType)' == 'Freestanding' ">freestanding-eabihf</ZigOS>
     <ZigOS Condition=" '$(OSType)' == 'macos' ">macos</ZigOS>
     <!-- Microsoft.Cpp.props does not support macos-->
     <ZigArchitecture Condition=" '$(Platform)' == 'x86' ">x86</ZigArchitecture>
@@ -164,27 +173,18 @@
     <CleaningDirectories>$(IntDir)\..;$(OutDir)\..;$(ProjectDir)zig-cache</CleaningDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(SolutionDir)..\bin\$(Platform)\$(Configuration)\YAGECore.lib">
+      <SubType>Code</SubType>
+      <Link>YAGECore.lib</Link>
+    </Compile>
     <Compile Include="..\src\YAGEOS\main.zig">
       <SubType>Code</SubType>
       <Link>main.zig</Link>
     </Compile>
-    <ClCompile Include="..\src\YAGEOS\cpp_code.cpp">
+    <Compile Include="..\src\YAGEOS\linker.ld">
       <SubType>Code</SubType>
-      <Link>cpp_code.cpp</Link>
-    </ClCompile>
-    <ClCompile Include="..\src\YAGEOS\c_code.c">
-      <SubType>Code</SubType>
-      <Link>c_code.c</Link>
-    </ClCompile>
-    <ClInclude Include="..\src\YAGEOS\cpp_header.h">
-      <SubType>Code</SubType>
-      <Link>cpp_header.h</Link>
-    </ClInclude>
-    <ClInclude Include="..\src\YAGEOS\c_header.h">
-      <SubType>Code</SubType>
-      <Link>c_header.h</Link>
-    </ClInclude>
-    <ResourceCompile Include="resource.rc" />
+      <Link>linker.ld</Link>
+    </Compile>
   </ItemGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -207,10 +207,8 @@
       <AddCSourceFiles>
       </AddCSourceFiles>
       <AddCSourceFiles Condition=" '$(AllCFilesFlat)' != '' ">exe.addCSourceFile(.{ .file = .{ .path = "$(AllCFilesFlat.Replace('\','/').Replace(';', '"}, .flags = &amp;.{}})%3B exe.addCSourceFile(.{ .file = .{ .path = "'))"}, .flags = &amp;.{} })%3B</AddCSourceFiles>
-      <AllRCFilesFlat>@(ResourceCompile)</AllRCFilesFlat>
       <AddWin32ResourceFiles>
       </AddWin32ResourceFiles>
-      <AddWin32ResourceFiles Condition=" '$(AllRCFilesFlat)' != '' ">exe.addWin32ResourceFile(.{ .file = .{ .path = "$(AllRCFilesFlat.Replace('\','/').Replace(';', '"}})%3B exe.addWin32ResourceFile(.{ .file = .{ .path = "'))"} })%3B</AddWin32ResourceFiles>
       <!-- Creating a Property to add ProjectReferences-->
       <NativeProjectReferencePaths>@(_ResolvedNativeProjectReferencePaths)</NativeProjectReferencePaths>
       <AddLibs Condition=" '$(NativeProjectReferencePaths)' != '' ">exe.addObjectFile(.{ .path = "$(NativeProjectReferencePaths.Replace('\','/').Replace(';', '" })%3B exe.addObjectFile(.{ .path = "'))" })%3B</AddLibs>
@@ -246,7 +244,6 @@
       <ModulesOption Condition=" '$(Modules)' != '' ">--mod $(Modules.Replace(';', ' --mod ')) </ModulesOption>
       <NativeProjectReferencePaths>@(_ResolvedNativeProjectReferencePaths)</NativeProjectReferencePaths>
       <AllCFilesFlat>@(AllCFiles)</AllCFilesFlat>
-      <AllRCFilesFlat>@(ResourceCompile)</AllRCFilesFlat>
       <BuildCommand>"$(ZIG_TOOL_PATH)$(ToolName)" $(ZigBuildCommand) --name $(AssemblyName) -target $(ZigArchitecture)-$(ZigOS) -Doptimize=$(ZigOptimize) -femit-bin=$(OutDir)$(OutputName) --cache-dir $(IntDir) $(ZigLibType) $(IncludeDirsOption) $(LibraryDirsOption) $(LibrariesOption) $(DependenciesOption) $(ModulesOption) $(BuildOption) $(RootSourceName) $(AllCFilesFlat.Replace(';', ' ')) $(NativeProjectReferencePaths.Replace(';', ' ')) $(AllRCFilesFlat.Replace(';', ' '))</BuildCommand>
     </PropertyGroup>
     <MakeDir Directories="$(OutDir)" />
@@ -271,6 +268,6 @@
   <Target Name="ReBuild" DependsOnTargets="Clean;Build">
   </Target>
   <Target Name="AllProjectOutputGroups" />
-  <Target Name="BuildWithOutBuildDotZig" Condition="'$(UseBuildDotZig)' == 'false'" Inputs="@(Compile);@(ClCompile);@(Content)" Outputs="$(OutDir)$(OutputName)" />
+  <!--<Target Name="BuildWithOutBuildDotZig" Condition="'$(UseBuildDotZig)' == 'false'" Inputs="@(Compile);@(ClCompile);@(Content)" Outputs="$(OutDir)$(OutputName)" />-->
   <!-- clear target defined in Microsoft.CppBuild.targets to avoid OutputGroup.cs DebugAssert()-->
 </Project>

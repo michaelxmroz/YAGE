@@ -90,12 +90,12 @@ uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator)
 	return emu->GetNumberOfGeneratedSamples();
 }
 
-uint8_t* Serialize(EmulatorCHandle emulator, bool rawData)
+uint8_t* Serialize(EmulatorCHandle emulator, uint8_t rawData)
 {
 	Emulator* emu = FromHandle(emulator);
 	//HACK, think of something better
 	std::vector<uint8_t> serializedData;
-	emu->Serialize(rawData, serializedData);
+	emu->Serialize(rawData > 0, serializedData);
 
 	uint8_t* rawBuffer = new uint8_t[serializedData.size()];
 	memcpy(rawBuffer, serializedData.data(), serializedData.size());
