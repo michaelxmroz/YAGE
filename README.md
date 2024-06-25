@@ -1,6 +1,6 @@
 # Yet Another GB Emulator
 
-![YAGE running the open-source game Demon3](yage.png? "YAGE running the open-source game Demon3")
+<img src="yage.png?" alt="YAGE running the open-source game Demon3" width="400"/>
 
 YAGE is a classic (DMG) GB emulator. It is written in C++ and consists of a platform-independent backend and a minimal WinAPI & Vulkan frontend for windowing, input & rendering.
 
