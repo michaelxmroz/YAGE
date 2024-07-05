@@ -39,7 +39,7 @@ pub fn build(b: *Builder) void {
 	
     //kernel.setTarget(target);
     //kernel.setBuildMode(mode);
-    kernel.setLinkerScriptPath(.{ .path = "..\\src\\YAGEOS\\linker.ld" });
+    kernel.setLinkerScript(b.path("..\\src\\YAGEOS\\linker.ld"));
     //kernel.code_model = .kernel;
     //kernel.installArtifact();
 	
@@ -52,7 +52,8 @@ pub fn build(b: *Builder) void {
     //};
 	
 	const install_kernel = b.addInstallArtifact(kernel, .{
-            .dest_dir = .default,
+			.dest_dir = .{ .override = .{ .custom = "..\\..\\bin\\ARM64\\Debug\\" } },
+            //.dest_dir =  { {b.path("..\\bin\\ARM64\\Debug\\");};},
         });
 		
 	//const wf = b.addWriteFiles();

@@ -354,3 +354,7 @@ assets/
 
 #External tests
 externalTests/
+
+#Zig Build Cache
+build/.zig-cache/
+build/zig-cache/
