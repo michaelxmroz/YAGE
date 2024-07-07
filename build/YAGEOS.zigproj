@@ -185,6 +185,14 @@
       <SubType>Code</SubType>
       <Link>linker.ld</Link>
     </Compile>
+    <Compile Include="..\src\YAGEOS\mmio.zig">
+      <SubType>Code</SubType>
+      <Link>mmio.zig</Link>
+    </Compile>
+    <Compile Include="..\src\YAGEOS\renderer.zig">
+      <SubType>Code</SubType>
+      <Link>renderer.zig</Link>
+    </Compile>
   </ItemGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
