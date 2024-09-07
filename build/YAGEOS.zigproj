@@ -193,6 +193,14 @@
       <SubType>Code</SubType>
       <Link>renderer.zig</Link>
     </Compile>
+	<Compile Include="..\src\YAGEOS\utils.zig">
+      <SubType>Code</SubType>
+      <Link>utils.zig</Link>
+    </Compile>
+	<Compile Include="..\src\YAGEOS\log.zig">
+      <SubType>Code</SubType>
+      <Link>log.zig</Link>
+    </Compile>
   </ItemGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

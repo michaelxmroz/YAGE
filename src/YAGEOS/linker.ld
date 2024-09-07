@@ -3,42 +3,16 @@ ENTRY(_start)
 SECTIONS
 {
     . = 0x80000;
-    __start = .;
-    __text_start = .;
-    .text :
-    {
-        KEEP(*(.text.boot))
-        *(.text)
-    }
-    . = ALIGN(4096); /* align to page size */
-    __text_end = .;
-
-    __rodata_start = .;
-    .rodata :
-    {
-        *(.rodata)
-    }
-    . = ALIGN(4096); /* align to page size */
-    __rodata_end = .;
-
-    __data_start = .;
-    .data :
-    {
-        *(.data)
-    }
-    . = ALIGN(4096); /* align to page size */
-    __data_end = .;
-
-    __bss_start = .;
-    .bss (NOLOAD) :
-    {
-        *(.bss)
-        *(COMMON)
-    }
-    . = ALIGN(4096); /* align to page size */
-    __bss_end = .;
+    .text.boot : ALIGN(8) { *(.text.boot) }
+	.text : ALIGN(8) { *(.text) }
+	.rodata : ALIGN(8) { *(.rodata) }
+	.data : ALIGN(8) { *(.data) }
+	. = ALIGN(0x8);
+	__bss_start = .;
+	.bss : { *(.bss*) }
+	__page_table = ALIGN(0x4000);
+	__bss_end = .;
     __bss_size = __bss_end - __bss_start;
-    __end = .;
-
-    __stack_top = __bss_end + 0x400000; /* Adjust as necessary */
 }
+
+ASSERT(__bss_end <= 0x900000, "Memory overflow: sections exceed available RAM");
