@@ -155,7 +155,7 @@ export fn main() void
     mmio.uartSendString("Success\n");
 
     log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
-    //renderer.initFramebuffer();
+    renderer.initFramebuffer();
 
     utils.hang();
 }

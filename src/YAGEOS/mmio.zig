@@ -36,39 +36,26 @@ pub const Registers = enum (u32)
     UART0_TDR    = (UART0_BASE + 0x8C), // Test data register
 };
 
-pub fn printu64(val : u64) void
+pub fn mmioWriteDirect(reg : u32, data : u32) void
 {
-    var n: u6 = 0;
-    var shiftVal = val;
-    while (n < 64) 
-    {
-        const shiftMask = 0x1;
-        shiftVal = (val >> (63 - n));
-        const lastBit = shiftVal & shiftMask;
-        if( lastBit == 1)
-        {
-            uartSend('1');
-        }
-        else
-        {
-            uartSend('0');
-        }
-        n += 1;
-    }
-    uartSend('\n');
+    const ptr: *volatile u32 = @ptrFromInt(reg);
+    ptr.* = data;
 }
 
+pub fn mmioReadDirect(reg : u32) u32
+{   
+    const ptr: *volatile u32 = @ptrFromInt(reg);
+    return ptr.*;
+}
 
 pub fn mmioWrite(reg : Registers, data : u32) void
 {
-    const ptr: *volatile u32 = @ptrFromInt(MMIO_BASE + @intFromEnum(reg));
-    ptr.* = data;
+    mmioWriteDirect(MMIO_BASE + @intFromEnum(reg), data);
 }
 
 pub fn mmioRead(reg : Registers) u32
 {
-    const ptr: *volatile u32 = @ptrFromInt(MMIO_BASE + @intFromEnum(reg));
-    return ptr.*;
+    return mmioReadDirect(MMIO_BASE + @intFromEnum(reg)) ;
 }
 
 
