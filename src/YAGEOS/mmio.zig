@@ -88,18 +88,33 @@ pub fn uartSendString(s: []const u8) void
 
 pub fn uartInit() void
 {
-	mmioWrite(Registers.UART0_CR, 0x00000000);
+    // Disable UART0 by clearing the UART Control Register (CR).
+    mmioWrite(Registers.UART0_CR, 0x00000000);
 
-	mmioWrite(Registers.UART0_ICR, 0xFFFFFFFF);
+    // Clear all UART interrupts by writing to the Interrupt Clear Register (ICR).
+    mmioWrite(Registers.UART0_ICR, 0xFFFFFFFF);
 
+    // Set integer part of the baud rate divisor to 1 in the Integer Baud Rate Divisor Register (IBRD).
+    // Baud rate = (Frequency) / (16 * (IBRD + FBRD / 64))
     mmioWrite(Registers.UART0_IBRD, 1);
 
+    // Set fractional part of the baud rate divisor to 40 in the Fractional Baud Rate Divisor Register (FBRD).
     mmioWrite(Registers.UART0_FBRD, 40);
 
+    // Set line control options in the Line Control Register (LCRH):
+    // - Enable 8-bit word length (bits [5:6] = 1).
+    // - Enable FIFOs (bit [4] = 1).
     mmioWrite(Registers.UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
 
+    // Enable UART interrupts by setting bits in the Interrupt Mask Set/Clear Register (IMSC):
+    // - Bits 1, 4, 5, 6, 7, 8, 9, and 10 to enable various interrupt sources (e.g., RX, TX).
     mmioWrite(Registers.UART0_IMSC, (1 << 1) | (1 << 4) | (1 << 5) | (1 << 6) |
-	                       (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10));
+                                     (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10));
 
+    // Re-enable UART0 by setting the Control Register (CR):
+    // - Bit 0 enables the UART.
+    // - Bit 8 enables transmit.
+    // - Bit 9 enables receive.
     mmioWrite(Registers.UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
 }
+

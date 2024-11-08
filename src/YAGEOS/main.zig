@@ -18,7 +18,6 @@ pub fn setupInterruptVectorTable() void
 {
     asm volatile (
         \\ setupInterruptVectorTable:
-        // \\ movz x1, #0xD61F
         \\ movk x1, #0xD61F, lsl #16
         \\ mov x8, #0
         \\ loop:
@@ -33,11 +32,11 @@ pub fn setupInterruptVectorTable() void
         \\ b loop
         \\ end:
         \\ ret
-        : // output operands
+        :
         : [buf] "x5" (@intFromPtr(&defs.VECTOR_TABLE)),
           [jumpAddr] "x6" (&dummyInterruptHandler),
           [count] "x7" (16),
-        : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8" // clobbered registers
+        : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"
     );
 }
 
@@ -48,67 +47,91 @@ export fn initMMU() void
 
 export fn _start() callconv(.Naked) noreturn 
 {
+    // Kernel entry point
+    // Set up the CPU and initialize the MMU
+    //
     const asm_str =
         \\    mrs    x0, mpidr_el1        
-        \\    and    x0, x0,#0xFF        // Check processor id
-        \\    cbz    x0, setupCPU        // Hang for all non-primary CPU
-        \\    b    proc_hang
+        \\    and    x0, x0, #0xFF        // Check processor ID (lower 8 bits)
+        \\    cbz    x0, setupCPU         // If ID is zero (primary CPU), continue to setupCPU
+        \\    b      proc_hang            // Else, loop indefinitely to halt non-primary CPUs
         \\
         \\ proc_hang: 
-        \\    b proc_hang
+        \\    b proc_hang                 // Hang by branching to itself indefinitely
         \\
         \\ setupCPU:
         \\    ldr x0, ={0}
-        \\    msr sctlr_el1, x0	
+        \\    msr sctlr_el1, x0           // Set System Control Register (SCTLR) to disable MMU, I-cache, and D-cache
+        \\
         \\    ldr x0, ={1}
-        \\    msr hcr_el2, x0
+        \\    msr hcr_el2, x0             // Set HCR_EL2 to enter non-secure state, 64-bit EL1/0 execution
+        \\
         \\    ldr x0, ={2}
-        \\    msr scr_el3, x0
+        \\    msr scr_el3, x0             // Set SCR_EL3 to allow entry to EL2/EL1 in 64-bit non-secure mode
+        \\
         \\    ldr x0, ={3}
-        \\    msr spsr_el3, x0
+        \\    msr spsr_el3, x0            // Set SPSR_EL3 to mask all interrupts and return to EL1h
+        \\
         \\    ldr x0, ={4}
-        \\    msr cpacr_el1, x0
+        \\    msr cpacr_el1, x0           // Set CPACR_EL1 to enable access to SIMD/FPU (don't trap SIMD/FP registers)
+        \\
         \\    ldr x0, ={5}
-        \\    msr tcr_el1, x0
-        \\    ldr	x0, ={6}
-        \\    msr	mair_el1, x0
-        \\    adr x0, setupMMU		
-        \\    msr elr_el3, x0
-        \\    eret	
+        \\    msr tcr_el1, x0             // Set TCR_EL1 to configure translation regime for virtual memory in EL1
+        \\
+        \\    ldr x0, ={6}
+        \\    msr mair_el1, x0            // Set MAIR_EL1 to define memory attributes for normal and device memory
+        \\
+        \\    adr x0, setupMMU
+        \\    msr elr_el3, x0             // Set Exception Link Register EL3 to start executing at setupMMU
+        \\    eret                        // Exception return to EL1, transferring control to setupMMU
+        \\
         \\ setupMMU:
-        \\ mov sp, #{7}
-        \\ adr	x0, __bss_start
-        \\ adr	x1, __bss_end
-        \\ sub	x1, x1, x0
-        \\ bl 	memzero
-        \\ 
-        \\ bl 	initMMU
-        \\ adrp x0, pg_dir	
-        \\ msr	ttbr0_el1, x0
-        \\ msr	ttbr1_el1, x0
-        \\ mrs x0, sctlr_el1
-        \\ mov x1, #{8}
-        \\ orr x0, x0, x1
-        \\ msr SCTLR_EL1, x0
-        \\ orr x0, x0, x0
-        \\ nop
-        \\ nop
-        \\ orr x0, x0, x0
-        \\ bl main
+        \\    mov sp, #{7}                // Set stack pointer to LOW_MEMORY (initial stack for kernel)
+        \\
+        \\    adr x0, __bss_start
+        \\    adr x1, __bss_end
+        \\    sub x1, x1, x0
+        \\    bl  memzero                 // Call memzero to clear the .bss section (zero-initialize)
+        \\
+        \\    bl  initMMU                 // Initialize the MMU, setting up the page tables and memory mappings
+        \\
+        \\    adrp x0, pg_dir             // Load base address of the page directory into x0
+        \\    msr ttbr0_el1, x0           // Set TTBR0_EL1 to page directory for user/kernel translation table base
+        \\    msr ttbr1_el1, x0           // Set TTBR1_EL1 to page directory for higher memory regions
+        \\
+        \\    mrs x0, sctlr_el1           // Read current SCTLR_EL1 configuration
+        \\    mov x1, #{8}
+        \\    orr x0, x0, x1              // Enable MMU and caches in SCTLR_EL1
+        \\    msr sctlr_el1, x0           // Write updated SCTLR_EL1 with MMU enabled
+        \\    bl main                     // Call main function to start the kernel
+        \\
         \\ .globl id_pgd_addr
-        \\ id_pgd_addr:
-        \\ adrp x0, pg_dir
-        \\ ret
-        \\.globl memzero
-        \\memzero:
-        \\    str xzr, [x0], #8
-        \\    subs x1, x1, #8
-        \\   b.gt memzero
+        \\ id_pgd_addr: 
+        \\    adrp x0, pg_dir             // Load page directory base address
+        \\    ret
+        \\
+        \\ .globl memzero
+        \\ memzero:
+        \\    str xzr, [x0], #8           // Write zero to memory in 8-byte chunks
+        \\    subs x1, x1, #8             // Decrease remaining size by 8
+        \\    b.gt memzero                // Loop until entire range is cleared
         \\    ret
     ;
 
-    //const asm_str2 = "mov x30, {}";
-    const formated_asm = std.fmt.comptimePrint(asm_str, .{ defs.SCTLR_VALUE_MMU_DISABLED, defs.HCR_VALUE, defs.SCR_VALUE, defs.SPSR_VALUE, defs.CPACR_VALUE, defs.TCR_VALUE, defs.MAIR_VALUE, defs.LOW_MEMORY, defs.SCTLR_VALUE_MMU_ENABLED });
+    const formated_asm = std.fmt.comptimePrint(
+        asm_str, .{ 
+            defs.SCTLR_VALUE_MMU_DISABLED,
+            defs.HCR_VALUE,               
+            defs.SCR_VALUE,               
+            defs.SPSR_VALUE,              
+            defs.CPACR_VALUE,             
+            defs.TCR_VALUE,               
+            defs.MAIR_VALUE,              
+            defs.LOW_MEMORY,              
+            defs.SCTLR_VALUE_MMU_ENABLED  
+        }
+    );
+
     asm volatile (formated_asm);
 
     while (true) {}
@@ -131,7 +154,7 @@ export fn main() void
     mmio.uartInit();
     mmio.uartSendString("Success\n");
 
-    log.INFO("Hello, Raspberry Pi 4!\n", .{});
+    log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
     //renderer.initFramebuffer();
 
     utils.hang();
