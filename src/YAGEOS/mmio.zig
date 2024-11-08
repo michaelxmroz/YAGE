@@ -36,6 +36,28 @@ pub const Registers = enum (u32)
     UART0_TDR    = (UART0_BASE + 0x8C), // Test data register
 };
 
+pub fn printu64(val : u64) void
+{
+    var n: u6 = 0;
+    var shiftVal = val;
+    while (n < 64) 
+    {
+        const shiftMask = 0x1;
+        shiftVal = (val >> (63 - n));
+        const lastBit = shiftVal & shiftMask;
+        if( lastBit == 1)
+        {
+            uartSend('1');
+        }
+        else
+        {
+            uartSend('0');
+        }
+        n += 1;
+    }
+    uartSend('\n');
+}
+
 
 pub fn mmioWrite(reg : Registers, data : u32) void
 {

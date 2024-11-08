@@ -201,6 +201,14 @@
       <SubType>Code</SubType>
       <Link>log.zig</Link>
     </Compile>
+	<Compile Include="..\src\YAGEOS\mmu.zig">
+      <SubType>Code</SubType>
+      <Link>mmu.zig</Link>
+    </Compile>
+		<Compile Include="..\src\YAGEOS\defs.zig">
+      <SubType>Code</SubType>
+      <Link>defs.zig</Link>
+    </Compile>
   </ItemGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

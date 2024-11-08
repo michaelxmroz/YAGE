@@ -24,8 +24,7 @@ pub fn INFO(comptime format: []const u8, args: anytype) void
 
 pub fn LOG(level: LogLevel, comptime format: []const u8, args: anytype) void 
 {
-    mmio.uartSendString("Test!!!\n");
-    var buffer: [256]u8 = undefined;
+    var buffer: [1024]u8 = undefined;
     const prefix = switch (level) {
         .info => "INFO: ",
         .warning => "WARNING: ",
@@ -33,17 +32,10 @@ pub fn LOG(level: LogLevel, comptime format: []const u8, args: anytype) void
     };
     mmio.uartSendString(prefix);
 
-    _ = std.fmt.bufPrint(&buffer, "{s}{s}", .{"b", "a"}) catch 
+    const bufSlice = std.fmt.bufPrint(&buffer, format, args) catch 
     {
         mmio.uartSendString("Log formatting error\n");
         return;
     };
-    mmio.uartSendString("Test2!!!\n");
-    mmio.uartSendString(&buffer);
-    _ = std.fmt.bufPrint(&buffer, format, args) catch 
-    {
-        mmio.uartSendString("Log formatting error\n");
-        return;
-    };
-    mmio.uartSendString(&buffer);
+    mmio.uartSendString(bufSlice);
 }
