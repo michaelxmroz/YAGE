@@ -157,5 +157,7 @@ export fn main() void
     log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
     renderer.initFramebuffer();
 
+    renderer.drawRect(150,150,400,400,renderer.Color{.components = renderer.Components{.a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 }});
+
     utils.hang();
 }
