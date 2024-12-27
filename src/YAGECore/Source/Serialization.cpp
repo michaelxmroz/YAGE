@@ -4,7 +4,9 @@
 
 #define HEADER_DEFAULT_NAME "GameboySerializedStateFile"
 #define HEADER_MAGIC_TOKEN 4242
-#define HEADER_CURRENT_VERSION 1
+
+// Bump this on major changes to the file format
+#define HEADER_CURRENT_VERSION 2
 
 namespace Serializer_Internal
 {
@@ -34,15 +36,15 @@ namespace Serializer_Internal
 		return *reinterpret_cast<FileHeader*>(rawData);
 	}
 
-	FileHeader ParseHeader(const uint8_t* buffer)
+	FileHeader ParseHeader(uint32_t version, const uint8_t* buffer)
 	{
 		const FileHeader* header = reinterpret_cast<const FileHeader*>(buffer);
-		if (header->m_magicToken != HEADER_MAGIC_TOKEN || header->m_version > HEADER_CURRENT_VERSION)
+		if (header->m_magicToken != HEADER_MAGIC_TOKEN || header->m_version > version)
 		{
 			LOG_ERROR("Invalid Header in serialized state file");
 			return FileHeader();
 		}
-		if (header->m_version < HEADER_CURRENT_VERSION)
+		if (header->m_version < version)
 		{
 			LOG_ERROR("Outdated version of serialized state file");
 			return FileHeader();
@@ -214,7 +216,7 @@ DeserializationFactory::DeserializationFactory(SerializationParameters parameter
 {
 	//TODO also compare header file names & version
 
-	Serializer_Internal::FileHeader header = Serializer_Internal::ParseHeader(buffer);
+	Serializer_Internal::FileHeader header = Serializer_Internal::ParseHeader(parameters.m_version, buffer);
 
 	uint32_t expectedSize = sizeof(Serializer_Internal::FileHeader) + header.m_romNameLength + header.m_chunkSize + header.m_dataSize;
 

@@ -12,6 +12,14 @@
 #define VRAM_START 0x8000
 #define VRAM_END 0x9FFF 
 #define HRAM_BEGIN 0xFF80
+#define WRAM_START 0xC000
+#define WRAM_END 0xDFFF
+#define RAM_END 0xFFFF
+
+#define VRAM_SIZE VRAM_END - VRAM_START + 1
+#define WRAM_SIZE WRAM_END - WRAM_START + 1
+#define HRAM_SIZE RAM_END - OAM_START + 1
+#define TOTAL_RAM_SIZE VRAM_SIZE + WRAM_SIZE + HRAM_SIZE
 
 #define BOOTROM_BANK 0xFF50
 #define BOOTROM_SIZE 0x100
@@ -348,10 +356,12 @@ void Memory::WriteIO(uint16_t addr, uint8_t value)
 
 void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
 {
-	uint32_t dataSize = MEMORY_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
+	uint32_t dataSize = TOTAL_RAM_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
 	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Memory);
 
-	WriteAndMove(rawData, m_mappedMemory, MEMORY_SIZE);
+	WriteAndMove(rawData, m_mappedMemory + VRAM_START, VRAM_SIZE);
+	WriteAndMove(rawData, m_mappedMemory + WRAM_START, WRAM_SIZE);
+	WriteAndMove(rawData, m_mappedMemory + OAM_START, HRAM_SIZE);
 
 	WriteAndMove(rawData, &m_isBootromMapped, sizeof(bool));
 	WriteAndMove(rawData, &m_DMAInProgress, sizeof(bool));
@@ -368,7 +378,9 @@ void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const 
 
 	data += myChunk->m_offset;
 
-	ReadAndMove(data, m_mappedMemory, MEMORY_SIZE);
+	ReadAndMove(data, m_mappedMemory + VRAM_START, VRAM_SIZE);
+	ReadAndMove(data, m_mappedMemory + WRAM_START, WRAM_SIZE);
+	ReadAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
 	ReadAndMove(data, &m_DMAInProgress, sizeof(bool));
