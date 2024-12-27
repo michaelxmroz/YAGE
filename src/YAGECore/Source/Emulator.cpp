@@ -1,16 +1,24 @@
 #include "../Include/Emulator.h"
+#include "Allocator.h"
 #include "VirtualMachine.h"
 
-Emulator* Emulator::Create()
+Emulator* Emulator::Create(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc)
 {
-	return new VirtualMachine();
+	Allocator::Initialize(allocFunc, freeFunc);
+	return Y_NEW(VirtualMachine);
 }
 
 void Emulator::Delete(Emulator* emulator)
 {
-	delete emulator;
+	Y_DELETE(emulator);
+	Allocator::FreeAll();
 }
 
 Emulator::~Emulator()
 {
+}
+
+uint32_t Emulator::GetMemoryUse()
+{
+	return Allocator::GetInstance().GetMemoryUse();
 }

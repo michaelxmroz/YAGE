@@ -119,8 +119,8 @@ private:
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
 	} data;
-	void* m_activeFrame;
-	void* m_backBuffer;
+	RGBA* m_activeFrame;
+	RGBA* m_backBuffer;
 
 
 	// Inherited via ISerializable

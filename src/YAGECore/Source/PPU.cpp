@@ -3,6 +3,7 @@
 #include "Interrupts.h"
 #include <algorithm>
 #include "Logging.h"
+#include "Allocator.h"
 
 #define LCDC_REGISTER 0xFF40 //LCD Control
 #define STAT_REGISTER 0xFF41 // LCD Status
@@ -97,14 +98,14 @@ namespace PPUHelpers
 PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer)
 	, data()
 {
-	m_activeFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
-	m_backBuffer = new RGBA[EmulatorConstants::SCREEN_SIZE];
+	m_activeFrame = Y_NEW_A(RGBA, EmulatorConstants::SCREEN_SIZE);
+	m_backBuffer = Y_NEW_A(RGBA, EmulatorConstants::SCREEN_SIZE);
 }
 
 PPU::~PPU()
 {
-	delete m_activeFrame;
-	delete m_backBuffer;
+	Y_DELETE_A(m_activeFrame);
+	Y_DELETE_A(m_backBuffer);
 }
 
 void PPU::Init(Memory& memory)
@@ -283,7 +284,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 void PPU::SwapBackbuffer()
 {
-	void* swap = m_backBuffer;
+	RGBA* swap = m_backBuffer;
 	m_backBuffer = m_activeFrame;
 	m_activeFrame = swap;
 }
@@ -442,7 +443,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	}
 
 	uint32_t renderIndex = data.m_lineX + data.m_lineY * EmulatorConstants::SCREEN_WIDTH;
-	reinterpret_cast<RGBA*>(m_activeFrame)[renderIndex] = pixelColor;
+	m_activeFrame[renderIndex] = pixelColor;
 	data.m_lineX++;
 }
 

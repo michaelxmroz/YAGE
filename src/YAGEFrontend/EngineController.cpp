@@ -3,6 +3,18 @@
 
 std::string EngineController::s_persistentMemoryPath;
 
+void* AllocFunc(uint32_t size)
+{
+    LOG_INFO(string_format("Emulator is allocating %i bytes of memory", size).c_str());
+    return new uint8_t[size];
+}
+
+void FreeFunc(void* ptr)
+{
+    LOG_INFO("Emulator is freeing memory");
+    delete[] reinterpret_cast<uint8_t*>(ptr);
+}
+
 #if _DEBUG
 void DumpMemory(void* userData)
 {
@@ -112,7 +124,7 @@ void EngineController::SavePersistentMemory(const void* data, uint32_t size)
 
 inline void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, const std::vector<char>& romBlob, const std::vector<char>& ramBlob)
 {
-    m_emulator = Emulator::Create();
+    m_emulator = Emulator::Create(&AllocFunc, &FreeFunc);
 
     m_data.m_gameLoaded = true;
 

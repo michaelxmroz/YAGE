@@ -27,6 +27,8 @@ extern "C"
 	typedef void (*EmulatorDebugCallback)(void* userData);
 #endif
 
+	typedef void* (*YAGEAllocFunc)(uint32_t);
+	typedef void (*YAGEFreeFunc)(void*);
 
 	enum EmulatorInputs_DPad
 	{
@@ -63,7 +65,7 @@ extern "C"
 	struct EmulatorC;
 	typedef struct EmulatorC* EmulatorCHandle;
 
-	EmulatorCHandle CreateEmulatorHandle();
+	EmulatorCHandle CreateEmulatorHandle(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc);
 	void Delete(EmulatorCHandle emulator);
 
 	void SetLoggerCallback(EmulatorCHandle emulator, EmulatorLoggerCallback callback);

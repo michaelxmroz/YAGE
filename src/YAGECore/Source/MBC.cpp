@@ -1,6 +1,7 @@
 #include "MBC.h"
 #include "Helpers.h"
 #include "Logging.h"
+#include "Allocator.h"
 
 #define HEADER_CARTRIDGE_TYPE 0x0147
 #define HEADER_ROM_SIZE 0x0148
@@ -234,11 +235,11 @@ MemoryBankController::MemoryBankController(GamestateSerializer* serializer, cons
 		LOG_ERROR("ROM size is too small to be a proper ROM file");
 		return;
 	}
-	m_rom = new uint8_t[size];
+	m_rom = Y_NEW_A(uint8_t,size);
 	memcpy(m_rom, rom, size);
 
 	uint32_t ramSize = GetRAMSize();
-	m_ram = new uint8_t[ramSize];
+	m_ram = Y_NEW_A(uint8_t, ramSize);
 	memset(m_ram, 0, ramSize);
 
 }

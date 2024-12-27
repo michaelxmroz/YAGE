@@ -1,5 +1,6 @@
 #include "Memory.h"
 #include "Logging.h"
+#include "Allocator.h"
 
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000
@@ -33,7 +34,7 @@
 
 Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer)
 {
-	m_mappedMemory = new uint8_t[MEMORY_SIZE];
+	m_mappedMemory = Y_NEW_A(uint8_t, MEMORY_SIZE);
 	m_externalMemory = false;
 	Init();
 }
@@ -49,15 +50,15 @@ Memory::~Memory()
 {
 	if (!m_externalMemory)
 	{
-		delete[] m_mappedMemory;
-		delete m_mbc;
+		Y_DELETE_A(m_mappedMemory);
+		Y_DELETE(m_mbc);
 	}
 	if (m_bootrom != nullptr)
 	{
-		delete[] m_bootrom;
+		Y_DELETE_A(m_bootrom);
 	}
 
-	delete[] m_writeCallbacks;
+	Y_DELETE_A(m_writeCallbacks);
 }
 
 void Memory::Write(uint16_t addr, uint8_t value)
@@ -151,7 +152,7 @@ void Memory::ClearVRAM()
 
 void Memory::MapROM(GamestateSerializer* serializer, const char* rom, uint32_t size)
 {
-	m_mbc = new MemoryBankController(serializer, rom, size);
+	m_mbc = Y_NEW(MemoryBankController,serializer, rom, size);
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset(m_initializationTracker, 1, ROM_END + 1);
@@ -166,7 +167,7 @@ void Memory::DeserializePersistentData(const char* ram, uint32_t size)
 
 void Memory::MapBootrom(const char* rom, uint32_t size)
 {
-	m_bootrom = new uint8_t[BOOTROM_SIZE];
+	m_bootrom = Y_NEW_A(uint8_t, BOOTROM_SIZE);
 	memcpy(m_bootrom, rom, size);
 	m_isBootromMapped = true;
 }
@@ -211,10 +212,10 @@ void Memory::Init()
 	memset(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
 	memset(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
 
-	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
+	m_writeCallbacks = Y_NEW_A(MemoryWriteCallback, MEMORY_SIZE);
 	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
 
-	m_callbackUserData = new uint64_t[MEMORY_SIZE];
+	m_callbackUserData = Y_NEW_A(uint64_t, MEMORY_SIZE);
 	memset(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
 
 	RegisterCallback(DMA_REGISTER, DoDMA, nullptr);
@@ -225,7 +226,7 @@ void Memory::Init()
 	RegisterUnusedIORegisters();
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	m_initializationTracker = new uint8_t[MEMORY_SIZE];
+	m_initializationTracker = Y_NEW_A(uint8_t, MEMORY_SIZE);
 	memset(m_initializationTracker, 0, MEMORY_SIZE);
 	//skip initialization checks for APU wave ram
 	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);

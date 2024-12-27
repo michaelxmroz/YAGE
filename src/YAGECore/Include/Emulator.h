@@ -3,6 +3,9 @@
 #include <vector>
 #include "Emulator_C.h"
 
+typedef void* (*YAGEAllocFunc)(uint32_t);
+typedef void (*YAGEFreeFunc)(void*);
+
 namespace EmulatorInputs
 {
 	enum class DPad
@@ -63,7 +66,7 @@ public:
 	typedef void (*DebugCallback)(void* userData);
 #endif
 
-	static Emulator* Create();
+	static Emulator* Create(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc);
 	static void Delete(Emulator* emulator);
 
 	virtual void SetLoggerCallback(LoggerCallback callback) = 0;
@@ -83,12 +86,13 @@ public:
 
 	virtual void SetTurboSpeed(float speed) = 0;
 
+	uint32_t GetMemoryUse();
+
 #if _DEBUG
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void ClearCallbacks() = 0;
 #endif
-protected:
 	virtual ~Emulator();
 };

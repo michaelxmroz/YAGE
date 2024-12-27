@@ -1,5 +1,6 @@
 #include "../Include/Emulator_C.h"
 #include "../Include/Emulator.h"
+#include "Allocator.h"
 #include <cstdint>
 
 #ifdef _CINTERFACE
@@ -24,9 +25,9 @@ void SetButtonDown(EmulatorInputState* state, EmulatorInputs_Buttons button)
 	state->m_buttons &= (~static_cast<uint8_t>(button));
 }
 
-EmulatorCHandle CreateEmulatorHandle()
+EmulatorCHandle CreateEmulatorHandle(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc)
 {
-	return reinterpret_cast<EmulatorCHandle>(Emulator::Create());
+	return reinterpret_cast<EmulatorCHandle>(Emulator::Create(allocFunc, freeFunc));
 }
 
 void Delete(EmulatorCHandle emulator)
@@ -97,14 +98,14 @@ uint8_t* Serialize(EmulatorCHandle emulator, uint8_t rawData)
 	std::vector<uint8_t> serializedData;
 	emu->Serialize(rawData > 0, serializedData);
 
-	uint8_t* rawBuffer = new uint8_t[serializedData.size()];
+	uint8_t* rawBuffer = Y_NEW_A(uint8_t, serializedData.size());
 	memcpy(rawBuffer, serializedData.data(), serializedData.size());
 	return rawBuffer;
 }
 
 void CleanupSerializedMemory(uint8_t* data)
 {
-	delete[] data;
+	Y_DELETE_A(data);
 }
 
 void Deserialize(EmulatorCHandle emulator, const uint8_t* buffer, const uint32_t size)

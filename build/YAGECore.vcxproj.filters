@@ -84,6 +84,9 @@
     <ClCompile Include="$(BaseItemPath)\Emulator_C.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\Allocator.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">
@@ -145,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h">
       <Filter>Header Files\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\Allocator.h">
+      <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

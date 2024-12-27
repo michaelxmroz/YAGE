@@ -1,6 +1,7 @@
 #include "CPU.h"
 #include "Memory.h"
 #include <algorithm>
+#include "Allocator.h"
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define EXTENSION_OPCODE 0xCB
@@ -642,7 +643,7 @@ CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 {
 #if CPU_STATE_LOGGING
 	uint32_t templateLength = static_cast<uint32_t>(strlen(DEBUG_LogTemplate)) + 1;
-	DEBUG_CPUInstructionLog = new char[templateLength]();
+	DEBUG_CPUInstructionLog = Y_NEW_A(char, templateLength);
 	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
 #endif
 }
@@ -650,7 +651,7 @@ CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 CPU::~CPU()
 {
 #if CPU_STATE_LOGGING
-	delete[] DEBUG_CPUInstructionLog;
+	Y_DELETE_A(DEBUG_CPUInstructionLog);
 #endif
 }
 
