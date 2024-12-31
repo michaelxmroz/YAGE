@@ -18,7 +18,7 @@ Emulator::~Emulator()
 {
 }
 
-uint32_t Emulator::GetMemoryUse()
+uint32_t Emulator::GetMemoryUse() const
 {
 	return Allocator::GetInstance().GetMemoryUse();
 }

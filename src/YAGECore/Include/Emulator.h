@@ -89,7 +89,7 @@ public:
 
 	virtual void SetTurboSpeed(float speed) = 0;
 
-	uint32_t GetMemoryUse();
+	uint32_t GetMemoryUse() const;
 
 #if _DEBUG
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;

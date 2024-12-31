@@ -264,6 +264,11 @@ struct KeyBindRequest
 	uint32_t m_keyCode = 0;
 };
 
+struct Stats
+{
+	uint32_t m_allocatedMemory = 0;
+};
+
 struct EngineData
 {
 	enum class SaveLoadState : uint8_t
@@ -300,6 +305,8 @@ struct EngineData
 	uint32_t m_baseHeight;
 
 	bool m_turbo;
+
+	Stats m_stats;
 private:
     EngineData(const EngineData&) = delete;
 	EngineData& operator=(const EngineData&) = delete;

@@ -86,6 +86,7 @@
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\Allocator.cpp">
       <Filter>Source Files\Utils</Filter>
+	</ClCompile>
     <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

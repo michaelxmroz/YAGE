@@ -66,7 +66,7 @@ public:
 		//TODO initialization count for leak detection
 	}
 
-	uint32_t GetMemoryUse()
+	uint32_t GetMemoryUse() const
 	{
 		return m_allocatedSize;
 	}

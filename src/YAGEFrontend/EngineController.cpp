@@ -24,6 +24,11 @@ void DumpMemory(void* userData)
 }
 #endif
 
+void GatherStats(const Emulator& emulator, EngineData& state)
+{
+    state.m_stats.m_allocatedMemory = emulator.GetMemoryUse();
+}
+
 EngineController::EngineController(EngineData& state) :
     m_data(state)
 {
@@ -211,6 +216,8 @@ inline void EngineController::RunEmulatorLoop()
                 m_emulator->Step(inputState, deltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
+
+                GatherStats(*m_emulator, m_data);
             }
 
             HandleSaveLoad();
