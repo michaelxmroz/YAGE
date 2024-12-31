@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <chrono>
-#include <string>
 #if _DEBUG
 #include <map>
 #include <stdexcept>
@@ -18,3 +17,4 @@
 
 #include <stdint.h>
 #include <numeric>
+#include <cstring>

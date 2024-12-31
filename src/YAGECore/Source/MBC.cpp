@@ -397,7 +397,7 @@ void MemoryBankController::SerializePersistentData()
 	params.m_version = PERSISTENT_DATA_VERSION;
 	params.m_romChecksum = m_rom[HEADER_CHECKSUM];
 	params.m_noHeaders = false;
-	params.m_romName = std::string(reinterpret_cast<char*>(m_rom + HEADER_ROM_NAME_BEGIN));
+	params.m_romName.Assign(reinterpret_cast<char*>(m_rom + HEADER_ROM_NAME_BEGIN));
 
 	SerializationFactory serializer(params);
 ;

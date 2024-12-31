@@ -1,5 +1,6 @@
 #pragma once
 #include "CppIncludes.h"
+#include "YString.h"
 
 #define SERIALIZER_HEADER_NAME_MAXLENGTH 27
 
@@ -29,7 +30,7 @@ struct SerializationParameters
 	uint32_t m_version;
 	uint32_t m_romChecksum;
 	bool m_noHeaders;
-	std::string m_romName;
+	yString m_romName;
 };
 
 class SerializationFactory
@@ -77,7 +78,7 @@ class GamestateSerializer
 {
 public:
 	void RegisterComponent(ISerializable* component);
-	void Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData, std::vector<uint8_t>& dataOut) const;
+	void Serialize(uint8_t headerChecksum, const yString& romName, bool rawData, std::vector<uint8_t>& dataOut) const;
 	void Deserialize(const uint8_t* buffer, const uint32_t size, uint8_t headerChecksum);
 private:
 	std::vector<ISerializable*> m_components;

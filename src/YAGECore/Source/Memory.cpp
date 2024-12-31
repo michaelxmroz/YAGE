@@ -1,6 +1,7 @@
 #include "Memory.h"
 #include "Logging.h"
 #include "Allocator.h"
+#include "Helpers.h"
 
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000

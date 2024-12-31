@@ -1,6 +1,7 @@
 #pragma once
 #include "Serialization.h"
 #include "Logging.h"
+#include "Helpers.h"
 
 #define HEADER_DEFAULT_NAME "GameboySerializedStateFile"
 #define HEADER_MAGIC_TOKEN 4242
@@ -59,7 +60,7 @@ void GamestateSerializer::RegisterComponent(ISerializable* component)
 	m_components.push_back(component);
 }
 
-void GamestateSerializer::Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData, std::vector<uint8_t>& dataOut) const
+void GamestateSerializer::Serialize(uint8_t headerChecksum, const yString& romName, bool rawData, std::vector<uint8_t>& dataOut) const
 {
 	SerializationParameters params;
 	memcpy(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);

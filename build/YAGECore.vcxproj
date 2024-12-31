@@ -317,6 +317,7 @@
     <ClCompile Include="$(BaseItemPath)\Serialization.cpp" />
     <ClCompile Include="$(BaseItemPath)\Allocator.cpp" />
     <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp" />
+    <ClCompile Include="..\src\YAGECore\Source\YString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h" />
@@ -341,6 +342,7 @@
     <ClInclude Include="$(BaseItemPath)\Serial.h" />
     <ClInclude Include="$(BaseItemPath)\Allocator.h" />
     <ClInclude Include="$(BaseItemPath)\CppIncludes.h" />
+    <ClInclude Include="..\src\YAGECore\Source\YString.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

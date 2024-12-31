@@ -2,6 +2,7 @@
 #include "CppIncludes.h"
 #include "../Include/Emulator.h"
 #include "Logging.h"
+#include "Helpers.h"
 
 #ifndef _DEBUG
 // In release we request about 10mb of memory, this should be more than enough. 

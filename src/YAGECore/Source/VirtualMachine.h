@@ -1,5 +1,6 @@
 #pragma once
 #include "../Include/Emulator.h"
+#include "YString.h"
 #include "Registers.h"
 #include "CPU.h"
 #include "Memory.h"
@@ -8,6 +9,7 @@
 #include "Joypad.h"
 #include "Serial.h"
 #include "APU.h"
+
 
 class VirtualMachine : public Emulator
 {
@@ -54,7 +56,7 @@ private:
 	Joypad m_joypad;
 	Serial m_serial;
 
-	std::string m_romName;
+	yString m_romName;
 	uint64_t m_totalCycles;
 	uint32_t m_samplesGenerated;
 	bool m_frameRendered;
