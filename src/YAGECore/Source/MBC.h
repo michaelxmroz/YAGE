@@ -13,6 +13,12 @@ class MemoryBankController : ISerializable
 public:
 	MemoryBankController();
 	MemoryBankController(GamestateSerializer* serializer, const char* rom, uint32_t size);
+	virtual ~MemoryBankController();
+
+	MemoryBankController(const MemoryBankController&) = delete;
+	MemoryBankController& operator=(const MemoryBankController&) = delete;
+	MemoryBankController(MemoryBankController&&) = delete;
+	MemoryBankController& operator=(MemoryBankController&&) = delete;
 
 	void WriteRegister(uint16_t addr, uint8_t value);
 	void Write(uint16_t addr, uint8_t value);

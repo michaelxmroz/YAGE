@@ -244,6 +244,12 @@ MemoryBankController::MemoryBankController(GamestateSerializer* serializer, cons
 
 }
 
+MemoryBankController::~MemoryBankController()
+{
+	Y_DELETE_A(m_rom);
+	Y_DELETE_A(m_ram);
+}
+
 void MemoryBankController::WriteRegister(uint16_t addr, uint8_t value)
 {
 	bool previousRamEnable = m_registers.m_isRAMEnabled;

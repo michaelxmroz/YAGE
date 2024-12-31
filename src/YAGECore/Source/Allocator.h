@@ -1,6 +1,7 @@
 #pragma once
-#include <numeric>
+#include "CppIncludes.h"
 #include "../Include/Emulator.h"
+#include "Logging.h"
 
 #ifndef _DEBUG
 // In release we request about 10mb of memory, this should be more than enough. 
@@ -19,9 +20,12 @@ public:
 		Allocator& instance = GetInstance();
 		instance.m_allocFunc = allocFunc;
 		instance.m_freeFunc = freeFunc;
-		instance.m_buffer = reinterpret_cast<uint8_t*>(allocFunc(INITIAL_MEMORY_REQUEST));
+		instance.m_buffer = static_cast<uint8_t*>(allocFunc(INITIAL_MEMORY_REQUEST));
 		instance.m_nextFree = instance.m_buffer;
 		instance.m_allocatedSize = 0;
+#ifdef _DEBUG
+		instance.m_allocCount = 0;
+#endif
 	}
 
 	static void FreeAll()
@@ -29,6 +33,12 @@ public:
 		Allocator& instance = GetInstance();
 		if (instance.m_buffer)
 		{
+#ifdef _DEBUG
+			if(instance.m_allocCount != 0)
+			{
+				LOG_ERROR(string_format("Non-Zero allocation count during allocator cleanup: %d", instance.m_allocCount).c_str());
+			}
+#endif
 			instance.m_freeFunc(instance.m_buffer);
 			instance.m_buffer = nullptr;
 		}
@@ -44,32 +54,51 @@ public:
 	{
 		Allocator& instance = GetInstance();
 #ifdef _DEBUG
-		// TODO log & assert if memory buffer has not been initialized ( =nullptr)
+		if (!instance.m_buffer)
+		{
+			LOG_ERROR("Trying to allocate memory from a non-initialized allocator");
+			return nullptr;
+		}
 #endif
+
 		instance.m_allocatedSize += size;
 
+#ifdef _DEBUG
 		if (instance.m_allocatedSize >= instance.m_bufferCapacity)
 		{
-			// TODO log & assert that we have exceeded our pre-allocated capacity
+			LOG_ERROR("Max requested memory size reached. Cannot allocate more. Bump up the requested memory count.");
+			return nullptr;
 		}
+#endif
 
 		void* returnAddr = instance.m_nextFree;
 
 		instance.m_nextFree += size;
+
+#ifdef _DEBUG
+		instance.m_allocCount++;
+#endif
 
 		return returnAddr;
 	}
 
 	static void Free(void* ptr)
 	{
+#ifdef _DEBUG
+		GetInstance().m_allocCount--;
+#endif
 		//As this is a linear allocator, nothing to do here.
-		//TODO initialization count for leak detection
 	}
 
 	uint32_t GetMemoryUse() const
 	{
 		return m_allocatedSize;
 	}
+
+	Allocator(const Allocator&) = delete;
+	Allocator& operator=(const Allocator&) = delete;
+	Allocator(Allocator&&) = delete;
+	Allocator& operator=(Allocator&&) = delete;
 
 private:
 	Allocator() = default;
@@ -78,15 +107,14 @@ private:
 		m_freeFunc(m_buffer);
 	}
 
-	Allocator(const Allocator&) = delete;
-	Allocator& operator=(const Allocator&) = delete;
-	Allocator(Allocator&&) = delete;
-	Allocator& operator=(Allocator&&) = delete;
-
 	uint8_t* m_buffer = nullptr;
 	const uint32_t m_bufferCapacity = INITIAL_MEMORY_REQUEST;
 	uint8_t* m_nextFree = nullptr;
 	uint32_t m_allocatedSize = 0;
+
+#ifdef _DEBUG
+	int32_t m_allocCount = 0;
+#endif
 	
 	YAGEAllocFunc m_allocFunc = nullptr;
 	YAGEFreeFunc m_freeFunc = nullptr;
@@ -101,8 +129,6 @@ T* YAGENew(Args&&... args)
 	{
 		throw std::bad_alloc(); // Handle allocation failure
 	}
-
-	//TODO LOG ALLOCATION
 
 	return new (memory) T(std::forward<Args>(args)...); // Perfect forwarding of arguments
 }
@@ -126,25 +152,24 @@ T* YAGENewA(size_t count)
 		throw std::bad_alloc(); // Handle allocation failure
 	}
 
-	//TODO LOG ALLOCATION
-	uint32_t* countStore = reinterpret_cast<uint32_t*>(memory);
+	uint32_t* countStore = static_cast<uint32_t*>(memory);
 	*countStore = static_cast<uint32_t>(count);
 
-	countStore++;
+	++countStore;
 	T* firstEntry = reinterpret_cast<T*>(countStore);
 	T* entry = firstEntry;
 
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		new (entry) T();
-		entry++;
+		++entry;
 	}
 	
 	return firstEntry;
 }
 
 template <typename T>
-typename std::enable_if<!std::is_trivially_destructible<T>::value>::type
+typename std::enable_if_t<!std::is_trivially_destructible<T>::value>
 YAGEDeleteA(T* ptr)
 {
 	if (ptr)
@@ -163,7 +188,7 @@ YAGEDeleteA(T* ptr)
 }
 
 template <typename T>
-typename std::enable_if<std::is_trivially_destructible<T>::value>::type
+typename std::enable_if_t<std::is_trivially_destructible<T>::value>
 YAGEDeleteA(T* ptr)
 {
 	if (ptr)

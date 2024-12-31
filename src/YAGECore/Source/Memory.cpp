@@ -59,6 +59,11 @@ Memory::~Memory()
 	}
 
 	Y_DELETE_A(m_writeCallbacks);
+	Y_DELETE_A(m_callbackUserData);
+
+#ifdef TRACK_UNINITIALIZED_MEMORY_READS
+	Y_DELETE_A(m_initializationTracker);
+#endif
 }
 
 void Memory::Write(uint16_t addr, uint8_t value)

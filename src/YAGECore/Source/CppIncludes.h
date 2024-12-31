@@ -17,3 +17,4 @@
 #endif
 
 #include <stdint.h>
+#include <numeric>
