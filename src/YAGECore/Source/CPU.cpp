@@ -1,6 +1,5 @@
 #include "CPU.h"
 #include "Memory.h"
-#include <algorithm>
 #include "Allocator.h"
 
 #define DEFAULT_STACK_POINTER 0xFFFE

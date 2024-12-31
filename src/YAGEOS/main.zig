@@ -6,6 +6,10 @@ const utils = @import("utils.zig");
 const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
 
+const cpp = @cImport({
+    @cInclude("Emulator_C.h");
+});
+
 fn dummyInterruptHandler(exceptionType: u32, execptionType2: u32) noreturn 
 {
     _ = exceptionType;
@@ -151,13 +155,21 @@ export fn main() void
     setupInterruptVectorTable();
     utils.writeVectorTableBaseAddr(@intFromPtr(&defs.VECTOR_TABLE));
 
+    utils.enableIRQ();
+
     mmio.uartInit();
     mmio.uartSendString("Success\n");
+
+    const prevIRQVal = mmio.mmioReadDirect( mmio.IRQ_GPU_ENABLE2);
+    mmio.mmioWriteDirect( mmio.IRQ_GPU_ENABLE2,( prevIRQVal & ~@as(u32,mmio.IRQ_GPU_FAKE_ISR)) | mmio.IRQ_GPU_FAKE_ISR );
 
     log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
     renderer.initFramebuffer();
 
     renderer.drawRect(150,150,400,400,renderer.Color{.components = renderer.Components{.a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 }});
+
+    const emu = cpp.CreateEmulatorHandle();
+    cpp.Delete(emu);
 
     utils.hang();
 }

@@ -24,6 +24,13 @@ pub fn build(b: *Builder) void
 
     kernel.setLinkerScript(b.path("..\\src\\YAGEOS\\linker.ld"));
 
+	kernel.linkLibCpp();
+    kernel.addIncludePath(b.path("..\\src\\YAGECore\\Include"));
+	kernel.addIncludePath(b.path("..\\src\\YAGECore\\Source"));
+    kernel.addCSourceFile(.{ .file = b.path("..\\src\\YAGECore\\Source\\Emulator_C.cpp"), .flags = &.{"-std=c++14"} });
+
+	kernel.root_module.single_threaded = true;
+
 	const install_kernel = b.addInstallArtifact(kernel, .{
 			.dest_dir = .{ .override = .{ .custom = "..\\..\\bin\\ARM64\\Debug\\" } },
         });

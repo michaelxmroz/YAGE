@@ -230,7 +230,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_LOGGING;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CPP;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -315,7 +315,8 @@
     <ClCompile Include="$(BaseItemPath)\MBC.cpp" />
     <ClCompile Include="$(BaseItemPath)\Serial.cpp" />
     <ClCompile Include="$(BaseItemPath)\Serialization.cpp" />
-    <ClCompile Include="..\src\YAGECore\Source\Allocator.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Allocator.cpp" />
+    <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h" />
@@ -338,7 +339,8 @@
     <ClInclude Include="$(BaseItemPath)\Serialization.h" />
     <ClInclude Include="$(BaseItemPath)\MBC.h" />
     <ClInclude Include="$(BaseItemPath)\Serial.h" />
-    <ClInclude Include="..\src\YAGECore\Source\Allocator.h" />
+    <ClInclude Include="$(BaseItemPath)\Allocator.h" />
+    <ClInclude Include="$(BaseItemPath)\CppIncludes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,7 +3,7 @@
 #include "Registers.h"
 #include "InstructionFunctions.h"
 #include "Interrupts.h"
-#include <map>
+#include "CppIncludes.h"
 
 #define INSTRUCTION_SET_SIZE 513
 

@@ -36,6 +36,13 @@ pub const Registers = enum (u32)
     UART0_TDR    = (UART0_BASE + 0x8C), // Test data register
 };
 
+//https://github.com/raspberrypi/firmware/issues/67
+pub const IRQ_BASE         =      (MMIO_BASE + 0xB200);
+pub const IRQ_GPU_PENDING1 =      IRQ_BASE + 0x04;
+pub const IRQ_GPU_PENDING2 =      IRQ_BASE + 0x08;
+pub const IRQ_GPU_ENABLE2  =      IRQ_BASE + 0x14;
+pub const IRQ_GPU_FAKE_ISR =      0x10000;
+
 pub fn mmioWriteDirect(reg : u32, data : u32) void
 {
     const ptr: *volatile u32 = @ptrFromInt(reg);

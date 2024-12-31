@@ -1,7 +1,7 @@
 #pragma once
 #include "../Include/Emulator.h"
 #include "Serialization.h"
-#include <chrono>
+#include "CppIncludes.h"
 
 #define ROM_END 0x7FFF
 #define ROM_BANK_SIZE 0x4000

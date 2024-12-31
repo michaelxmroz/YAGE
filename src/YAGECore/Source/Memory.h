@@ -1,6 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <vector>
+#include "CppIncludes.h"
 #include "../Include/Emulator.h"
 #include "MBC.h"
 #include "Serialization.h"

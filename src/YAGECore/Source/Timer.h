@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include "CppIncludes.h"
 #include "Memory.h"
 
 class Timer : ISerializable

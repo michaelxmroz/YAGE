@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include "CppIncludes.h"
 
 template <typename T, uint32_t CAPACITY>
 class StaticFIFO

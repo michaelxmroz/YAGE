@@ -1,4 +1,7 @@
 #pragma once
+
+#ifdef _CPP
+
 #include <cstdint>
 #include <vector>
 #include "Emulator_C.h"
@@ -96,3 +99,5 @@ public:
 #endif
 	virtual ~Emulator();
 };
+
+#endif

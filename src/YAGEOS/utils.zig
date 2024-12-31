@@ -23,6 +23,28 @@ pub fn writeVectorTableBaseAddr(addr:usize) void
          );
 }
 
+pub fn enableIRQ() void
+{
+    asm volatile(
+         \\ enableIRQ:
+         \\ msr daifclr, #2
+         \\ ret
+         :
+		 :
+         );
+}
+
+pub fn disableIRQ() void
+{
+    asm volatile(
+        \\ enableIRQ:
+        \\ msr daifset, #2
+        \\ ret
+        :
+		:
+        );
+}
+
 pub fn getEL() usize
 {
        return asm volatile(

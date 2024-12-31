@@ -1,7 +1,6 @@
 #include "PPU.h"
 #include "VirtualMachine.h"
 #include "Interrupts.h"
-#include <algorithm>
 #include "Logging.h"
 #include "Allocator.h"
 

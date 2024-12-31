@@ -1,14 +1,14 @@
 #pragma once
 
-#include <memory>
-#include <string>
-#include <stdexcept>
+#include "CppIncludes.h"
 
 #define CPU_FREQUENCY 4194304
 #define CYCLES_PER_FRAME 17556
 #define MCYCLES_TO_CYCLES 4
 
 #define FORCE_INLINE inline
+
+#ifdef _DEBUG
 
 // Taken from https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 // License: https://creativecommons.org/publicdomain/zero/1.0/ 
@@ -22,6 +22,20 @@ std::string string_format(const std::string& format, Args ... args)
     std::snprintf(buf.get(), size, format.c_str(), args ...);
     return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
 }
+#else
+
+struct DummyString
+{
+    void c_str() {};
+};
+
+template<typename ... Args>
+DummyString string_format(Args ... args)
+{
+    return DummyString();
+}
+
+#endif
 
 namespace Helpers
 {

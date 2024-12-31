@@ -86,6 +86,8 @@
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\Allocator.cpp">
       <Filter>Source Files\Utils</Filter>
+    <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +153,9 @@
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Allocator.h">
       <Filter>Header Files\Utils</Filter>
+	</ClInclude>
+    <ClInclude Include="$(BaseItemPath)\CppIncludes.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,5 @@
 #pragma once
-#include <vector>
-#include <string>
+#include "CppIncludes.h"
 
 #define SERIALIZER_HEADER_NAME_MAXLENGTH 27
 
