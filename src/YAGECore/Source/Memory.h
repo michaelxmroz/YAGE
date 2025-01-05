@@ -101,8 +101,9 @@ private:
 	static void DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 
-	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
-	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
+	void Serialize(uint8_t* data) override;
+	void Deserialize(const uint8_t* data) override;
+	virtual uint32_t GetSerializationSize() override;
 
 	inline void WriteInternal(uint16_t addr, uint8_t value);
 

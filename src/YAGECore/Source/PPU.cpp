@@ -94,7 +94,7 @@ namespace PPUHelpers
 	}
 }
 
-PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer)
+PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer, ChunkId::PPU)
 	, data()
 {
 	m_activeFrame = Y_NEW_A(RGBA, EmulatorConstants::SCREEN_SIZE);
@@ -506,23 +506,18 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	}
 }
 
-void PPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& serializationData)
+void PPU::Serialize(uint8_t* sData)
 {
 	uint32_t dataSize = sizeof(data);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, serializationData, dataSize, ChunkId::PPU);
-
-	WriteAndMove(rawData, &data, dataSize);
+	WriteAndMove(sData, &data, dataSize);
 }
 
-void PPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* serializationData, const uint32_t& dataSize)
+void PPU::Deserialize(const uint8_t* sData)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::PPU);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
+	ReadAndMove(sData, &data, sizeof(data));
+}
 
-	serializationData += myChunk->m_offset;
-
-	ReadAndMove(serializationData, &data, sizeof(data));
+uint32_t PPU::GetSerializationSize()
+{
+	return sizeof(data);
 }

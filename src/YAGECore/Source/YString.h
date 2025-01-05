@@ -40,24 +40,6 @@ public:
 			m_buffer[m_length] = '\0';
 		}
 	}
-	/*
-	FixedString operator+(const FixedString& other) const
-	{
-		
-	}
-	FixedString& operator+=(const FixedString& other)
-	{
-		
-	}
-	FixedString operator+(const char* other) const
-	{
-		
-	}
-	FixedString& operator+=(const char* other)
-	{
-		
-	}
-	*/
 	operator const char* () const
 	{
 		return m_buffer;

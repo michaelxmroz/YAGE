@@ -80,9 +80,8 @@ extern "C"
 	const void* GetFrameBuffer(EmulatorCHandle emulator);
 	uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator);
 
-	uint8_t* Serialize(EmulatorCHandle emulator, uint8_t rawData);
-	void CleanupSerializedMemory(uint8_t* data);
-	void Deserialize(EmulatorCHandle emulator, const uint8_t* buffer, const uint32_t size);
+	SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData);
+	void Deserialize(EmulatorCHandle emulator, const SerializationView& data);
 
 	void SetTurboSpeed(EmulatorCHandle emulator, float speed);
 

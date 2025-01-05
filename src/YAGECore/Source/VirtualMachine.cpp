@@ -103,13 +103,13 @@ void VirtualMachine::SetPersistentMemoryCallback(PersistentMemoryCallback callba
 	m_memory.RegisterRamSaveCallback(callback);
 }
 
-void VirtualMachine::Serialize(bool rawData, std::vector<uint8_t>& dataOut) const
+SerializationView VirtualMachine::Serialize(bool rawData)
 {
-	m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName, rawData, dataOut);
+	return m_serializer.Serialize(m_memory.GetHeaderChecksum(), m_romName, rawData);
 }
-void VirtualMachine::Deserialize(const uint8_t* buffer, const uint32_t size)
+void VirtualMachine::Deserialize(const SerializationView& data)
 {
-	m_serializer.Deserialize(buffer, size, m_memory.GetHeaderChecksum());
+	m_serializer.Deserialize(data, m_memory.GetHeaderChecksum());
 }
 
 void VirtualMachine::SetTurboSpeed(float speed)

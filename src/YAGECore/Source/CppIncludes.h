@@ -5,9 +5,6 @@
 #endif
 
 #ifdef CPP_HOSTED
-
-#include <vector>
-#include <chrono>
 #if _DEBUG
 #include <map>
 #include <stdexcept>

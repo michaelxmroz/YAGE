@@ -63,6 +63,7 @@ private:
 	void UpdateFrameSequencer(Memory& memory);
 
 	// Inherited via ISerializable
-	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
-	void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
+	void Serialize(uint8_t* data) override;
+	void Deserialize(const uint8_t* data) override;
+	uint32_t GetSerializationSize() override;
 };

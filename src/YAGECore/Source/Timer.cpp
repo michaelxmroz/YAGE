@@ -35,7 +35,7 @@ Timer::Timer()
 }
 
 Timer::Timer(GamestateSerializer* serializer)
-	: ISerializable(serializer)
+	: ISerializable(serializer, ChunkId::Timer)
 	, m_previousCycleTimerModuloEdge(false)
 	, m_divTotal(0)
 {
@@ -104,25 +104,19 @@ void Timer::ResetDivider(Memory* memory, uint16_t addr, uint8_t prevValue, uint8
 	timer->m_divTotal = 0;
 }
 
-void Timer::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+void Timer::Serialize(uint8_t* data)
 {
-	uint32_t dataSize = sizeof(uint16_t) + sizeof(bool);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Timer);
-
-	WriteAndMove(rawData, &m_divTotal, sizeof(uint16_t));
-	WriteAndMove(rawData, &m_previousCycleTimerModuloEdge, sizeof(bool));
+	WriteAndMove(data, &m_divTotal, sizeof(uint16_t));
+	WriteAndMove(data, &m_previousCycleTimerModuloEdge, sizeof(bool));
 }
 
-void Timer::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+void Timer::Deserialize(const uint8_t* data)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Timer);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
-
-	data += myChunk->m_offset;
-
 	ReadAndMove(data, &m_divTotal, sizeof(uint16_t));
 	ReadAndMove(data, &m_previousCycleTimerModuloEdge, sizeof(bool));
+}
+
+uint32_t Timer::GetSerializationSize()
+{
+	return sizeof(uint16_t) + sizeof(bool);
 }

@@ -164,5 +164,8 @@
     <ClInclude Include="..\src\YAGECore\Source\YString.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\YAGECore\Source\YVector.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

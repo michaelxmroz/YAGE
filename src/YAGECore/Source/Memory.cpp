@@ -33,14 +33,14 @@
 
 #define DIVIDER_REGISTER 0xFF04
 
-Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer)
+Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer, ChunkId::Memory)
 {
 	m_mappedMemory = Y_NEW_A(uint8_t, MEMORY_SIZE);
 	m_externalMemory = false;
 	Init();
 }
 
-Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr)
+Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr, ChunkId::Memory)
 {
 	m_mappedMemory = rawMemory;
 	m_externalMemory = true;
@@ -361,30 +361,19 @@ void Memory::WriteIO(uint16_t addr, uint8_t value)
 	WriteInternal(addr, value);
 }
 
-void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+void Memory::Serialize(uint8_t* data)
 {
-	uint32_t dataSize = TOTAL_RAM_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Memory);
+	WriteAndMove(data, m_mappedMemory + VRAM_START, VRAM_SIZE);
+	WriteAndMove(data, m_mappedMemory + WRAM_START, WRAM_SIZE);
+	WriteAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
-	WriteAndMove(rawData, m_mappedMemory + VRAM_START, VRAM_SIZE);
-	WriteAndMove(rawData, m_mappedMemory + WRAM_START, WRAM_SIZE);
-	WriteAndMove(rawData, m_mappedMemory + OAM_START, HRAM_SIZE);
-
-	WriteAndMove(rawData, &m_isBootromMapped, sizeof(bool));
-	WriteAndMove(rawData, &m_DMAInProgress, sizeof(bool));
-	WriteAndMove(rawData, &m_DMAProgress, sizeof(uint32_t));
+	WriteAndMove(data, &m_isBootromMapped, sizeof(bool));
+	WriteAndMove(data, &m_DMAInProgress, sizeof(bool));
+	WriteAndMove(data, &m_DMAProgress, sizeof(uint32_t));
 }
 
-void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+void Memory::Deserialize(const uint8_t* data)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Memory);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
-
-	data += myChunk->m_offset;
-
 	ReadAndMove(data, m_mappedMemory + VRAM_START, VRAM_SIZE);
 	ReadAndMove(data, m_mappedMemory + WRAM_START, WRAM_SIZE);
 	ReadAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
@@ -392,6 +381,11 @@ void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
 	ReadAndMove(data, &m_DMAInProgress, sizeof(bool));
 	ReadAndMove(data, &m_DMAProgress, sizeof(uint32_t));
+}
+
+uint32_t Memory::GetSerializationSize()
+{
+	return TOTAL_RAM_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
 }
 
 inline void Memory::WriteInternal(uint16_t addr, uint8_t value)

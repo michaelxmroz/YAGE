@@ -59,6 +59,12 @@ namespace EmulatorConstants
 	const double PREFERRED_REFRESH_RATE = EMULATOR_PREFERRED_REFRESH_RATE;
 }
 
+struct SerializationView
+{
+	uint8_t* data;
+	uint32_t size;
+};
+
 class Emulator
 {
 public:
@@ -84,8 +90,8 @@ public:
 	virtual const void* GetFrameBuffer() = 0;
 	virtual uint32_t GetNumberOfGeneratedSamples() = 0;
 
-	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const = 0;
-	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
+	virtual SerializationView Serialize(bool rawData) = 0;
+	virtual void Deserialize(const SerializationView& data) = 0;
 
 	virtual void SetTurboSpeed(float speed) = 0;
 

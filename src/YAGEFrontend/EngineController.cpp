@@ -261,14 +261,14 @@ void EngineController::Load()
     std::vector<char> saveState;
     if (FileParser::Read(saveStatePath, saveState))
     {
-        m_emulator->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+        SerializationView loadData{ reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()) };
+        m_emulator->Deserialize(loadData);
     }
 }
 
-void EngineController::Save(bool rawData)
+void EngineController::Save(bool rawData) const
 {
-    std::vector<uint8_t> saveState;
-    m_emulator->Serialize(rawData, saveState);
+    SerializationView savedState = m_emulator->Serialize(rawData);
     std::string saveStatePath = m_data.m_saveLoadPath;
     if (saveStatePath.empty())
     {
@@ -276,5 +276,5 @@ void EngineController::Save(bool rawData)
         saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
     }
 
-    FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+    FileParser::Write(saveStatePath, savedState.data, savedState.size);
 }

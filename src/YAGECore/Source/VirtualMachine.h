@@ -31,8 +31,8 @@ public:
 
 	virtual void SetLoggerCallback(LoggerCallback callback) override;
 
-	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const override;
-	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) override;
+	virtual SerializationView Serialize(bool rawData) override;
+	virtual void Deserialize(const SerializationView& data) override;
 
 	virtual void SetTurboSpeed(float speed) override;
 

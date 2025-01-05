@@ -91,27 +91,16 @@ extern "C" uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator)
 	return emu->GetNumberOfGeneratedSamples();
 }
 
-extern "C" uint8_t* Serialize(EmulatorCHandle emulator, uint8_t rawData)
+extern "C" SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData)
 {
 	Emulator* emu = FromHandle(emulator);
-	//HACK, think of something better
-	std::vector<uint8_t> serializedData;
-	emu->Serialize(rawData > 0, serializedData);
-
-	uint8_t* rawBuffer = Y_NEW_A(uint8_t, serializedData.size());
-	memcpy(rawBuffer, serializedData.data(), serializedData.size());
-	return rawBuffer;
+	return emu->Serialize(rawData > 0);
 }
 
-extern "C" void CleanupSerializedMemory(uint8_t* data)
-{
-	Y_DELETE_A(data);
-}
-
-extern "C" void Deserialize(EmulatorCHandle emulator, const uint8_t* buffer, const uint32_t size)
+extern "C" void Deserialize(EmulatorCHandle emulator, SerializationView buffer)
 {
 	Emulator* emu = FromHandle(emulator);
-	emu->Deserialize(buffer, size);
+	emu->Deserialize(buffer);
 }
 
 extern "C" void SetTurboSpeed(EmulatorCHandle emulator, float speed)

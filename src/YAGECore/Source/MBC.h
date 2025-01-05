@@ -34,7 +34,7 @@ public:
 
 	struct RTC
 	{
-		std::chrono::milliseconds m_lastUpdate;
+		long long m_lastUpdate;
 		bool m_isLatched;
 		uint8_t m_selectedReg;
 		uint8_t m_secReg;
@@ -72,8 +72,9 @@ private:
 
 	void SerializePersistentData();
 
-	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
-	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
+	void Serialize(uint8_t* data) override;
+	void Deserialize(const uint8_t* data) override;
+	virtual uint32_t GetSerializationSize() override;
 
 	uint8_t* m_ram;
 	uint8_t* m_rom;
@@ -86,4 +87,6 @@ private:
 	const bool m_hasRTC;
 	const uint16_t m_romBankCount;
 	const uint16_t m_ramBankCount;
+
+	yVector<uint8_t> m_persistentDataSerializationBuffer;
 };
