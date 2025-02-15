@@ -67,12 +67,14 @@ pub const Color = union
     }
 };
 
+
+
 fn writeToVCMailbox(data : usize) void
 {
     const msg = (data & ~@as(u32,MBOX_DATA_MASK)) | MBOX_VC_CHANNEL;
     while(mmio.mmioReadDirect(MBOX_STATUS) & MBOX_FULL != 0)
     {
-        utils.delay(4);
+        @call(.never_inline, utils.delay, .{4});
     }
     mmio.mmioWriteDirect(MBOX_WRITE, @intCast(msg));
 }
@@ -81,7 +83,7 @@ fn readFromVCMailbox() u32
 {
     while(mmio.mmioReadDirect(MBOX_STATUS) & MBOX_EMPTY != 0)
     {
-        utils.delay(4);
+        @call(.never_inline, utils.delay, .{4});
     }
 
     const resp = mmio.mmioReadDirect(MBOX_READ);

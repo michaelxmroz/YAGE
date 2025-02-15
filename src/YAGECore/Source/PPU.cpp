@@ -120,8 +120,8 @@ void PPU::Init(Memory& memory)
 	memory.WriteIO(BGP_REGISTER, 0xFC);
 	memory.WriteIO(OBJ0_REGISTER, 0x00);
 	memory.WriteIO(OBJ1_REGISTER, 0x00);
-	memset(m_activeFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
-	memset(m_backBuffer, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	memset_y(m_activeFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	memset_y(m_backBuffer, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 
 
 	memory.AddIOUnusedBitsOverride(STAT_REGISTER, 0b10000000);
@@ -335,7 +335,7 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
-	memset(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 }
 

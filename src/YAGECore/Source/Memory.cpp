@@ -133,11 +133,11 @@ const SpriteAttributes& Memory::ReadOAMEntry(uint8_t index) const
 
 void Memory::ClearMemory()
 {
-	memset(m_mappedMemory, 0, MEMORY_SIZE);
+	memset_y(m_mappedMemory, 0, MEMORY_SIZE);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	memset_y(m_initializationTracker, 0, MEMORY_SIZE);
 	//skip initialization checks for APU wave ram
-	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
+	memset_y(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 
 	WriteDirect(DMA_REGISTER, 0xFF);
@@ -145,14 +145,14 @@ void Memory::ClearMemory()
 
 void Memory::ClearRange(uint16_t start, uint16_t end)
 {
-	memset(m_mappedMemory + start, 0, end - start);
+	memset_y(m_mappedMemory + start, 0, end - start);
 }
 
 void Memory::ClearVRAM()
 {
-	memset(m_mappedMemory + VRAM_START, 0, VRAM_END - VRAM_START);
+	memset_y(m_mappedMemory + VRAM_START, 0, VRAM_END - VRAM_START);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker + VRAM_START, 1, VRAM_END - VRAM_START);
+	memset_y(m_initializationTracker + VRAM_START, 1, VRAM_END - VRAM_START);
 #endif
 }
 
@@ -161,8 +161,8 @@ void Memory::MapROM(GamestateSerializer* serializer, const char* rom, uint32_t s
 	m_mbc = Y_NEW(MemoryBankController,serializer, rom, size);
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker, 1, ROM_END + 1);
-	memset(m_initializationTracker + EXTERNAL_RAM_BEGIN, 1, RAM_BANK_SIZE);
+	memset_y(m_initializationTracker, 1, ROM_END + 1);
+	memset_y(m_initializationTracker + EXTERNAL_RAM_BEGIN, 1, RAM_BANK_SIZE);
 #endif
 }
 
@@ -174,7 +174,7 @@ void Memory::DeserializePersistentData(const char* ram, uint32_t size)
 void Memory::MapBootrom(const char* rom, uint32_t size)
 {
 	m_bootrom = Y_NEW_A(uint8_t, BOOTROM_SIZE);
-	memcpy(m_bootrom, rom, size);
+	memcpy_y(m_bootrom, rom, size);
 	m_isBootromMapped = true;
 }
 
@@ -214,15 +214,15 @@ void Memory::Init()
 	m_DMAInProgress = false;
 	m_DMAProgress = 0;
 
-	memset(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
-	memset(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
-	memset(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
 
 	m_writeCallbacks = Y_NEW_A(MemoryWriteCallback, MEMORY_SIZE);
-	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
+	memset_y(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
 
 	m_callbackUserData = Y_NEW_A(uint64_t, MEMORY_SIZE);
-	memset(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
+	memset_y(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
 
 	RegisterCallback(DMA_REGISTER, DoDMA, nullptr);
 	RegisterCallback(BOOTROM_BANK, UnmapBootrom, nullptr);
@@ -233,9 +233,9 @@ void Memory::Init()
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	m_initializationTracker = Y_NEW_A(uint8_t, MEMORY_SIZE);
-	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	memset_y(m_initializationTracker, 0, MEMORY_SIZE);
 	//skip initialization checks for APU wave ram
-	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
+	memset_y(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 }
 
@@ -249,17 +249,17 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 	//TODO DMA from external ram?
 	if (source < ROM_END && !memory->m_externalMemory)
 	{
-		memcpy(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
+		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
 	}
 	else
 	{
-		memcpy(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
+		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
 	}
 
 	memory->m_DMAInProgress = true;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
+	memset_y(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
 #endif
 }
 

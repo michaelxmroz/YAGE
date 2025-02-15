@@ -40,8 +40,16 @@ DummyString string_format(Args ... args)
 
 namespace Helpers
 {
-    FORCE_INLINE unsigned int GetFirstSetBit(int n)
+    inline int32_t GetFirstSetBit(uint8_t n)
     {
-        return static_cast<uint32_t>(log2(n & -n));
+        for(uint8_t i = 0 ; i < 8; ++i)
+        {
+	        if( (n & 0x1) > 0 )
+	        {
+                return i;
+	        }
+            n = n >> 1;
+        }
+        return -1;
     }
 }

@@ -1,6 +1,14 @@
 #pragma once
 
-#ifdef _CPP
+#include "CppIncludes.h"
+
+struct SerializationView
+{
+	uint8_t* data;
+	uint32_t size;
+};
+
+#ifdef FREESTANDING
 extern "C"
 {
 #else
@@ -94,6 +102,6 @@ extern "C"
 
 #endif
 
-#ifdef _CPP
+#ifdef FREESTANDING
 }
 #endif

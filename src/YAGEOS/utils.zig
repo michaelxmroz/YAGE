@@ -1,11 +1,12 @@
 const std = @import("std");
 
+// In Zig 0.13 the compiler reeealy wants to inline this function, resulting in duplicate symbol errors from LLVM. Thanks, Zig.
 pub fn delay(cycles : i32) void
 {
     	asm volatile(
-         \\ delay:
-         \\ subs x0, x0, #1
-         \\ bne delay
+         \\ delayme:
+         \\     subs x0, x0, #1
+         \\     bne delayme
          \\ ret
          :
 		 : [count] "x0"(cycles)

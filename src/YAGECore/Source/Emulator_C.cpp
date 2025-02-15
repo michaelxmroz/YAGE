@@ -1,7 +1,8 @@
 #include "../Include/Emulator_C.h"
+
 #include "../Include/Emulator.h"
+#include "CppIncludes.h"
 #include "Allocator.h"
-#include <cstdint>
 
 #ifdef _CINTERFACE
 
@@ -25,7 +26,7 @@ extern "C" void SetButtonDown(EmulatorInputState* state, EmulatorInputs_Buttons 
 	state->m_buttons &= (~static_cast<uint8_t>(button));
 }
 
-EmulatorCHandle CreateEmulatorHandle()
+extern "C" EmulatorCHandle CreateEmulatorHandle()
 {
 	return reinterpret_cast<EmulatorCHandle>(Emulator::Create(allocFunc, freeFunc));
 }

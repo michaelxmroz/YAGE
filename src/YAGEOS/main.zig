@@ -6,9 +6,9 @@ const utils = @import("utils.zig");
 const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
 
-const cpp = @cImport({
-    @cInclude("Emulator_C.h");
-});
+//const cpp = @cImport({
+//    @cInclude("Emulator_C.h");
+//});
 
 fn dummyInterruptHandler(exceptionType: u32, execptionType2: u32) noreturn 
 {
@@ -168,8 +168,8 @@ export fn main() void
 
     renderer.drawRect(150,150,400,400,renderer.Color{.components = renderer.Components{.a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 }});
 
-    const emu = cpp.CreateEmulatorHandle();
-    cpp.Delete(emu);
+    //const emu = cpp.CreateEmulatorHandle();
+    //cpp.Delete(emu);
 
     utils.hang();
 }

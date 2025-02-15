@@ -236,11 +236,11 @@ MemoryBankController::MemoryBankController(GamestateSerializer* serializer, cons
 		return;
 	}
 	m_rom = Y_NEW_A(uint8_t,size);
-	memcpy(m_rom, rom, size);
+	memcpy_y(m_rom, rom, size);
 
 	uint32_t ramSize = GetRAMSize();
 	m_ram = Y_NEW_A(uint8_t, ramSize);
-	memset(m_ram, 0, ramSize);
+	memset_y(m_ram, 0, ramSize);
 
 }
 
@@ -393,7 +393,7 @@ void MemoryBankController::SerializePersistentData()
 	}
 
 	SerializationParameters params;
-	memcpy(params.m_dataName, PERSISTENT_DATA_NAME, strlen(PERSISTENT_DATA_NAME) + 1);
+	memcpy_y(params.m_dataName, PERSISTENT_DATA_NAME, strlen_y(PERSISTENT_DATA_NAME) + 1);
 	params.m_version = PERSISTENT_DATA_VERSION;
 	params.m_romChecksum = m_rom[HEADER_CHECKSUM];
 	params.m_romName.Assign(reinterpret_cast<char*>(m_rom + HEADER_ROM_NAME_BEGIN));
@@ -424,7 +424,7 @@ void MemoryBankController::SerializePersistentData()
 void MemoryBankController::DeserializePersistentData(const char* data, uint32_t size)
 {
 	SerializationParameters params;
-	memcpy(params.m_dataName, PERSISTENT_DATA_NAME, strlen(PERSISTENT_DATA_NAME));
+	memcpy_y(params.m_dataName, PERSISTENT_DATA_NAME, strlen_y(PERSISTENT_DATA_NAME));
 	params.m_version = PERSISTENT_DATA_VERSION;
 	params.m_romChecksum = m_rom[HEADER_CHECKSUM];
 

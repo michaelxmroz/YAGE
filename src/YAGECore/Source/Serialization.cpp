@@ -28,11 +28,11 @@ namespace Serializer_Internal
 	FileHeader& WriteHeader(const char* name, uint32_t version, uint8_t* buffer)
 	{
 		FileHeader header;
-		strcpy_s(header.m_name, name);
+		memcpy(header.m_name, name, SERIALIZER_HEADER_NAME_MAXLENGTH);
 		header.m_magicToken = HEADER_MAGIC_TOKEN;
 		header.m_version = version;
 
-		memcpy(buffer, &header, sizeof(FileHeader));
+		memcpy_y(buffer, &header, sizeof(FileHeader));
 		return *reinterpret_cast<FileHeader*>(buffer);
 	}
 
@@ -100,7 +100,7 @@ SerializationView GamestateSerializer::Serialize(uint8_t headerChecksum, const y
 	}
 
 	SerializationParameters params;
-	memcpy(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
 	params.m_version = HEADER_CURRENT_VERSION;
 	params.m_romChecksum = headerChecksum;
 	params.m_romName = romName;
@@ -123,7 +123,7 @@ SerializationView GamestateSerializer::Serialize(uint8_t headerChecksum, const y
 void GamestateSerializer::Deserialize(const SerializationView& data, uint8_t headerChecksum)
 {
 	SerializationParameters params;
-	memcpy(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
 	params.m_version = HEADER_CURRENT_VERSION;
 	params.m_romChecksum = headerChecksum;
 
@@ -145,13 +145,13 @@ ISerializable::ISerializable(GamestateSerializer* serializer, ChunkId id) :
 
 void ISerializable::WriteAndMove(uint8_t*& destination, const void* source, const uint32_t& size)
 {
-	memcpy(destination, source, static_cast<size_t>(size));
+	memcpy_y(destination, source, static_cast<size_t>(size));
 	destination += size;
 }
 
 void ISerializable::ReadAndMove(const uint8_t*& source, void* destination, const uint32_t& size)
 {
-	memcpy(destination, source, static_cast<size_t>(size));
+	memcpy_y(destination, source, static_cast<size_t>(size));
 	source += size;
 }
 

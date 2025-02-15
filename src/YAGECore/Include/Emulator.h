@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef _CPP
-
-#include <cstdint>
-#include <vector>
 #include "Emulator_C.h"
 
 typedef void* (*YAGEAllocFunc)(uint32_t);
@@ -59,12 +55,6 @@ namespace EmulatorConstants
 	const double PREFERRED_REFRESH_RATE = EMULATOR_PREFERRED_REFRESH_RATE;
 }
 
-struct SerializationView
-{
-	uint8_t* data;
-	uint32_t size;
-};
-
 class Emulator
 {
 public:
@@ -105,5 +95,3 @@ public:
 #endif
 	virtual ~Emulator();
 };
-
-#endif

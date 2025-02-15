@@ -5,6 +5,15 @@
 
 #define DEFAULT_FIXED_STRING_SIZE 256
 
+
+
+extern "C" inline size_t strlen_y_y(const char* s)
+{
+	size_t len = 0;
+	while (*s++) ++len;
+	return len;
+}
+
 template<size_t SIZE>
 class FixedString
 {
@@ -28,7 +37,7 @@ public:
 	{
 		if (ptr)
 		{
-			m_length = std::strlen(ptr);
+			m_length = strlen_y_y(ptr);
 
 			if (m_length >= SIZE)
 			{
@@ -36,7 +45,7 @@ public:
 				m_length = SIZE - 1;
 			}
 
-			memcpy(m_buffer, ptr, m_length);
+			memcpy_y(m_buffer, ptr, m_length);
 			m_buffer[m_length] = '\0';
 		}
 	}

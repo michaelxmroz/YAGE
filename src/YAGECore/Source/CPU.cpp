@@ -63,8 +63,8 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 	char* itrPos = strBuffer + offsets[15];
 	itrPos[0] = '0';//TODO fix interrupt messaging here
 
-	memset(strBuffer + offsets[16], ' ', 11);
-	memcpy(strBuffer + offsets[16], mnemonic, strlen(mnemonic));
+	memset_y(strBuffer + offsets[16], ' ', 11);
+	memcpy_y(strBuffer + offsets[16], mnemonic, strlen_y(mnemonic));
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -641,9 +641,9 @@ CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 }
 {
 #if CPU_STATE_LOGGING
-	uint32_t templateLength = static_cast<uint32_t>(strlen(DEBUG_LogTemplate)) + 1;
+	uint32_t templateLength = static_cast<uint32_t>(strlen_y(DEBUG_LogTemplate)) + 1;
 	DEBUG_CPUInstructionLog = Y_NEW_A(char, templateLength);
-	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
+	memcpy_y(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
 #endif
 }
 

@@ -128,10 +128,10 @@ T* YAGENew(Args&&... args)
 	void* memory = Allocator::Malloc(sizeof(T));
 	if (!memory)
 	{
-		throw std::bad_alloc(); // Handle allocation failure
+		// TODO Handle allocation failure
 	}
 
-	return new (memory) T(std::forward<Args>(args)...); // Perfect forwarding of arguments
+	return new (memory) T(y::forward<Args>(args)...);
 }
 
 template <typename T>
@@ -150,7 +150,7 @@ T* YAGENewA(size_t count)
 	void* memory = Allocator::Malloc(sizeof(T) * static_cast<uint32_t>(count) + sizeof(uint32_t));
 	if (!memory)
 	{
-		throw std::bad_alloc(); // Handle allocation failure
+		// TODO Handle allocation failure
 	}
 
 	uint32_t* countStore = static_cast<uint32_t*>(memory);
@@ -170,7 +170,7 @@ T* YAGENewA(size_t count)
 }
 
 template <typename T>
-typename std::enable_if_t<!std::is_trivially_destructible<T>::value>
+y::enable_if_t<!y::is_trivially_destructible<T>::value>
 YAGEDeleteA(T* ptr)
 {
 	if (ptr)
@@ -189,7 +189,7 @@ YAGEDeleteA(T* ptr)
 }
 
 template <typename T>
-typename std::enable_if_t<std::is_trivially_destructible<T>::value>
+y::enable_if_t<y::is_trivially_destructible<T>::value>
 YAGEDeleteA(T* ptr)
 {
 	if (ptr)
