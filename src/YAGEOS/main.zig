@@ -171,6 +171,8 @@ export fn main() void
     mmio.uartInit();
     mmio.uartSendString("Success\n");
 
+    //utils.hang();
+
     const prevIRQVal = mmio.mmioReadDirect( mmio.IRQ_GPU_ENABLE2);
     mmio.mmioWriteDirect( mmio.IRQ_GPU_ENABLE2,( prevIRQVal & ~@as(u32,mmio.IRQ_GPU_FAKE_ISR)) | mmio.IRQ_GPU_FAKE_ISR );
 

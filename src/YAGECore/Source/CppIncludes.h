@@ -26,7 +26,16 @@
 #define memcpy_y __builtin_memcpy
 #define memset_y __builtin_memset
 #define strlen_y __builtin_strlen
-#define pow_y __builtin_pow
+
+inline uint32_t pow_y( uint32_t base, uint32_t exponent )
+{
+	uint32_t result = 1;
+	for( uint32_t i = 0; i < exponent; ++i )
+	{
+		result *= base;
+	}
+	return result;
+}
 
 inline void* operator new(size_t /* count */, void* ptr) noexcept
 {
@@ -35,10 +44,13 @@ inline void* operator new(size_t /* count */, void* ptr) noexcept
 
 inline void operator delete(void* ptr) noexcept
 {
-	// We never allocate memory through new/delete, so this can be empty
+	// We never allocate memory through new/delete/malloc/free, so this can be empty
 }
 
-extern "C" void __cxa_pure_virtual();
+extern "C" inline void __cxa_pure_virtual()
+{
+	while (1);
+}
 
 #endif
 

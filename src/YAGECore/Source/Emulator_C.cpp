@@ -4,13 +4,6 @@
 #include "CppIncludes.h"
 #include "Allocator.h"
 
-#ifdef FREESTANDING
-void __cxa_pure_virtual()
-{
-	while (1);
-}
-#endif
-
 #ifdef _CINTERFACE
 
 extern "C" inline Emulator* FromHandle(EmulatorCHandle handle)

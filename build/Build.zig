@@ -50,7 +50,8 @@ pub fn build(b: *Builder) void
 	"-fbuiltin", 
 	"--define-macro=FREESTANDING",
 	"-fno-threadsafe-statics",
-	"-fno-exceptions"
+	"-fno-exceptions",
+	"-fno-rtti"
 	}});
 	static_lib.root_module.single_threaded = true;	
 	//b.installArtifact(static_lib);
