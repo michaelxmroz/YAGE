@@ -15,7 +15,7 @@ pub fn build(b: *Builder) void
 
 	const optimize = b.standardOptimizeOption(.{});
 	
-	const static_lib = b.addStaticLibrary(.{ .name = "staticlib", .target = target, .optimize = optimize });
+	const static_lib = b.addStaticLibrary(.{ .name = "staticlib", .target = target, .optimize = .ReleaseFast });
 	static_lib.addIncludePath(b.path("..\\src\\YAGECore\\Include"));
 	static_lib.addIncludePath(b.path("..\\src\\YAGECore\\Source"));
 

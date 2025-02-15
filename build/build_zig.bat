@@ -1,1 +1,1 @@
-zig build kernel --summary all -Doptimize=ReleaseFast --verbose --verbose-cimport
+zig build kernel --summary all -Doptimize=Debug
