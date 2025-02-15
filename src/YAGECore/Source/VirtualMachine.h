@@ -15,7 +15,7 @@ class VirtualMachine : public Emulator
 {
 public:
 	VirtualMachine();
-	virtual ~VirtualMachine() override;
+	virtual ~VirtualMachine() override = default;
 
 	virtual void Load(const char* romName, const char* rom, uint32_t size) override;
 	virtual void Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) override;

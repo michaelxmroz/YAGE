@@ -87,12 +87,6 @@
     <ClCompile Include="$(BaseItemPath)\Allocator.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\YAGECore\Source\YString.cpp">
-      <Filter>Source Files\Utils</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\VirtualMachine.h">

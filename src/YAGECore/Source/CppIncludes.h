@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Include/Emulator_C.h"
+
 #ifndef FREESTANDING
 
 #if _DEBUG
@@ -15,65 +17,28 @@
 #define memcpy_y memcpy
 #define memset_y memset
 #define strlen_y strlen
+#define pow_y pow
 
 #else
 
-// Signed integer types
-using int8_t = __INT8_TYPE__;
-using int16_t = __INT16_TYPE__;
-using int32_t = __INT32_TYPE__;
-using int64_t = __INT64_TYPE__;
-
-// Unsigned integer types
-using uint8_t = __UINT8_TYPE__;
-using uint16_t = __UINT16_TYPE__;
-using uint32_t = __UINT32_TYPE__;
-using uint64_t = __UINT64_TYPE__;
-
-// Pointer-sized integer types
-using intptr_t = __INTPTR_TYPE__;
-using uintptr_t = __UINTPTR_TYPE__;
-
-// Maximum-width integer types
-using intmax_t = __INTMAX_TYPE__;
-using uintmax_t = __UINTMAX_TYPE__;
-
-typedef uint64_t size_t;
-
 #include <stdint.h>
-
-typedef struct {
-	long int quot;
-	long int rem;
-} ldiv_t;
-
-typedef struct {
-	long long quot;
-	long long rem;
-} lldiv_t;
-
-ldiv_t ldiv(long int numer, long int denom) { return { 0,0 }; }
-lldiv_t lldiv(long long int numer, long long int denom) { return { 0,0 };  }
-
-#define FP_NAN      0x0100
-#define FP_INFINITE 0x0200
-#define FP_NORMAL   0x0400
-#define FP_SUBNORMAL 0x0800
-#define FP_ZERO     0x1000
-
-typedef struct {
-	int __state;
-} mbstate_t;
 
 #define memcpy_y __builtin_memcpy
 #define memset_y __builtin_memset
 #define strlen_y __builtin_strlen
-#define pow __builtin_pow
+#define pow_y __builtin_pow
 
 inline void* operator new(size_t /* count */, void* ptr) noexcept
 {
 	return ptr;
 }
+
+inline void operator delete(void* ptr) noexcept
+{
+	// We never allocate memory through new/delete, so this can be empty
+}
+
+extern "C" void __cxa_pure_virtual();
 
 #endif
 
@@ -99,6 +64,15 @@ namespace y
 	template <bool B, typename T = void>
 	using enable_if_t = std::enable_if_t<B, T>;
 
+	template <typename T, typename... Args>
+	constexpr T min(T first, Args... rest) {
+		return std::min(first, Min(rest...));
+	}
+
+	template <typename T, typename... Args>
+	constexpr T max(T first, Args... rest) {
+		return std::max(first, Max(rest...));
+	}
 
 #else
 
@@ -153,6 +127,26 @@ namespace y
 
 	template <bool _Bp, class _Tp = void>
 	using enable_if_t = typename enable_if<_Bp, _Tp>::type;
+
+	template <typename T>
+	constexpr T min(const T a, const T b) {
+		return a < b ? a : b;
+	}
+
+	template <typename T>
+	constexpr T max(const T a, const T b) {
+		return a > b ? a : b;
+	}
+
+	template <>
+	constexpr float min<float>(const float a, const float b) {
+		return __builtin_fminf(a, b);
+	}
+
+	template <>
+	constexpr float max<float>(const float a, const float b) {
+		return __builtin_fmaxf(a, b);
+	}
 
 #endif
 }

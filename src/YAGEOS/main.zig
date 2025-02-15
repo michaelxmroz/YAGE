@@ -6,9 +6,9 @@ const utils = @import("utils.zig");
 const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
 
-//const cpp = @cImport({
-//    @cInclude("Emulator_C.h");
-//});
+const cpp = @cImport({
+    @cInclude("Emulator_C.h");
+});
 
 fn dummyInterruptHandler(exceptionType: u32, execptionType2: u32) noreturn 
 {
@@ -150,6 +150,17 @@ pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usi
     utils.hang();
 }
 
+fn c_alloc(size: u32) callconv(.C) ?*anyopaque
+{
+    log.INFO("Memory allocated: {} bytes\n", .{size});
+    return @ptrFromInt(0x10000000);
+}
+
+fn c_free(addr: ?*anyopaque) callconv(.C) void 
+{
+    log.INFO("Memory freed at {}\n", .{ @intFromPtr(addr) });
+}
+
 export fn main() void 
 {
     setupInterruptVectorTable();
@@ -168,8 +179,8 @@ export fn main() void
 
     renderer.drawRect(150,150,400,400,renderer.Color{.components = renderer.Components{.a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 }});
 
-    //const emu = cpp.CreateEmulatorHandle();
-    //cpp.Delete(emu);
+    const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
+    cpp.Delete(emu);
 
     utils.hang();
 }

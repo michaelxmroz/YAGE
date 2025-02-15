@@ -19,9 +19,45 @@ pub fn build(b: *Builder) void
 	static_lib.addIncludePath(b.path("..\\src\\YAGECore\\Include"));
 	static_lib.addIncludePath(b.path("..\\src\\YAGECore\\Source"));
 
-    static_lib.addCSourceFile(.{ .file = b.path("..\\src\\YAGECore\\Source\\Emulator_C.cpp"), .flags = &.{"-std=c++14", "-ffreestanding", "-o2", "-fbuiltin", "--define-macro=FREESTANDING"} });
+    static_lib.addCSourceFiles(
+	.{ .files = &.{ 
+	"..\\src\\YAGECore\\Source\\Allocator.cpp",
+	"..\\src\\YAGECore\\Source\\APU.cpp",
+	"..\\src\\YAGECore\\Source\\AudioChannel.cpp",
+	"..\\src\\YAGECore\\Source\\CPU.cpp",
+	"..\\src\\YAGECore\\Source\\Emulator.cpp",
+	"..\\src\\YAGECore\\Source\\Emulator_C.cpp",
+	"..\\src\\YAGECore\\Source\\Helpers.cpp",
+	"..\\src\\YAGECore\\Source\\InstructionFunctions.cpp",
+	"..\\src\\YAGECore\\Source\\Interrupts.cpp",
+	"..\\src\\YAGECore\\Source\\Joypad.cpp",
+	"..\\src\\YAGECore\\Source\\Logging.cpp",
+	"..\\src\\YAGECore\\Source\\MBC.cpp",
+	"..\\src\\YAGECore\\Source\\Memory.cpp",
+	"..\\src\\YAGECore\\Source\\PixelFetcher.cpp",
+	"..\\src\\YAGECore\\Source\\PixelFIFO.cpp",
+	"..\\src\\YAGECore\\Source\\PPU.cpp",
+	"..\\src\\YAGECore\\Source\\Registers.cpp",
+	"..\\src\\YAGECore\\Source\\Serial.cpp",
+	"..\\src\\YAGECore\\Source\\Serialization.cpp",
+	"..\\src\\YAGECore\\Source\\Timer.cpp",
+	"..\\src\\YAGECore\\Source\\VirtualMachine.cpp",
+	}, 
+	 . flags = &.{
+	"-std=c++14", 
+	"-ffreestanding", 
+	"-o2", 
+	"-fbuiltin", 
+	"--define-macro=FREESTANDING",
+	"-fno-threadsafe-statics",
+	"-fno-exceptions"
+	}});
 	static_lib.root_module.single_threaded = true;	
-	b.installArtifact(static_lib);
+	//b.installArtifact(static_lib);
+	
+	var install_kernel = b.addInstallArtifact(static_lib, .{
+			.dest_dir = .{ .override = .{ .custom = "..\\..\\bin\\ARM64\\Release\\" } },
+        });
 	
 	const kernel = b.addExecutable(.{
 	.name = "kernel.elf",
@@ -34,10 +70,11 @@ pub fn build(b: *Builder) void
 
 	kernel.linkLibrary(static_lib);
 	kernel.root_module.single_threaded = true;
-	kernel.addIncludePath(b.path("."));
+
+	kernel.addIncludePath(b.path("..\\src\\YAGECore\\Include"));
 	
-	const install_kernel = b.addInstallArtifact(kernel, .{
-			.dest_dir = .{ .override = .{ .custom = "..\\..\\bin\\ARM64\\Debug\\" } },
+	install_kernel = b.addInstallArtifact(kernel, .{
+			.dest_dir = .{ .override = .{ .custom = "..\\..\\bin\\ARM64\\Release\\" } },
         });
 
     const kernel_step = b.step("kernel", "Build the kernel");

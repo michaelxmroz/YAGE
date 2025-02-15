@@ -103,10 +103,17 @@ public:
 
 private:
 	Allocator() = default;
+#ifdef FREESTANDING
+	// Need default destructor for freestanding environment as we do not have __cxa_atexit for calling of non-trivial destructors of static local variables
+	// Memory will still get cleaned up by call to FreeAll() when destroying the emulator
+	~Allocator() = default;
+#else
 	~Allocator()
 	{
 		m_freeFunc(m_buffer);
 	}
+#endif
+
 
 	uint8_t* m_buffer = nullptr;
 	const uint32_t m_bufferCapacity = INITIAL_MEMORY_REQUEST;

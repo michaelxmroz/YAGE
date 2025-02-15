@@ -19,10 +19,6 @@ VirtualMachine::VirtualMachine()
 {
 }
 
-VirtualMachine::~VirtualMachine()
-{
-}
-
 void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 {
 	m_romName.Assign(romName);

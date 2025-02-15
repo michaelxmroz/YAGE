@@ -1,26 +1,44 @@
 #pragma once
 
-#include "CppIncludes.h"
-
-struct SerializationView
-{
-	uint8_t* data;
-	uint32_t size;
-};
+#define _CINTERFACE
 
 #ifdef FREESTANDING
+
+// Signed integer types
+using int8_t = __INT8_TYPE__;
+using int16_t = __INT16_TYPE__;
+using int32_t = __INT32_TYPE__;
+using int64_t = __INT64_TYPE__;
+
+// Unsigned integer types
+using uint8_t = __UINT8_TYPE__;
+using uint16_t = __UINT16_TYPE__;
+using uint32_t = __UINT32_TYPE__;
+using uint64_t = __UINT64_TYPE__;
+
+// Pointer-sized integer types
+using intptr_t = __INTPTR_TYPE__;
+using uintptr_t = __UINTPTR_TYPE__;
+
+// Maximum-width integer types
+using intmax_t = __INTMAX_TYPE__;
+using uintmax_t = __UINTMAX_TYPE__;
+
+typedef uint64_t size_t;
+
 extern "C"
 {
-#else
-#ifndef _CINTERFACE
-#define _CINTERFACE
-#endif
 #endif
 
 #ifdef _CINTERFACE
 #include <stdint.h>
 #endif
 
+struct SerializationView
+{
+	uint8_t* data;
+	uint32_t size;
+};
 
 #define EMULATOR_SCREEN_WIDTH 160
 #define EMULATOR_SCREEN_HEIGHT 144
@@ -88,8 +106,8 @@ extern "C"
 	const void* GetFrameBuffer(EmulatorCHandle emulator);
 	uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator);
 
-	SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData);
-	void Deserialize(EmulatorCHandle emulator, const SerializationView& data);
+	struct SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData);
+	void Deserialize(EmulatorCHandle emulator, const struct SerializationView* data);
 
 	void SetTurboSpeed(EmulatorCHandle emulator, float speed);
 

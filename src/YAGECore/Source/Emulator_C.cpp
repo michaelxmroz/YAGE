@@ -4,6 +4,13 @@
 #include "CppIncludes.h"
 #include "Allocator.h"
 
+#ifdef FREESTANDING
+void __cxa_pure_virtual()
+{
+	while (1);
+}
+#endif
+
 #ifdef _CINTERFACE
 
 extern "C" inline Emulator* FromHandle(EmulatorCHandle handle)
@@ -26,7 +33,7 @@ extern "C" void SetButtonDown(EmulatorInputState* state, EmulatorInputs_Buttons 
 	state->m_buttons &= (~static_cast<uint8_t>(button));
 }
 
-extern "C" EmulatorCHandle CreateEmulatorHandle()
+extern "C" EmulatorCHandle CreateEmulatorHandle(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc)
 {
 	return reinterpret_cast<EmulatorCHandle>(Emulator::Create(allocFunc, freeFunc));
 }
@@ -98,10 +105,10 @@ extern "C" SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData
 	return emu->Serialize(rawData > 0);
 }
 
-extern "C" void Deserialize(EmulatorCHandle emulator, SerializationView buffer)
+extern "C" void Deserialize(EmulatorCHandle emulator, const SerializationView* buffer)
 {
 	Emulator* emu = FromHandle(emulator);
-	emu->Deserialize(buffer);
+	emu->Deserialize(*buffer);
 }
 
 extern "C" void SetTurboSpeed(EmulatorCHandle emulator, float speed)

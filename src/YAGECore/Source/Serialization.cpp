@@ -1,4 +1,3 @@
-#pragma once
 #include "Serialization.h"
 #include "Logging.h"
 #include "Helpers.h"
@@ -28,7 +27,7 @@ namespace Serializer_Internal
 	FileHeader& WriteHeader(const char* name, uint32_t version, uint8_t* buffer)
 	{
 		FileHeader header;
-		memcpy(header.m_name, name, SERIALIZER_HEADER_NAME_MAXLENGTH);
+		memcpy_y(header.m_name, name, SERIALIZER_HEADER_NAME_MAXLENGTH);
 		header.m_magicToken = HEADER_MAGIC_TOKEN;
 		header.m_version = version;
 

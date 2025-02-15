@@ -141,7 +141,7 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 		bool isOddPosition = m_spriteAttributes->m_posX != currentX + TILE_SIZE;
 
 		uint8_t start = fifo.Size();
-		uint8_t offscreenX = static_cast<uint8_t>(std::max(0, TILE_SIZE - static_cast<int16_t>(m_spriteAttributes->m_posX)));
+		uint8_t offscreenX = static_cast<uint8_t>(y::max(0, TILE_SIZE - static_cast<int16_t>(m_spriteAttributes->m_posX)));
 		start = offscreenX;
 
 		if (isOddPosition && start == 0)
@@ -166,7 +166,7 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 			};
 			Pixel oldPixel;
 			uint8_t fifoIndex = isOddPosition ? i + 1 : i;
-			fifoIndex = std::max(0,fifoIndex - start);
+			fifoIndex = y::max(0,fifoIndex - start);
 			if (fifo.Size() > fifoIndex)
 			{
 				oldPixel = fifo.Get(fifoIndex);

@@ -39,7 +39,7 @@ namespace MBC_Internal
 			}
 			else if (addr >= MBC_ROM_BANKING_REGISTER)
 			{
-				registers.m_primaryBankRegister = std::max(1, value & 0x1F);
+				registers.m_primaryBankRegister = y::max(1, value & 0x1F);
 			}
 			else
 			{
@@ -116,7 +116,7 @@ namespace MBC_Internal
 			}
 			else if (addr >= MBC_ROM_BANKING_REGISTER)
 			{
-				registers.m_primaryBankRegister = std::max(1, value & 0x7F);
+				registers.m_primaryBankRegister = y::max(1, value & 0x7F);
 			}
 			else
 			{
@@ -225,7 +225,7 @@ MemoryBankController::MemoryBankController(GamestateSerializer* serializer, cons
 	, m_type(GetTypeFromHeaderCode(rom[HEADER_CARTRIDGE_TYPE]))
 	, m_hasRTC(m_type == Type::MBC3 && MBC_Internal::MBC3::HasRTC(rom[HEADER_CARTRIDGE_TYPE]))
 	, m_registers()
-	, m_romBankCount(static_cast<uint16_t>(pow(2, rom[HEADER_ROM_SIZE] + 1)))
+	, m_romBankCount(static_cast<uint16_t>(pow_y(2, rom[HEADER_ROM_SIZE] + 1)))
 	, m_ramBankCount(MBC_Internal::GetRAMBankCountFromHeader(rom[HEADER_RAM_SIZE]))
 	, m_onRamSave(nullptr)
 {
@@ -354,7 +354,7 @@ uint32_t MemoryBankController::GetROMAddr(uint16_t addr) const
 
 uint16_t MemoryBankController::GetRAMSize() const
 {
-	return std::max(static_cast<uint16_t>(1),m_ramBankCount) * RAM_BANK_SIZE;
+	return y::max(static_cast<uint16_t>(1),m_ramBankCount) * RAM_BANK_SIZE;
 }
 
 MemoryBankController::Type MemoryBankController::GetTypeFromHeaderCode(uint8_t header) const
