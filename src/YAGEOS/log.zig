@@ -1,3 +1,5 @@
+// Logging helpers
+
 const mmio = @import("mmio.zig");
 const std = @import("std");
 
@@ -24,7 +26,7 @@ pub fn INFO(comptime format: []const u8, args: anytype) void
 
 pub fn LOG(level: LogLevel, comptime format: []const u8, args: anytype) void 
 {
-    var buffer: [1024]u8 = undefined;
+    var buffer: [4096]u8 = undefined;
     const prefix = switch (level) {
         .info => "INFO: ",
         .warning => "WARNING: ",

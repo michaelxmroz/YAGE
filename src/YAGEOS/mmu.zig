@@ -1,3 +1,6 @@
+// Memory Management Unit Setup.
+// We use a simplified setup to enable virtual memory for unaligned memory access.
+
 const defs = @import("defs.zig");
 
 // Define constants representing bit flags for table and block descriptors.

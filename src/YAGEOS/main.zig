@@ -5,6 +5,8 @@ const std = @import("std");
 const utils = @import("utils.zig");
 const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
+const emmc = @import("emmc.zig");
+const alloc = @import("allocation.zig");
 
 const cpp = @cImport({
     @cInclude("Emulator_C.h");
@@ -153,12 +155,13 @@ pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usi
 fn c_alloc(size: u32) callconv(.C) ?*anyopaque
 {
     log.INFO("Memory allocated: {} bytes\n", .{size});
-    return @ptrFromInt(0x10000000);
+    return alloc.activeBucketAlloc(size);
 }
 
 fn c_free(addr: ?*anyopaque) callconv(.C) void 
 {
     log.INFO("Memory freed at {}\n", .{ @intFromPtr(addr) });
+    alloc.activeBucketFree();
 }
 
 export fn main() void 
@@ -183,6 +186,8 @@ export fn main() void
 
     const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
     cpp.Delete(emu);
+
+    _ = alloc.activeBucketAlloc(0x10000);
 
     utils.hang();
 }

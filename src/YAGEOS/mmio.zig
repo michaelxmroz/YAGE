@@ -1,3 +1,6 @@
+// Memory-Mapped I/O
+// Handling of I/O to hardware registers
+
 const std = @import("std");
 
 pub const MMIO_BASE: u32 = 0xFE000000;
