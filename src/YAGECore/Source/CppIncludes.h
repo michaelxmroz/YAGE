@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <memory>
 #endif
+#include <algorithm>
 #include <utility>
 
 #include <string.h>
@@ -76,14 +77,14 @@ namespace y
 	template <bool B, typename T = void>
 	using enable_if_t = std::enable_if_t<B, T>;
 
-	template <typename T, typename... Args>
-	constexpr T min(T first, Args... rest) {
-		return std::min(first, Min(rest...));
+	template <typename T>
+	constexpr T min(T first, T second) {
+		return std::min(first, second);
 	}
 
-	template <typename T, typename... Args>
-	constexpr T max(T first, Args... rest) {
-		return std::max(first, Max(rest...));
+	template <typename T>
+	constexpr T max(T first, T second) {
+		return std::max(first, second);
 	}
 
 #else

@@ -1,8 +1,8 @@
 #pragma once
 
-#define _CINTERFACE
-
 #ifdef FREESTANDING
+
+#define _CINTERFACE
 
 // Signed integer types
 using int8_t = __INT8_TYPE__;
@@ -28,6 +28,8 @@ typedef uint64_t size_t;
 
 extern "C"
 {
+#else
+#include <cstdint>
 #endif
 
 #ifdef _CINTERFACE

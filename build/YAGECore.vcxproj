@@ -316,8 +316,6 @@
     <ClCompile Include="$(BaseItemPath)\Serial.cpp" />
     <ClCompile Include="$(BaseItemPath)\Serialization.cpp" />
     <ClCompile Include="$(BaseItemPath)\Allocator.cpp" />
-    <ClCompile Include="$(BaseItemPath)\CppIncludes.cpp" />
-    <ClCompile Include="..\src\YAGECore\Source\YString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h" />
