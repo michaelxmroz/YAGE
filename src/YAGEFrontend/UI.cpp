@@ -661,8 +661,8 @@ void UI::Prepare(EngineData& data, double deltaMs)
 
     DrawMainMenuBar(m_state, data, deltaMs);
 
-    UI_Internal::DrawLogWindow(m_state);
-    UI_Internal::DrawStatsWindow(m_state, data);
+    DrawLogWindow(m_state);
+    DrawStatsWindow(m_state, data);
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);
