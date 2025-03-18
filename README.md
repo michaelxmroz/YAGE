@@ -29,7 +29,9 @@ Building the RasPi kernel is very straightforward, as it uses the Zig build tool
 Please note that the Zig frontend is still very much a work-in-progress and development is ongoing for properly supporting crucial systems such as I/O, timing and rendering.
 
 ## Dependencies
-The front-end is dependent on WinAPI and the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/).
+The Windows front-end depends on WinAPI and the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/).
+
+The RasPi 4 kernel depends on [Zig](https://ziglang.org/download/).
 
 The back-end (YAGECore) is pure C++ without any external dependencies. It exposes a C API for binding to the Zig kernel.
 
