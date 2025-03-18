@@ -1,0 +1,1 @@
+zig build kernel --summary all -Doptimize=Debug

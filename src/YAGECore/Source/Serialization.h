@@ -1,6 +1,7 @@
 #pragma once
-#include <vector>
-#include <string>
+#include "CppIncludes.h"
+#include "YString.h"
+#include "YVector.h"
 
 #define SERIALIZER_HEADER_NAME_MAXLENGTH 27
 
@@ -12,7 +13,9 @@ enum class ChunkId
 	MBC = 3,
 	APU = 4,
 	PPU = 5,
-	MBC_Save = 6
+	MBC_Save = 6,
+	Serial = 7,
+	Count
 };
 
 class ISerializable;
@@ -29,22 +32,27 @@ struct SerializationParameters
 	char m_dataName[SERIALIZER_HEADER_NAME_MAXLENGTH];
 	uint32_t m_version;
 	uint32_t m_romChecksum;
-	bool m_noHeaders;
-	std::string m_romName;
+	yString m_romName;
 };
 
 class SerializationFactory
 {
 public:
-	SerializationFactory(SerializationParameters parameters);
+	SerializationFactory(const SerializationParameters& parameters, Chunk* chunks, uint8_t* data, uint8_t* header);
 	void Serialize(ISerializable* component);
-	uint8_t* CreateChunk(ChunkId id, uint32_t dataSize);
-	void Finish(std::vector<uint8_t>& dataOut);
+	void WriteChunkHeader(uint32_t writeDataSize, const ChunkId& chunkId);
+	void Finish(uint32_t totalBufferSize);
+	static uint32_t GetHeaderAndNameSize();
 private:
+
 	SerializationParameters m_parameters;
 	bool m_finished;
-	std::vector<Chunk> m_chunks;
-	std::vector<uint8_t> m_data;
+	Chunk* m_chunks;
+	uint8_t* m_data;
+	uint8_t* m_header;
+	uint32_t m_dataOffset;
+	uint32_t m_serializedChunks;
+	uint32_t m_writtenData;
 };
 
 class DeserializationFactory
@@ -60,8 +68,8 @@ public:
 	};
 
 	DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint32_t size);
-	void Deserialize(const uint8_t* buffer, std::vector<ISerializable*>& components);
-	RawBuffers GetRawBuffers(const uint8_t* buffer);
+	void Deserialize(const uint8_t* buffer, ISerializable** components) const;
+	const uint8_t* GetDataForChunk(const uint8_t* buffer, uint32_t index) const;
 	void Finish();
 
 private:
@@ -77,11 +85,19 @@ private:
 class GamestateSerializer
 {
 public:
-	void RegisterComponent(ISerializable* component);
-	void Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData, std::vector<uint8_t>& dataOut) const;
-	void Deserialize(const uint8_t* buffer, const uint32_t size, uint8_t headerChecksum);
+	GamestateSerializer();
+	void RegisterComponent(ISerializable* component, ChunkId id);
+	SerializationView Serialize(uint8_t headerChecksum, const yString& romName, bool rawData);
+	void Deserialize(const SerializationView& data, uint8_t headerChecksum);
 private:
-	std::vector<ISerializable*> m_components;
+
+	void Init();
+
+	uint32_t m_registeredComponentCount;
+	ISerializable* m_components[static_cast<uint32_t>(ChunkId::Count)];
+	yVector<uint8_t> m_serializationBuffer;
+	Chunk* m_chunkView = nullptr;
+	uint8_t* m_dataView = nullptr;
 };
 
 class ISerializable
@@ -91,13 +107,15 @@ protected:
 	friend class SerializationFactory;
 	friend class DeserializationFactory;
 
-	ISerializable(GamestateSerializer* serializer);
+	ISerializable(GamestateSerializer* serializer, ChunkId id);
+	virtual ~ISerializable() = default;
 
-	virtual void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) = 0;
-	virtual void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) = 0;
+	virtual void Serialize(uint8_t* data) = 0;
+	virtual void Deserialize(const uint8_t* data) = 0;
+	virtual uint32_t GetSerializationSize() = 0;
 
-	static uint8_t* CreateChunkAndGetDataPtr(std::vector<Chunk>& chunks, std::vector<uint8_t>& data, const uint32_t& writeDataSize, const ChunkId& chunkId);
-	static const Chunk* FindChunk(const Chunk* chunks, const uint32_t& chunkCount, const ChunkId& chunkId);
 	static void WriteAndMove(uint8_t*& destination, const void* source, const uint32_t& size);
 	static void ReadAndMove(const uint8_t*& source, void* destination, const uint32_t& size);
+
+	const ChunkId m_id;
 };

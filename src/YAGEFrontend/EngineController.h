@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EngineState.h"
-#include <Emulator.h>
+#include "../Include/Emulator.h"
 #include "Logging.h"
 #include "Clock.h"
 #include "FileParser.h"
@@ -24,7 +24,7 @@ public:
     ~EngineController();
 
     void Load();
-    void Save(bool rawData);
+    void Save(bool rawData) const;
 
 private:
 

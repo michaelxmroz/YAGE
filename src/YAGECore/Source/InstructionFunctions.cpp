@@ -1,6 +1,5 @@
 #include "InstructionFunctions.h"
 #include "Helpers.h"
-#include <cassert>
 #include "Interrupts.h"
 
 namespace InstructionFunctions

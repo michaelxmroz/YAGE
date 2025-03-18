@@ -1,6 +1,6 @@
 #include "CPU.h"
 #include "Memory.h"
-#include <algorithm>
+#include "Allocator.h"
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define EXTENSION_OPCODE 0xCB
@@ -63,8 +63,8 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 	char* itrPos = strBuffer + offsets[15];
 	itrPos[0] = '0';//TODO fix interrupt messaging here
 
-	memset(strBuffer + offsets[16], ' ', 11);
-	memcpy(strBuffer + offsets[16], mnemonic, strlen(mnemonic));
+	memset_y(strBuffer + offsets[16], ' ', 11);
+	memcpy_y(strBuffer + offsets[16], mnemonic, strlen_y(mnemonic));
 
 	LOG_CPU_STATE(strBuffer);
 }
@@ -86,7 +86,7 @@ CPU::CPU(GamestateSerializer* serializer)
 }
 
 CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
-	: ISerializable(serializer)
+	: ISerializable(serializer, ChunkId::CPU)
 	, m_registers()
 	, m_InterruptHandlingEnabled(enableInterruptHandling)
 	, m_delayedInterruptHandling(false)
@@ -641,16 +641,16 @@ CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 }
 {
 #if CPU_STATE_LOGGING
-	uint32_t templateLength = static_cast<uint32_t>(strlen(DEBUG_LogTemplate)) + 1;
-	DEBUG_CPUInstructionLog = new char[templateLength]();
-	memcpy(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
+	uint32_t templateLength = static_cast<uint32_t>(strlen_y(DEBUG_LogTemplate)) + 1;
+	DEBUG_CPUInstructionLog = Y_NEW_A(char, templateLength);
+	memcpy_y(DEBUG_CPUInstructionLog, DEBUG_LogTemplate, templateLength);
 #endif
 }
 
 CPU::~CPU()
 {
 #if CPU_STATE_LOGGING
-	delete[] DEBUG_CPUInstructionLog;
+	Y_DELETE_A(DEBUG_CPUInstructionLog);
 #endif
 }
 
@@ -919,32 +919,25 @@ void CPU::ClearRegisters()
 	m_registers.CpuState = Registers::State::Running;
 }
 
-void CPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+void CPU::Serialize(uint8_t* data)
 {
-	uint32_t dataSize = sizeof(Registers) + sizeof(bool) + sizeof(bool) + sizeof(InstructionTempData);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::CPU);
-
-	WriteAndMove(rawData, &m_registers, sizeof(Registers));
-	WriteAndMove(rawData, &m_delayedInterruptHandling, sizeof(bool));
-	WriteAndMove(rawData, &m_instructionTempData, sizeof(InstructionTempData));
-	WriteAndMove(rawData, &m_isNextInstructionCB, sizeof(bool));
+	WriteAndMove(data, &m_registers, sizeof(Registers));
+	WriteAndMove(data, &m_delayedInterruptHandling, sizeof(bool));
+	WriteAndMove(data, &m_instructionTempData, sizeof(InstructionTempData));
+	WriteAndMove(data, &m_isNextInstructionCB, sizeof(bool));
 }
 
-void CPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+void CPU::Deserialize(const uint8_t* data)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::CPU);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
-
-	data += myChunk->m_offset;
-
 	ReadAndMove(data, &m_registers, sizeof(Registers));
 	ReadAndMove(data, &m_delayedInterruptHandling, sizeof(bool));
 	ReadAndMove(data, &m_instructionTempData, sizeof(InstructionTempData));
 	ReadAndMove(data, &m_isNextInstructionCB, sizeof(bool));
 
 	m_currentInstruction = &(m_instructions[m_instructionTempData.m_opcode]);
+}
 
+uint32_t CPU::GetSerializationSize()
+{
+	return sizeof(Registers) + sizeof(bool) + sizeof(bool) + sizeof(InstructionTempData);
 }

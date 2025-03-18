@@ -1,5 +1,7 @@
 #include "Memory.h"
 #include "Logging.h"
+#include "Allocator.h"
+#include "Helpers.h"
 
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000
@@ -12,6 +14,14 @@
 #define VRAM_START 0x8000
 #define VRAM_END 0x9FFF 
 #define HRAM_BEGIN 0xFF80
+#define WRAM_START 0xC000
+#define WRAM_END 0xDFFF
+#define RAM_END 0xFFFF
+
+#define VRAM_SIZE VRAM_END - VRAM_START + 1
+#define WRAM_SIZE WRAM_END - WRAM_START + 1
+#define HRAM_SIZE RAM_END - OAM_START + 1
+#define TOTAL_RAM_SIZE VRAM_SIZE + WRAM_SIZE + HRAM_SIZE
 
 #define BOOTROM_BANK 0xFF50
 #define BOOTROM_SIZE 0x100
@@ -23,14 +33,14 @@
 
 #define DIVIDER_REGISTER 0xFF04
 
-Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer)
+Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer, ChunkId::Memory)
 {
-	m_mappedMemory = new uint8_t[MEMORY_SIZE];
+	m_mappedMemory = Y_NEW_A(uint8_t, MEMORY_SIZE);
 	m_externalMemory = false;
 	Init();
 }
 
-Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr)
+Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr, ChunkId::Memory)
 {
 	m_mappedMemory = rawMemory;
 	m_externalMemory = true;
@@ -41,15 +51,20 @@ Memory::~Memory()
 {
 	if (!m_externalMemory)
 	{
-		delete[] m_mappedMemory;
-		delete m_mbc;
+		Y_DELETE_A(m_mappedMemory);
+		Y_DELETE(m_mbc);
 	}
 	if (m_bootrom != nullptr)
 	{
-		delete[] m_bootrom;
+		Y_DELETE_A(m_bootrom);
 	}
 
-	delete[] m_writeCallbacks;
+	Y_DELETE_A(m_writeCallbacks);
+	Y_DELETE_A(m_callbackUserData);
+
+#ifdef TRACK_UNINITIALIZED_MEMORY_READS
+	Y_DELETE_A(m_initializationTracker);
+#endif
 }
 
 void Memory::Write(uint16_t addr, uint8_t value)
@@ -118,11 +133,11 @@ const SpriteAttributes& Memory::ReadOAMEntry(uint8_t index) const
 
 void Memory::ClearMemory()
 {
-	memset(m_mappedMemory, 0, MEMORY_SIZE);
+	memset_y(m_mappedMemory, 0, MEMORY_SIZE);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	memset_y(m_initializationTracker, 0, MEMORY_SIZE);
 	//skip initialization checks for APU wave ram
-	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
+	memset_y(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 
 	WriteDirect(DMA_REGISTER, 0xFF);
@@ -130,24 +145,24 @@ void Memory::ClearMemory()
 
 void Memory::ClearRange(uint16_t start, uint16_t end)
 {
-	memset(m_mappedMemory + start, 0, end - start);
+	memset_y(m_mappedMemory + start, 0, end - start);
 }
 
 void Memory::ClearVRAM()
 {
-	memset(m_mappedMemory + VRAM_START, 0, VRAM_END - VRAM_START);
+	memset_y(m_mappedMemory + VRAM_START, 0, VRAM_END - VRAM_START);
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker + VRAM_START, 1, VRAM_END - VRAM_START);
+	memset_y(m_initializationTracker + VRAM_START, 1, VRAM_END - VRAM_START);
 #endif
 }
 
 void Memory::MapROM(GamestateSerializer* serializer, const char* rom, uint32_t size)
 {
-	m_mbc = new MemoryBankController(serializer, rom, size);
+	m_mbc = Y_NEW(MemoryBankController,serializer, rom, size);
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(m_initializationTracker, 1, ROM_END + 1);
-	memset(m_initializationTracker + EXTERNAL_RAM_BEGIN, 1, RAM_BANK_SIZE);
+	memset_y(m_initializationTracker, 1, ROM_END + 1);
+	memset_y(m_initializationTracker + EXTERNAL_RAM_BEGIN, 1, RAM_BANK_SIZE);
 #endif
 }
 
@@ -158,8 +173,8 @@ void Memory::DeserializePersistentData(const char* ram, uint32_t size)
 
 void Memory::MapBootrom(const char* rom, uint32_t size)
 {
-	m_bootrom = new uint8_t[BOOTROM_SIZE];
-	memcpy(m_bootrom, rom, size);
+	m_bootrom = Y_NEW_A(uint8_t, BOOTROM_SIZE);
+	memcpy_y(m_bootrom, rom, size);
 	m_isBootromMapped = true;
 }
 
@@ -199,15 +214,15 @@ void Memory::Init()
 	m_DMAInProgress = false;
 	m_DMAProgress = 0;
 
-	memset(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
-	memset(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
-	memset(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
+	memset_y(m_readOnlyIOBitsOverride, 0, IOPORTS_COUNT);
 
-	m_writeCallbacks = new MemoryWriteCallback[MEMORY_SIZE];
-	memset(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
+	m_writeCallbacks = Y_NEW_A(MemoryWriteCallback, MEMORY_SIZE);
+	memset_y(m_writeCallbacks, 0, sizeof(MemoryWriteCallback) * MEMORY_SIZE);
 
-	m_callbackUserData = new uint64_t[MEMORY_SIZE];
-	memset(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
+	m_callbackUserData = Y_NEW_A(uint64_t, MEMORY_SIZE);
+	memset_y(m_callbackUserData, 0, sizeof(uint64_t) * MEMORY_SIZE);
 
 	RegisterCallback(DMA_REGISTER, DoDMA, nullptr);
 	RegisterCallback(BOOTROM_BANK, UnmapBootrom, nullptr);
@@ -217,10 +232,10 @@ void Memory::Init()
 	RegisterUnusedIORegisters();
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	m_initializationTracker = new uint8_t[MEMORY_SIZE];
-	memset(m_initializationTracker, 0, MEMORY_SIZE);
+	m_initializationTracker = Y_NEW_A(uint8_t, MEMORY_SIZE);
+	memset_y(m_initializationTracker, 0, MEMORY_SIZE);
 	//skip initialization checks for APU wave ram
-	memset(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
+	memset_y(m_initializationTracker + 0xFF30, 1, 0xFF3F - 0xFF30 + 1);
 #endif
 }
 
@@ -234,17 +249,17 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 	//TODO DMA from external ram?
 	if (source < ROM_END && !memory->m_externalMemory)
 	{
-		memcpy(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
+		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
 	}
 	else
 	{
-		memcpy(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
+		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
 	}
 
 	memory->m_DMAInProgress = true;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	memset(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
+	memset_y(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
 #endif
 }
 
@@ -346,36 +361,34 @@ void Memory::WriteIO(uint16_t addr, uint8_t value)
 	WriteInternal(addr, value);
 }
 
-void Memory::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data)
+void Memory::Serialize(uint8_t* data)
 {
-	uint32_t dataSize = MEMORY_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, data, dataSize, ChunkId::Memory);
+	WriteAndMove(data, m_mappedMemory + VRAM_START, VRAM_SIZE);
+	WriteAndMove(data, m_mappedMemory + WRAM_START, WRAM_SIZE);
+	WriteAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
-	WriteAndMove(rawData, m_mappedMemory, MEMORY_SIZE);
-
-	WriteAndMove(rawData, &m_isBootromMapped, sizeof(bool));
-	WriteAndMove(rawData, &m_DMAInProgress, sizeof(bool));
-	WriteAndMove(rawData, &m_DMAProgress, sizeof(uint32_t));
+	WriteAndMove(data, &m_isBootromMapped, sizeof(bool));
+	WriteAndMove(data, &m_DMAInProgress, sizeof(bool));
+	WriteAndMove(data, &m_DMAProgress, sizeof(uint32_t));
 }
 
-void Memory::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize)
+void Memory::Deserialize(const uint8_t* data)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::Memory);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
-
-	data += myChunk->m_offset;
-
-	ReadAndMove(data, m_mappedMemory, MEMORY_SIZE);
+	ReadAndMove(data, m_mappedMemory + VRAM_START, VRAM_SIZE);
+	ReadAndMove(data, m_mappedMemory + WRAM_START, WRAM_SIZE);
+	ReadAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
 	ReadAndMove(data, &m_DMAInProgress, sizeof(bool));
 	ReadAndMove(data, &m_DMAProgress, sizeof(uint32_t));
 }
 
-void Memory::WriteInternal(uint16_t addr, uint8_t value)
+uint32_t Memory::GetSerializationSize()
+{
+	return TOTAL_RAM_SIZE + sizeof(bool) + sizeof(bool) + sizeof(uint32_t);
+}
+
+inline void Memory::WriteInternal(uint16_t addr, uint8_t value)
 {
 	uint8_t prevValue = m_mappedMemory[addr];
 	m_mappedMemory[addr] = value;

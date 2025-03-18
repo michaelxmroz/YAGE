@@ -53,6 +53,7 @@ struct UIState
 	ActiveWindow m_activeWindow = ActiveWindow::NONE;
 	uint32_t m_lastMessageIndex = 0;
 	bool m_showLogWindow = false;
+	bool m_showStatsWindow = false;
 	ImFont* m_fontSmall = nullptr;
 	ImFont* m_fontLarge = nullptr;
 

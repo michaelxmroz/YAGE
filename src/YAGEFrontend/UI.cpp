@@ -170,6 +170,25 @@ namespace
 		}
 	}
 
+    void DrawStatsWindow(UIState& state, EngineData& data)
+    {
+        if (state.m_showStatsWindow)
+        {
+            ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+            if (!ImGui::Begin("Stats", &state.m_showStatsWindow))
+            {
+                ImGui::End();
+                return;
+            }
+
+            ImGui::Text("Allocated Memory: ");
+            ImGui::SameLine();
+            ImGui::Text(std::to_string(data.m_stats.m_allocatedMemory).c_str());
+
+            ImGui::End();
+        }
+    }
+
     void ShowAudioOptions(UIState& state, EngineData& data)
 	{
         if (state.m_activeWindow == UIState::ActiveWindow::AUDIO)
@@ -569,6 +588,10 @@ namespace
                     {
                         state.m_showLogWindow = !state.m_showLogWindow;
                     }
+                    if (ImGui::MenuItem("Stats"))
+                    {
+                        state.m_showStatsWindow = !state.m_showStatsWindow;
+                    }
 
                     ImGui::EndMenu();
                 }
@@ -638,7 +661,8 @@ void UI::Prepare(EngineData& data, double deltaMs)
 
     DrawMainMenuBar(m_state, data, deltaMs);
 
-    DrawLogWindow(m_state);
+    UI_Internal::DrawLogWindow(m_state);
+    UI_Internal::DrawStatsWindow(m_state, data);
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);

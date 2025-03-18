@@ -1,8 +1,8 @@
 #include "PPU.h"
 #include "VirtualMachine.h"
 #include "Interrupts.h"
-#include <algorithm>
 #include "Logging.h"
+#include "Allocator.h"
 
 #define LCDC_REGISTER 0xFF40 //LCD Control
 #define STAT_REGISTER 0xFF41 // LCD Status
@@ -49,7 +49,7 @@ const StatFlags ModeIndexToStatFlags[3]
 	StatFlags::Mode2Interrupt
 };
 
-namespace
+namespace PPUHelpers
 {
 	RGBA ResolvePixelColor(uint8_t colorIndex, uint16_t paletteAddr, Memory& memory)
 	{
@@ -94,17 +94,17 @@ namespace
 	}
 }
 
-PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer)
+PPU::PPU(GamestateSerializer* serializer) : ISerializable(serializer, ChunkId::PPU)
 	, data()
 {
-	m_activeFrame = new RGBA[EmulatorConstants::SCREEN_SIZE];
-	m_backBuffer = new RGBA[EmulatorConstants::SCREEN_SIZE];
+	m_activeFrame = Y_NEW_A(RGBA, EmulatorConstants::SCREEN_SIZE);
+	m_backBuffer = Y_NEW_A(RGBA, EmulatorConstants::SCREEN_SIZE);
 }
 
 PPU::~PPU()
 {
-	delete m_activeFrame;
-	delete m_backBuffer;
+	Y_DELETE_A(m_activeFrame);
+	Y_DELETE_A(m_backBuffer);
 }
 
 void PPU::Init(Memory& memory)
@@ -120,8 +120,8 @@ void PPU::Init(Memory& memory)
 	memory.WriteIO(BGP_REGISTER, 0xFC);
 	memory.WriteIO(OBJ0_REGISTER, 0x00);
 	memory.WriteIO(OBJ1_REGISTER, 0x00);
-	memset(m_activeFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
-	memset(m_backBuffer, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	memset_y(m_activeFrame, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	memset_y(m_backBuffer, 0, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 
 
 	memory.AddIOUnusedBitsOverride(STAT_REGISTER, 0b10000000);
@@ -135,7 +135,7 @@ void PPU::Init(Memory& memory)
 //TODO handle stat blocking for interrupts
 void PPU::Render(uint32_t mCycles, Memory& memory)
 {
-	if (!IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
+	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
 		return;
 	}
@@ -149,7 +149,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	{
 		data.m_previousState = data.m_state;
 		data.m_cyclesSinceStateChange = 0;
-		ResetStatFlag(StatFlags::LCYEqLC, memory);
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
 
@@ -183,7 +183,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			{
 				processedCycles += 2;
 
-				if (IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
+				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
 					if (data.m_totalCycles % 2 != 0)
 					{
@@ -209,7 +209,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::VBlank:
 			{
-				if (IsNewScanline(totalCycles, data.m_lineY, memory))
+				if (PPUHelpers::IsNewScanline(totalCycles, data.m_lineY, memory))
 				{
 					if (data.m_lineY == 0)
 					{
@@ -244,11 +244,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	memory.WriteIO(LY_REGISTER, writtenLine);
 	if (writtenLine == memory.ReadIO(LYC_REGISTER))
 	{
-		SetStatFlag(StatFlags::LCYEqLC, memory);
+		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 	else
 	{
-		ResetStatFlag(StatFlags::LCYEqLC, memory);
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
 
@@ -256,11 +256,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	{
 		if ((data.m_state == PPUState::OAMScan || data.m_state == PPUState::VBlank) && writtenLine == memory.ReadIO(LYC_REGISTER))
 		{
-			if (IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
+			if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
 			{
 				Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 			}
-			SetStatFlag(StatFlags::LCYEqLC, memory);
+			PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
 		}
 
 		if (data.m_state == PPUState::VBlank)
@@ -268,12 +268,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
 		}
 
-		if (IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
+		if (PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
 		{
 			Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
 		}
 
-		SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
 	}
 
 	data.m_cycleDebt =  targetCycles - processedCycles;
@@ -283,7 +283,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 void PPU::SwapBackbuffer()
 {
-	void* swap = m_backBuffer;
+	RGBA* swap = m_backBuffer;
 	m_backBuffer = m_activeFrame;
 	m_activeFrame = swap;
 }
@@ -322,7 +322,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_lineSpriteCount = 0;
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
-	data.m_windowState = IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
+	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 	memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
 	data.m_state = PPUState::OAMScan;
 }
@@ -334,8 +334,8 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_totalCycles = 4; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
-	SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
-	memset(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
+	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
+	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 }
 
@@ -432,9 +432,9 @@ void PPU::RenderNextPixel(Memory& memory)
 	if (data.m_spriteFIFO.Size() > 0)
 	{
 		Pixel spritePixel = data.m_spriteFIFO.Pop();
-		RGBA spritePixelColor = ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
+		RGBA spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
 
-		if (IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
+		if (PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
 			(spritePixel.m_color != 0 && (!spritePixel.m_backgroundPriority || pixelColor == SCREEN_COLORS[0])))
 		{
 			pixelColor = spritePixelColor;
@@ -442,7 +442,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	}
 
 	uint32_t renderIndex = data.m_lineX + data.m_lineY * EmulatorConstants::SCREEN_WIDTH;
-	reinterpret_cast<RGBA*>(m_activeFrame)[renderIndex] = pixelColor;
+	m_activeFrame[renderIndex] = pixelColor;
 	data.m_lineX++;
 }
 
@@ -451,7 +451,7 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
 	uint8_t oamEntry = (positionInLine / 2);
 
 	SpriteAttributes attr = memory.ReadOAMEntry(oamEntry);
-	bool doubleSize = IsControlFlagSet(LCDControlFlags::ObjSize, memory);
+	bool doubleSize = PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjSize, memory);
 	uint8_t doubleSizeAdjustment = doubleSize ? 0 : SPRITE_SINGLE_SIZE;
 
 	bool isInLine = data.m_lineY + doubleSizeAdjustment < attr.m_posY && data.m_lineY + SPRITE_DOUBLE_SIZE >= attr.m_posY;
@@ -506,23 +506,18 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	}
 }
 
-void PPU::Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& serializationData)
+void PPU::Serialize(uint8_t* sData)
 {
 	uint32_t dataSize = sizeof(data);
-	uint8_t* rawData = CreateChunkAndGetDataPtr(chunks, serializationData, dataSize, ChunkId::PPU);
-
-	WriteAndMove(rawData, &data, dataSize);
+	WriteAndMove(sData, &data, dataSize);
 }
 
-void PPU::Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* serializationData, const uint32_t& dataSize)
+void PPU::Deserialize(const uint8_t* sData)
 {
-	const Chunk* myChunk = FindChunk(chunks, chunkCount, ChunkId::PPU);
-	if (myChunk == nullptr)
-	{
-		return;
-	}
+	ReadAndMove(sData, &data, sizeof(data));
+}
 
-	serializationData += myChunk->m_offset;
-
-	ReadAndMove(serializationData, &data, sizeof(data));
+uint32_t PPU::GetSerializationSize()
+{
+	return sizeof(data);
 }

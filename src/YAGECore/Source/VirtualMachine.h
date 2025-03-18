@@ -1,5 +1,6 @@
 #pragma once
 #include "../Include/Emulator.h"
+#include "YString.h"
 #include "Registers.h"
 #include "CPU.h"
 #include "Memory.h"
@@ -9,11 +10,12 @@
 #include "Serial.h"
 #include "APU.h"
 
+
 class VirtualMachine : public Emulator
 {
 public:
 	VirtualMachine();
-	virtual ~VirtualMachine() override;
+	virtual ~VirtualMachine() override = default;
 
 	virtual void Load(const char* romName, const char* rom, uint32_t size) override;
 	virtual void Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize) override;
@@ -29,8 +31,8 @@ public:
 
 	virtual void SetLoggerCallback(LoggerCallback callback) override;
 
-	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const override;
-	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) override;
+	virtual SerializationView Serialize(bool rawData) override;
+	virtual void Deserialize(const SerializationView& data) override;
 
 	virtual void SetTurboSpeed(float speed) override;
 
@@ -54,7 +56,7 @@ private:
 	Joypad m_joypad;
 	Serial m_serial;
 
-	std::string m_romName;
+	yString m_romName;
 	uint64_t m_totalCycles;
 	uint32_t m_samplesGenerated;
 	bool m_frameRendered;

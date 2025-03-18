@@ -1,12 +1,14 @@
-#pragma once
 #include "Serialization.h"
 #include "Logging.h"
+#include "Helpers.h"
 
 #define HEADER_DEFAULT_NAME "GameboySerializedStateFile"
 #define HEADER_MAGIC_TOKEN 4242
-#define HEADER_CURRENT_VERSION 1
 
-namespace
+// Bump this on major changes to the file format
+#define HEADER_CURRENT_VERSION 2
+
+namespace Serializer_Internal
 {
 	struct FileHeader
 	{
@@ -22,27 +24,26 @@ namespace
 		uint32_t m_dataStartOffset;
 	};
 
-	FileHeader& WriteHeader(const char* name, uint32_t version, std::vector<uint8_t>& buffer)
+	FileHeader& WriteHeader(const char* name, uint32_t version, uint8_t* buffer)
 	{
 		FileHeader header;
-		strcpy_s(header.m_name, name);
+		memcpy_y(header.m_name, name, SERIALIZER_HEADER_NAME_MAXLENGTH);
 		header.m_magicToken = HEADER_MAGIC_TOKEN;
 		header.m_version = version;
 
-		void* rawData = buffer.data();
-		memcpy(rawData, &header, sizeof(FileHeader));
-		return *reinterpret_cast<FileHeader*>(rawData);
+		memcpy_y(buffer, &header, sizeof(FileHeader));
+		return *reinterpret_cast<FileHeader*>(buffer);
 	}
 
-	FileHeader ParseHeader(const uint8_t* buffer)
+	FileHeader ParseHeader(uint32_t version, const uint8_t* buffer)
 	{
 		const FileHeader* header = reinterpret_cast<const FileHeader*>(buffer);
-		if (header->m_magicToken != HEADER_MAGIC_TOKEN || header->m_version > HEADER_CURRENT_VERSION)
+		if (header->m_magicToken != HEADER_MAGIC_TOKEN || header->m_version > version)
 		{
 			LOG_ERROR("Invalid Header in serialized state file");
 			return FileHeader();
 		}
-		if (header->m_version < HEADER_CURRENT_VERSION)
+		if (header->m_version < version)
 		{
 			LOG_ERROR("Outdated version of serialized state file");
 			return FileHeader();
@@ -52,98 +53,116 @@ namespace
 	}
 }
 
-void GamestateSerializer::RegisterComponent(ISerializable* component)
+GamestateSerializer::GamestateSerializer()
 {
-	m_components.push_back(component);
+	m_registeredComponentCount = 0;
+	for (auto& component : m_components)
+	{
+		component = nullptr;
+	}
 }
 
-void GamestateSerializer::Serialize(uint8_t headerChecksum, const std::string& romName, bool rawData, std::vector<uint8_t>& dataOut) const
+void GamestateSerializer::RegisterComponent(ISerializable* component, ChunkId id)
 {
+	m_components[static_cast<uint32_t>(id)] = component;
+	m_registeredComponentCount++;
+}
+
+void GamestateSerializer::Init()
+{
+	uint32_t headerSize = sizeof(Serializer_Internal::FileHeader);
+	uint32_t romNameSize = SERIALIZER_HEADER_NAME_MAXLENGTH;
+	uint32_t chunkSize = sizeof(Chunk) * m_registeredComponentCount;
+	uint32_t dataSize = 0;
+
+	for (ISerializable* component : m_components)
+	{
+		if (component)
+		{
+			dataSize += component->GetSerializationSize();
+		}
+	}
+
+	uint32_t totalSize = headerSize + romNameSize + chunkSize + dataSize;
+	m_serializationBuffer.resize(totalSize);
+
+	m_chunkView = reinterpret_cast<Chunk*>(m_serializationBuffer.data() + headerSize + romNameSize);
+	m_dataView = m_serializationBuffer.data() + headerSize + romNameSize + chunkSize;
+
+}
+
+SerializationView GamestateSerializer::Serialize(uint8_t headerChecksum, const yString& romName, bool rawData)
+{
+	if(m_serializationBuffer.size() == 0)
+	{
+		Init();
+	}
+
 	SerializationParameters params;
-	memcpy(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
 	params.m_version = HEADER_CURRENT_VERSION;
 	params.m_romChecksum = headerChecksum;
-	params.m_noHeaders = rawData;
 	params.m_romName = romName;
 
-	SerializationFactory serializer(params);
+	SerializationFactory serializer(params, m_chunkView, m_dataView, m_serializationBuffer.data());
 	
 	for (ISerializable* component : m_components)
 	{
-		serializer.Serialize(component);
+		if(component)
+		{
+			serializer.Serialize(component);
+		}
 	}
 
-	serializer.Finish(dataOut);
+	serializer.Finish(m_serializationBuffer.size());
+
+	return { m_serializationBuffer.data(), m_serializationBuffer.size() };
 }
 
-void GamestateSerializer::Deserialize(const uint8_t* buffer, const uint32_t size, uint8_t headerChecksum)
+void GamestateSerializer::Deserialize(const SerializationView& data, uint8_t headerChecksum)
 {
 	SerializationParameters params;
-	memcpy(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
 	params.m_version = HEADER_CURRENT_VERSION;
 	params.m_romChecksum = headerChecksum;
 
-	DeserializationFactory deserializer(params, buffer, size);
+	DeserializationFactory deserializer(params, data.data, data.size);
 
-	deserializer.Deserialize(buffer, m_components);
+	deserializer.Deserialize(data.data, m_components);
 
 	deserializer.Finish();
 }
 
-ISerializable::ISerializable(GamestateSerializer* serializer)
+ISerializable::ISerializable(GamestateSerializer* serializer, ChunkId id) :
+	m_id(id)
 {
 	if (serializer != nullptr)
 	{
-		serializer->RegisterComponent(this);
+		serializer->RegisterComponent(this, id);
 	}
-}
-
-uint8_t* ISerializable::CreateChunkAndGetDataPtr(std::vector<Chunk>& chunks, std::vector<uint8_t>& data, const uint32_t& writeDataSize, const ChunkId& chunkId)
-{
-	uint32_t oldSize = static_cast<uint32_t>(data.size());
-
-	Chunk myChunk;
-	myChunk.m_id = chunkId;
-	myChunk.m_offset = oldSize;
-	myChunk.m_size = writeDataSize;
-	chunks.push_back(myChunk);
-
-	data.resize(oldSize + writeDataSize);
-	uint8_t* rawData = data.data();
-	rawData += oldSize;
-	return rawData;
-}
-
-const Chunk* ISerializable::FindChunk(const Chunk* chunks, const uint32_t& chunkCount, const ChunkId& chunkId)
-{
-	for (uint32_t i = 0; i < chunkCount; ++i)
-	{
-		if (chunks[i].m_id == chunkId)
-		{
-			return chunks + i;
-		}
-	}
-	return nullptr;
 }
 
 void ISerializable::WriteAndMove(uint8_t*& destination, const void* source, const uint32_t& size)
 {
-	memcpy(destination, source, static_cast<size_t>(size));
+	memcpy_y(destination, source, static_cast<size_t>(size));
 	destination += size;
 }
 
 void ISerializable::ReadAndMove(const uint8_t*& source, void* destination, const uint32_t& size)
 {
-	memcpy(destination, source, static_cast<size_t>(size));
+	memcpy_y(destination, source, static_cast<size_t>(size));
 	source += size;
 }
 
-SerializationFactory::SerializationFactory(SerializationParameters parameters)
+SerializationFactory::SerializationFactory(const SerializationParameters& parameters, Chunk* chunks, uint8_t* data, uint8_t* header)
 	: m_parameters(parameters)
 	, m_finished(false)
-	, m_chunks()
-	, m_data()
-
+	, m_chunks(chunks)
+	, m_data(data)
+	, m_header(header)
+	, m_dataOffset(0)
+	, m_serializedChunks(0)
+	, m_writtenData(0)
 {
 }
 
@@ -154,20 +173,14 @@ void SerializationFactory::Serialize(ISerializable* component)
 		LOG_ERROR("Trying to serialize a component for an already finished serialization factory.");
 		return;
 	}
-	component->Serialize(m_chunks, m_data);
+
+	component->Serialize(m_data + m_writtenData);
+
+	uint32_t size = component->GetSerializationSize();
+	WriteChunkHeader(size, component->m_id);
 }
 
-uint8_t* SerializationFactory::CreateChunk(ChunkId id, uint32_t dataSize)
-{
-	if (m_finished)
-	{
-		LOG_ERROR("Trying to create a chunk for an already finished serialization factory.");
-		return nullptr;
-	}
-	return ISerializable::CreateChunkAndGetDataPtr(m_chunks, m_data, dataSize, id);
-}
-
-void SerializationFactory::Finish(std::vector<uint8_t>& dataOut)
+void SerializationFactory::Finish(uint32_t totalBufferSize)
 {
 	if (m_finished)
 	{
@@ -175,15 +188,21 @@ void SerializationFactory::Finish(std::vector<uint8_t>& dataOut)
 		return;
 	}
 
-	uint32_t headerSize = sizeof(FileHeader);
+	uint32_t headerSize = sizeof(Serializer_Internal::FileHeader);
 	uint32_t romNameSize = SERIALIZER_HEADER_NAME_MAXLENGTH;
-	uint32_t chunkSize = sizeof(Chunk) * static_cast<uint32_t>(m_chunks.size());
-	uint32_t dataSize = static_cast<uint32_t>(m_data.size());
+	uint32_t chunkSize = sizeof(Chunk) * m_serializedChunks;
+	uint32_t dataSize = m_writtenData;
 
 	uint32_t totalSize = headerSize + romNameSize + chunkSize + dataSize;
-	dataOut.resize(totalSize);
 
-	FileHeader& header = WriteHeader(m_parameters.m_dataName, m_parameters.m_version, dataOut);
+#if _DEBUG
+	if(totalSize != totalBufferSize)
+	{
+		LOG_ERROR("Mismatch between serialization buffer size and actual serialized data!");
+	}
+#endif
+
+	Serializer_Internal::FileHeader& header = Serializer_Internal::WriteHeader(m_parameters.m_dataName, m_parameters.m_version, m_header);
 
 	header.m_romChecksum = m_parameters.m_romChecksum;
 	header.m_romNameStartOffset = headerSize;
@@ -193,30 +212,37 @@ void SerializationFactory::Finish(std::vector<uint8_t>& dataOut)
 	header.m_dataSize = dataSize;
 	header.m_dataStartOffset = headerSize + romNameSize + chunkSize;
 
-	uint8_t* rawBuffer = dataOut.data();
-	if (!m_parameters.m_noHeaders)
-	{
-		memcpy(rawBuffer + header.m_romNameStartOffset, m_parameters.m_romName.c_str(), romNameSize);
-		memcpy(rawBuffer + header.m_chunkStartOffset, m_chunks.data(), chunkSize);
-		memcpy(rawBuffer + header.m_dataStartOffset, m_data.data(), dataSize);
-	}
-	else
-	{
-		memcpy(rawBuffer, m_data.data(), dataSize);
-	}
-
 	m_finished = true;
+}
+
+uint32_t SerializationFactory::GetHeaderAndNameSize()
+{
+	uint32_t headerSize = sizeof(Serializer_Internal::FileHeader);
+	uint32_t romNameSize = SERIALIZER_HEADER_NAME_MAXLENGTH;
+	return headerSize + romNameSize;
+}
+
+void SerializationFactory::WriteChunkHeader(uint32_t writeDataSize, const ChunkId& chunkId)
+{
+	m_chunks->m_id = chunkId;
+	m_chunks->m_offset = m_dataOffset;
+	m_chunks->m_size = writeDataSize;
+
+	++m_chunks;
+	m_dataOffset += writeDataSize;
+	m_writtenData += writeDataSize;
+
+	m_serializedChunks++;
 }
 
 DeserializationFactory::DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint32_t size)
 	: m_parameters(parameters)
 	, m_finished(false)
 {
-	//TODO also compare header file names & version
 
-	FileHeader header = ParseHeader(buffer);
+	Serializer_Internal::FileHeader header = Serializer_Internal::ParseHeader(parameters.m_version, buffer);
 
-	uint32_t expectedSize = sizeof(FileHeader) + header.m_romNameLength + header.m_chunkSize + header.m_dataSize;
+	uint32_t expectedSize = sizeof(Serializer_Internal::FileHeader) + header.m_romNameLength + header.m_chunkSize + header.m_dataSize;
 
 	if (size != expectedSize)
 	{
@@ -240,7 +266,7 @@ DeserializationFactory::DeserializationFactory(SerializationParameters parameter
 	m_dataSize = header.m_dataSize;
 }
 
-void DeserializationFactory::Deserialize(const uint8_t* buffer, std::vector<ISerializable*>& components)
+void DeserializationFactory::Deserialize(const uint8_t* buffer, ISerializable** components) const
 {
 	if (m_finished)
 	{
@@ -249,32 +275,38 @@ void DeserializationFactory::Deserialize(const uint8_t* buffer, std::vector<ISer
 	}
 
 	const Chunk* chunks = reinterpret_cast<const Chunk*>(buffer + m_chunkStartOffset);
-	uint32_t chunkCount = m_chunkCount;
 
 	const uint8_t* data = buffer + m_dataStartOffset;
-	uint8_t dataCount = m_dataSize;
 
-	for (ISerializable* component : components)
+	for( uint32_t i = 0; i < static_cast<uint32_t>(ChunkId::Count); ++i)
 	{
-		component->Deserialize(chunks, chunkCount, data, dataCount);
+		ISerializable* component = components[i];
+		if(component)
+		{
+			if(component->m_id != chunks->m_id)
+			{
+				LOG_ERROR("Chunk id mismatch, possible file corruption");
+				return;
+			}
+
+			component->Deserialize(data + chunks->m_offset);
+			++chunks;
+		}
 	}
 }
 
-DeserializationFactory::RawBuffers DeserializationFactory::GetRawBuffers(const uint8_t* buffer)
+const uint8_t* DeserializationFactory::GetDataForChunk(const uint8_t* buffer, uint32_t index) const
 {
 	if (m_finished)
 	{
-		LOG_ERROR("Trying to access buffers for an already finished deserialization factory.");
-		return RawBuffers{nullptr, 0, nullptr, 0};
+		LOG_ERROR("Trying to deserialize a component for an already finished deserialization factory.");
+		return nullptr;
 	}
 
-	RawBuffers buffers{
-	reinterpret_cast<const Chunk*>(buffer + m_chunkStartOffset)
-	, m_chunkCount
-	, buffer + m_dataStartOffset
-	, m_dataSize
-	};
-	return buffers;
+	const Chunk* chunks = reinterpret_cast<const Chunk*>(buffer + m_chunkStartOffset);
+	chunks += index;
+
+	return buffer + chunks->m_offset;
 }
 
 void DeserializationFactory::Finish()

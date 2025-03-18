@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include "CppIncludes.h"
 #include "Registers.h"
 #include "Logging.h"
 #include "Memory.h"

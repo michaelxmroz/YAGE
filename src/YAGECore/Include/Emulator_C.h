@@ -1,11 +1,46 @@
 #pragma once
 
+#ifdef FREESTANDING
+
+#define _CINTERFACE
+
+// Signed integer types
+using int8_t = __INT8_TYPE__;
+using int16_t = __INT16_TYPE__;
+using int32_t = __INT32_TYPE__;
+using int64_t = __INT64_TYPE__;
+
+// Unsigned integer types
+using uint8_t = __UINT8_TYPE__;
+using uint16_t = __UINT16_TYPE__;
+using uint32_t = __UINT32_TYPE__;
+using uint64_t = __UINT64_TYPE__;
+
+// Pointer-sized integer types
+using intptr_t = __INTPTR_TYPE__;
+using uintptr_t = __UINTPTR_TYPE__;
+
+// Maximum-width integer types
+using intmax_t = __INTMAX_TYPE__;
+using uintmax_t = __UINTMAX_TYPE__;
+
+typedef uint64_t size_t;
+
 extern "C"
 {
+#else
+#include <cstdint>
+#endif
+
 #ifdef _CINTERFACE
 #include <stdint.h>
 #endif
 
+struct SerializationView
+{
+	uint8_t* data;
+	uint32_t size;
+};
 
 #define EMULATOR_SCREEN_WIDTH 160
 #define EMULATOR_SCREEN_HEIGHT 144
@@ -20,6 +55,8 @@ extern "C"
 	typedef void (*EmulatorDebugCallback)(void* userData);
 #endif
 
+	typedef void* (*YAGEAllocFunc)(uint32_t);
+	typedef void (*YAGEFreeFunc)(void*);
 
 	enum EmulatorInputs_DPad
 	{
@@ -43,6 +80,10 @@ extern "C"
 		uint8_t m_buttons;
 	};
 
+	typedef enum EmulatorInputs_DPad EmulatorInputs_DPad;
+	typedef enum EmulatorInputs_Buttons EmulatorInputs_Buttons;
+	typedef struct EmulatorInputState EmulatorInputState;
+
 	EmulatorInputState GetDefaultInputState();
 
 	void SetDpadDown(EmulatorInputState* state, EmulatorInputs_DPad pad);
@@ -52,7 +93,7 @@ extern "C"
 	struct EmulatorC;
 	typedef struct EmulatorC* EmulatorCHandle;
 
-	EmulatorCHandle CreateEmulatorHandle();
+	EmulatorCHandle CreateEmulatorHandle(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc);
 	void Delete(EmulatorCHandle emulator);
 
 	void SetLoggerCallback(EmulatorCHandle emulator, EmulatorLoggerCallback callback);
@@ -67,9 +108,8 @@ extern "C"
 	const void* GetFrameBuffer(EmulatorCHandle emulator);
 	uint32_t GetNumberOfGeneratedSamples(EmulatorCHandle emulator);
 
-	uint8_t* Serialize(EmulatorCHandle emulator, bool rawData);
-	void CleanupSerializedMemory(uint8_t* data);
-	void Deserialize(EmulatorCHandle emulator, const uint8_t* buffer, const uint32_t size);
+	struct SerializationView Serialize(EmulatorCHandle emulator, uint8_t rawData);
+	void Deserialize(EmulatorCHandle emulator, const struct SerializationView* data);
 
 	void SetTurboSpeed(EmulatorCHandle emulator, float speed);
 
@@ -81,4 +121,7 @@ extern "C"
 #endif
 
 #endif
+
+#ifdef FREESTANDING
 }
+#endif

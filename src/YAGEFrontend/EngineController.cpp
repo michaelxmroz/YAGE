@@ -3,6 +3,18 @@
 
 std::string EngineController::s_persistentMemoryPath;
 
+void* AllocFunc(uint32_t size)
+{
+    LOG_INFO(string_format("Emulator is allocating %i bytes of memory", size).c_str());
+    return new uint8_t[size];
+}
+
+void FreeFunc(void* ptr)
+{
+    LOG_INFO("Emulator is freeing memory");
+    delete[] reinterpret_cast<uint8_t*>(ptr);
+}
+
 #if _DEBUG
 void DumpMemory(void* userData)
 {
@@ -11,6 +23,11 @@ void DumpMemory(void* userData)
     Debugging::TriggerBreakpoint(userData);
 }
 #endif
+
+void GatherStats(const Emulator& emulator, EngineData& state)
+{
+    state.m_stats.m_allocatedMemory = emulator.GetMemoryUse();
+}
 
 EngineController::EngineController(EngineData& state) :
     m_data(state)
@@ -112,7 +129,7 @@ void EngineController::SavePersistentMemory(const void* data, uint32_t size)
 
 void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, const std::vector<char>& romBlob, const std::vector<char>& ramBlob)
 {
-    m_emulator = Emulator::Create();
+    m_emulator = Emulator::Create(&AllocFunc, &FreeFunc);
 
     m_data.m_gameLoaded = true;
 
@@ -199,6 +216,8 @@ void EngineController::RunEmulatorLoop()
                 m_emulator->Step(inputState, deltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
+
+                GatherStats(*m_emulator, m_data);
             }
 
             HandleSaveLoad();
@@ -242,14 +261,14 @@ void EngineController::Load()
     std::vector<char> saveState;
     if (FileParser::Read(saveStatePath, saveState))
     {
-        m_emulator->Deserialize(reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()));
+        SerializationView loadData{ reinterpret_cast<uint8_t*>(saveState.data()), static_cast<uint32_t>(saveState.size()) };
+        m_emulator->Deserialize(loadData);
     }
 }
 
-void EngineController::Save(bool rawData)
+void EngineController::Save(bool rawData) const
 {
-    std::vector<uint8_t> saveState;
-    m_emulator->Serialize(rawData, saveState);
+    SerializationView savedState = m_emulator->Serialize(rawData);
     std::string saveStatePath = m_data.m_saveLoadPath;
     if (saveStatePath.empty())
     {
@@ -257,5 +276,5 @@ void EngineController::Save(bool rawData)
         saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
     }
 
-    FileParser::Write(saveStatePath, saveState.data(), saveState.size());
+    FileParser::Write(saveStatePath, savedState.data, savedState.size);
 }

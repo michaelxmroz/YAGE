@@ -119,12 +119,13 @@ private:
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
 	} data;
-	void* m_activeFrame;
-	void* m_backBuffer;
+	RGBA* m_activeFrame;
+	RGBA* m_backBuffer;
 
 
 	// Inherited via ISerializable
-	void Serialize(std::vector<Chunk>& chunks, std::vector<uint8_t>& data) override;
-	void Deserialize(const Chunk* chunks, const uint32_t& chunkCount, const uint8_t* data, const uint32_t& dataSize) override;
+	void Serialize(uint8_t* data) override;
+	void Deserialize(const uint8_t* data) override;
+	virtual uint32_t GetSerializationSize() override;
 };
 

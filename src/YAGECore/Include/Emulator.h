@@ -1,7 +1,9 @@
 #pragma once
-#include <cstdint>
-#include <vector>
+
 #include "Emulator_C.h"
+
+typedef void* (*YAGEAllocFunc)(uint32_t);
+typedef void (*YAGEFreeFunc)(void*);
 
 namespace EmulatorInputs
 {
@@ -63,7 +65,7 @@ public:
 	typedef void (*DebugCallback)(void* userData);
 #endif
 
-	static Emulator* Create();
+	static Emulator* Create(YAGEAllocFunc allocFunc, YAGEFreeFunc freeFunc);
 	static void Delete(Emulator* emulator);
 
 	virtual void SetLoggerCallback(LoggerCallback callback) = 0;
@@ -78,10 +80,12 @@ public:
 	virtual const void* GetFrameBuffer() = 0;
 	virtual uint32_t GetNumberOfGeneratedSamples() = 0;
 
-	virtual void Serialize(bool rawData, std::vector<uint8_t>& dataOut) const = 0;
-	virtual void Deserialize(const uint8_t* buffer, const uint32_t size) = 0;
+	virtual SerializationView Serialize(bool rawData) = 0;
+	virtual void Deserialize(const SerializationView& data) = 0;
 
 	virtual void SetTurboSpeed(float speed) = 0;
+
+	uint32_t GetMemoryUse() const;
 
 #if _DEBUG
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
@@ -89,6 +93,5 @@ public:
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void ClearCallbacks() = 0;
 #endif
-protected:
 	virtual ~Emulator();
 };
