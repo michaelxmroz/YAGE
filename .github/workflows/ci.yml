@@ -1,0 +1,42 @@
+name: Build and Test Emulator
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Zig 0.13
+        run: |
+          choco install zig --version=0.13.0
+
+      - name: Install Visual Studio 2022
+        run: |
+          choco install visualstudio2022buildtools
+          choco install visualstudio2022-workload-vctools
+
+      - name: Install Vulkan SDK
+        run: |
+          choco install vulkan-sdk
+
+      - name: Install Google Test
+        run: |
+          choco install googletest
+
+      - name: Build Zig Kernel
+        run: |
+          cd build
+          zig build kernel --summary all -Doptimize=Debug
+
+      - name: Build Main Project
+        run: |
+          msbuild /m /p:Configuration=Release YAGE.sln
