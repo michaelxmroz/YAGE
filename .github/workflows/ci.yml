@@ -1,12 +1,6 @@
 name: Build and Test Emulator
 
 on: 
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
