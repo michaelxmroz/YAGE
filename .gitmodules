@@ -7,3 +7,7 @@
 	path = externalLibs/vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
 	branch = main
+[submodule "externalLibs/volk"]
+	path = externalLibs/volk
+	url = https://github.com/zeux/volk.git
+	branch = master
