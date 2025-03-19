@@ -1,7 +1,9 @@
 name: Build and Test Emulator
 
 on: 
-
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: windows-latest
@@ -9,14 +11,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Vulkan SDK
+      - name: Install Shaderc
         run: |
-          $ErrorActionPreference = 'Stop'
-          $vulkanSdkUrl = 'https://sdk.lunarg.com/sdk/download/1.3.268.0/windows/VulkanSDK-1.3.268.0-Installer.exe'
-          $installerPath = 'C:\VulkanSDK-Installer.exe'
-          Invoke-WebRequest -Uri $vulkanSdkUrl -OutFile $installerPath
-          Start-Process -FilePath $installerPath -ArgumentList '/quiet', '/install' -Wait
-          Remove-Item -Path $installerPath
+          vcpkg install shaderc
 
       - name: Install Zig 0.13
         run: |
