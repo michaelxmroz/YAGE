@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Vulkan SDK
         run: |
-          choco install vulkan-sdk
+          choco install vulkan-sdk --version=1.3.268.0
 
       - name: Install Google Test
         run: |
