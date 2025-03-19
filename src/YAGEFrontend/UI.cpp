@@ -10,6 +10,7 @@
 #include "EngineState.h"
 #include "Input.h"
 #include "UIStrings.h"
+#include "volk.h"
 
 const char* FONT_PATH = "../../../externalLibs/imgui/misc/fonts/ProggyClean.ttf";
 
@@ -636,6 +637,8 @@ UI::UI(RendererVulkan& renderer)
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.Allocator = nullptr;
     init_info.CheckVkResultFn = check_vk_result;
+
+    ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void* instance) { return vkGetInstanceProcAddr(static_cast<VkInstance>(instance), function_name); }, renderer.m_instance);
 
     if (!ImGui_ImplVulkan_Init(&init_info))
     {

@@ -452,7 +452,7 @@ namespace Logger
 
     typedef SubLogger<LogSeverity::All, LogVerbosity::Minimal, FileOutput> FileLoggerMinimal;
 
-    typedef CompoundLogger<GlobalBufferLogger> DefaultLogger;
+    typedef CompoundLogger<GlobalBufferLogger, VSLogger> DefaultLogger;
     typedef CompoundLogger<FileLoggerMinimal> MinimalLogger;
 }
 

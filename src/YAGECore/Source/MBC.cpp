@@ -20,7 +20,7 @@
 
 #define RTC_REGISTER_SELECT_VALUE 0x08
 
-#define PERSISTENT_DATA_NAME "GameboySavegame"
+#define PERSISTENT_DATA_NAME "GBSavegame"
 #define PERSISTENT_DATA_VERSION 1
 
 namespace MBC_Internal

@@ -1,5 +1,11 @@
+
+#ifndef VOLK_IMPLEMENTATION 
+#define VOLK_IMPLEMENTATION 
+#endif
+
+#include "volk.h"
+
 #include "RendererVulkan.h"
-#include "vulkan/vulkan.h"
 #include "Logging.h"
 #include <vector>
 #include <set>
@@ -554,9 +560,9 @@ void RendererVulkan::CreateInstance()
 	{
 		VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		NULL,
-		"GameBoy",
+		"YAGE",
 		VK_MAKE_VERSION(1,0,0),
-		"GameBoyEngine",
+		"YAGEEngine",
 		VK_MAKE_VERSION(1,0,0),
 		VK_API_VERSION_1_2
 	};
@@ -592,6 +598,8 @@ void RendererVulkan::CreateInstance()
 	instanceInfo.ppEnabledLayerNames = validationLayers.data();
 
 	VK_CHECK(vkCreateInstance(&instanceInfo, nullptr, &m_instance));
+
+	volkLoadInstanceOnly(m_instance);
 }
 
 void RendererVulkan::SelectPhysicalDevice()
@@ -652,6 +660,8 @@ void RendererVulkan::CreateLogicalDevice()
 	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 	VK_CHECK(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_logicalDevice));
+
+	volkLoadDevice(m_logicalDevice);
 
 	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Graphics), 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_logicalDevice, indices.GetFamilyIndex(QueueFamilyIndices::QueueTypes::Present), 0, &m_presentQueue);
@@ -1177,6 +1187,8 @@ void RendererVulkan::CreateIndexBuffer()
 
 void RendererVulkan::Init()
 {
+	VK_CHECK(volkInitialize());
+
 	m_backend.InitWindow(m_scaledWidth, m_scaledHeight, this);
     CreateInstance();
 #if VALIDATION_LAYERS

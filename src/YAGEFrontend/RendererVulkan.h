@@ -2,14 +2,10 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include "vulkan/vulkan.h"
+
 #include <vector>
 
-#if _DEBUG
-#define VALIDATION_LAYERS 1
-#else
 #define VALIDATION_LAYERS 0
-#endif
 
 #include "Backend.h"
 #include "MiniMath.h"

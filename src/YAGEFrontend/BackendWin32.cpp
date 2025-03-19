@@ -27,6 +27,7 @@
 #include <codecvt>
 #include "resource.h"
 
+#include "volk.h"
 
 #define GET_SCAN_CODE(lParam) ((lParam >> 16) & 0x1FF)
 

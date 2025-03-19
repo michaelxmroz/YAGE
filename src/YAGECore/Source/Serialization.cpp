@@ -2,7 +2,7 @@
 #include "Logging.h"
 #include "Helpers.h"
 
-#define HEADER_DEFAULT_NAME "GameboySerializedStateFile"
+#define HEADER_DEFAULT_NAME "GBSerializedStateFile"
 #define HEADER_MAGIC_TOKEN 4242
 
 // Bump this on major changes to the file format
