@@ -11,10 +11,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Shaderc
-        run: |
-          vcpkg install shaderc
-
       - name: Install Zig 0.13
         run: |
           choco install zig --version=0.13.0
@@ -23,10 +19,6 @@ jobs:
         run: |
           choco install visualstudio2022buildtools
           choco install visualstudio2022-workload-vctools
-
-      - name: Install Google Test
-        run: |
-          choco install googletest
 
       - name: Build Zig Kernel
         run: |
