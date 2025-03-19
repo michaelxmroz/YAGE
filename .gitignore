@@ -358,3 +358,5 @@ externalTests/
 #Zig Build Cache
 build/.zig-cache/
 build/zig-cache/
+build/vcpkg_installed/
+build/packages/
