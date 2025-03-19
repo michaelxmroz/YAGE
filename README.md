@@ -6,7 +6,6 @@ YAGE is a classic (DMG) GB emulator. The emulator core is written in C++ with no
 
 ## Features
 YAGE is a cycle-accurate GB (DMG) emulator. For the exact workings of the original GB hardware that this project is trying to emulate please consult the [Pandocs](https://gbdev.io/pandocs/) as this would go beyond the scope of this readme. In its current state YAGE emulates all GB systems except for the serial data connection.
-The [Portaudio](https://portaudio.com/) library is used for plattform-indepentent audio playback and [Dear imgui](https://github.com/ocornut/imgui) for the UI.
 Furthermore full game-state serialization is supported for save-states.
 
 ## Build
@@ -29,13 +28,15 @@ Building the RasPi kernel is very straightforward, as it uses the Zig build tool
 Please note that the Zig frontend is still very much a work-in-progress and development is ongoing for properly supporting crucial systems such as I/O, timing and rendering.
 
 ## Dependencies
-The Windows front-end depends on WinAPI and the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/).
+The Windows front-end depends on
+- [Dear imgui](https://github.com/ocornut/imgui), [Vulkan Headers](https://github.com/KhronosGroup/Vulkan-Headers) and [Volk](https://github.com/zeux/volk/), which are included through submodules and
+- [Shaderc](https://github.com/google/shaderc) and [Portaudio](https://portaudio.com/), which are automatically pulled through VS2022's vcpkg integration.
 
 The RasPi 4 kernel depends on [Zig](https://ziglang.org/download/).
 
 The back-end (YAGECore) is pure C++ without any external dependencies. It exposes a C API for binding to the Zig kernel.
 
-The unit tests require the [Google Test](https://github.com/google/googletest) framework.
+The unit tests require the [Google Test](https://github.com/google/googletest) framework, which is automatically pulled through NuGet.
 
 ## Usage
 
