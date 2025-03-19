@@ -9,19 +9,18 @@ const emmc = @import("emmc.zig");
 const alloc = @import("allocation.zig");
 
 const cpp = @cImport({
+    @cDefine("_CINTERFACE", "1");
     @cInclude("Emulator_C.h");
 });
 
-fn dummyInterruptHandler(exceptionType: u32, execptionType2: u32) noreturn 
-{
+fn dummyInterruptHandler(exceptionType: u32, execptionType2: u32) noreturn {
     _ = exceptionType;
     _ = execptionType2;
     mmio.uartSendString("\n!UNIMPLEMENTED INTERRUPT HANDLER!\n");
     utils.hang();
 }
 
-pub fn setupInterruptVectorTable() void 
-{
+pub fn setupInterruptVectorTable() void {
     asm volatile (
         \\ setupInterruptVectorTable:
         \\ movk x1, #0xD61F, lsl #16
@@ -46,13 +45,11 @@ pub fn setupInterruptVectorTable() void
     );
 }
 
-export fn initMMU() void 
-{
+export fn initMMU() void {
     mmu.initMMU();
 }
 
-export fn _start() callconv(.Naked) noreturn 
-{
+export fn _start() callconv(.Naked) noreturn {
     // Kernel entry point
     // Set up the CPU and initialize the MMU
     //
@@ -124,27 +121,14 @@ export fn _start() callconv(.Naked) noreturn
         \\    ret
     ;
 
-    const formated_asm = std.fmt.comptimePrint(
-        asm_str, .{ 
-            defs.SCTLR_VALUE_MMU_DISABLED,
-            defs.HCR_VALUE,               
-            defs.SCR_VALUE,               
-            defs.SPSR_VALUE,              
-            defs.CPACR_VALUE,             
-            defs.TCR_VALUE,               
-            defs.MAIR_VALUE,              
-            defs.LOW_MEMORY,              
-            defs.SCTLR_VALUE_MMU_ENABLED  
-        }
-    );
+    const formated_asm = std.fmt.comptimePrint(asm_str, .{ defs.SCTLR_VALUE_MMU_DISABLED, defs.HCR_VALUE, defs.SCR_VALUE, defs.SPSR_VALUE, defs.CPACR_VALUE, defs.TCR_VALUE, defs.MAIR_VALUE, defs.LOW_MEMORY, defs.SCTLR_VALUE_MMU_ENABLED });
 
     asm volatile (formated_asm);
 
     while (true) {}
 }
 
-pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usize) noreturn 
-{
+pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usize) noreturn {
     mmio.uartSendString("\n!KERNEL PANIC!\n");
     mmio.uartSendString(message);
     mmio.uartSendString("\n");
@@ -152,20 +136,17 @@ pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usi
     utils.hang();
 }
 
-fn c_alloc(size: u32) callconv(.C) ?*anyopaque
-{
+fn c_alloc(size: u32) callconv(.C) ?*anyopaque {
     log.INFO("Memory allocated: {} bytes\n", .{size});
     return alloc.activeBucketAlloc(size);
 }
 
-fn c_free(addr: ?*anyopaque) callconv(.C) void 
-{
-    log.INFO("Memory freed at {}\n", .{ @intFromPtr(addr) });
+fn c_free(addr: ?*anyopaque) callconv(.C) void {
+    log.INFO("Memory freed at {}\n", .{@intFromPtr(addr)});
     alloc.activeBucketFree();
 }
 
-export fn main() void 
-{
+export fn main() void {
     setupInterruptVectorTable();
     utils.writeVectorTableBaseAddr(@intFromPtr(&defs.VECTOR_TABLE));
 
@@ -176,13 +157,13 @@ export fn main() void
 
     //utils.hang();
 
-    const prevIRQVal = mmio.mmioReadDirect( mmio.IRQ_GPU_ENABLE2);
-    mmio.mmioWriteDirect( mmio.IRQ_GPU_ENABLE2,( prevIRQVal & ~@as(u32,mmio.IRQ_GPU_FAKE_ISR)) | mmio.IRQ_GPU_FAKE_ISR );
+    const prevIRQVal = mmio.mmioReadDirect(mmio.IRQ_GPU_ENABLE2);
+    mmio.mmioWriteDirect(mmio.IRQ_GPU_ENABLE2, (prevIRQVal & ~@as(u32, mmio.IRQ_GPU_FAKE_ISR)) | mmio.IRQ_GPU_FAKE_ISR);
 
     log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
     renderer.initFramebuffer();
 
-    renderer.drawRect(150,150,400,400,renderer.Color{.components = renderer.Components{.a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 }});
+    renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
 
     const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
     cpp.Delete(emu);

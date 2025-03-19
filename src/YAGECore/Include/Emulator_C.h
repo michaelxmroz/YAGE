@@ -28,12 +28,12 @@ typedef uint64_t size_t;
 
 extern "C"
 {
-#else
-#include <cstdint>
 #endif
 
 #ifdef _CINTERFACE
 #include <stdint.h>
+#else
+#include <cstdint>
 #endif
 
 struct SerializationView
