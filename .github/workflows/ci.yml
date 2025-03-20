@@ -29,7 +29,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
-          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          vcpkgDirectory: '${{env.GITHUB_WORKSPACE}}/build/vcpkg'
           vcpkgGitCommitId: 'b02e341c927f16d991edbd915d8ea43eac52096c'
           # Run vcpkg with the command specified by the `runVcpkgFormatString` input.
           runVcpkgInstall: true
