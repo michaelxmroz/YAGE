@@ -8,6 +8,7 @@ on:
 env:
   SOLUTION_FILE_PATH: .\build\YAGE.sln
   BUILD_CONFIGURATION: Release
+  VCPKG_INSTALLED_DIR: .\build\vcpkg_installed
 
 permissions:
   contents: read
@@ -50,7 +51,7 @@ jobs:
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
                   /p:VcpkgRoot=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }} `
-                  /p:VcpkgInstalledDir=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg_installed `
+                  /p:VcpkgInstalledDir=${{env.VCPKG_INSTALLED_DIR}} `
                   /p:VcpkgTriplet=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} `
                   ${{env.SOLUTION_FILE_PATH}}
         
