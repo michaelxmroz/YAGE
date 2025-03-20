@@ -29,11 +29,11 @@ jobs:
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
-          vcpkgDirectory: '${{env.GITHUB_WORKSPACE}}/build/vcpkg'
+          vcpkgDirectory: './build/vcpkg'
           vcpkgGitCommitId: 'b02e341c927f16d991edbd915d8ea43eac52096c'
           # Run vcpkg with the command specified by the `runVcpkgFormatString` input.
           runVcpkgInstall: true
-          vcpkgJsonGlob: '${{env.GITHUB_WORKSPACE}}/build/vcpkg.json'
+          vcpkgJsonGlob: './build/vcpkg.json'
 
       - name: Restore NuGet packages
         working-directory: ${{env.GITHUB_WORKSPACE}}
