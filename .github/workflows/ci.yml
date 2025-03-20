@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  SOLUTION_FILE_PATH: .build/YAGE.sln
+  SOLUTION_FILE_PATH: .\build\YAGE.sln
   BUILD_CONFIGURATION: Release
 
 permissions:
