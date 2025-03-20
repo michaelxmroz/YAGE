@@ -45,9 +45,6 @@ jobs:
         
       - name: Build
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        env:
-          VCPKG_ROOT: ${{ steps.runvcpkg.outputs.vcpkgRoot }}
-          VCPKG_INSTALLED_DIR: ${{ steps.runvcpkg.outputs.vcpkgRoot }}/installed
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
                   /p:VcpkgRoot=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }} `
