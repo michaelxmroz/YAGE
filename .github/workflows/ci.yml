@@ -38,6 +38,10 @@ jobs:
 
       - name: Prints output of run-vcpkg's action.
         run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+  
+      - name: Integrate vcpkg with MSBuild
+        run: |
+          ./build/vcpkg/vcpkg integrate install
 
       - name: Restore NuGet packages
         working-directory: ${{env.GITHUB_WORKSPACE}}
