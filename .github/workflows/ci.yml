@@ -35,6 +35,9 @@ jobs:
           runVcpkgInstall: true
           vcpkgJsonGlob: './build/vcpkg.json'
 
+      - name: Prints output of run-vcpkg's action.
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+
       - name: Restore NuGet packages
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: nuget restore ${{env.SOLUTION_FILE_PATH}}
@@ -46,8 +49,8 @@ jobs:
           VCPKG_INSTALLED_DIR: ${{ steps.runvcpkg.outputs.vcpkgRoot }}/installed
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
-                  /p:VcpkgRoot=${{ steps.runvcpkg.outputs.vcpkgRoot }} `
-                  /p:VcpkgInstalledDir=${{ steps.runvcpkg.outputs.vcpkgRoot }}/installed `
+                  /p:VcpkgRoot=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }} `
+                  /p:VcpkgInstalledDir=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/installed `
                   /p:VcpkgTriplet=x64-windows `
                   ${{env.SOLUTION_FILE_PATH}}
         
