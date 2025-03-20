@@ -1,38 +1,40 @@
-name: Build and Test Emulator
+name: Build Emulator
 
 on: 
   push:
     branches:
       - main
+
+env:
+  SOLUTION_FILE_PATH: .\build\YAGE.sln
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: Install Shaderc
-        run: |
-          vcpkg install shaderc
+      - name: Restore NuGet packages
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
+      - name: Build
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+        
       - name: Install Zig 0.13
         run: |
           choco install zig --version=0.13.0
-
-      - name: Install Visual Studio 2022
-        run: |
-          choco install visualstudio2022buildtools
-          choco install visualstudio2022-workload-vctools
-
-      - name: Install Google Test
-        run: |
-          choco install googletest
 
       - name: Build Zig Kernel
         run: |
           cd build
           zig build kernel --summary all -Doptimize=Debug
-
-      - name: Build Main Project
-        run: |
-          msbuild /m /p:Configuration=Release YAGE.sln
