@@ -50,8 +50,8 @@ jobs:
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
                   /p:VcpkgRoot=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }} `
-                  /p:VcpkgInstalledDir=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/installed `
-                  /p:VcpkgTriplet=x64-windows `
+                  /p:VcpkgInstalledDir=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}/vcpkg_installed `
+                  /p:VcpkgTriplet=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} `
                   ${{env.SOLUTION_FILE_PATH}}
         
       - name: Install Zig 0.13
