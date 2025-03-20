@@ -34,8 +34,8 @@ jobs:
         id: runvcpkg
         with:
           # This one is not needed, as it is the default value anyway.
-          # vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgJsonGlob: './build/vcpkg.json'
+          vcpkgDirectory: '${{ github.workspace }}/build'
+          vcpkgJsonGlob: '**/vcpkg.json'
           
       - name: Build
         working-directory: ${{env.GITHUB_WORKSPACE}}
