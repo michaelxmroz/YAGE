@@ -361,3 +361,4 @@ build/zig/zig-cache/
 
 build/visualstudio/vcpkg_installed/
 build/visualstudio/packages/
+build/cmake/
