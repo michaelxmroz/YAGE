@@ -10,7 +10,7 @@ Furthermore full game-state serialization is supported for save-states.
 
 ## Build
 ### Windows
-The "Build" folder contains pre-generated VS2022 project files. For the dependencies to be properly fetched, vcpkg is required:
+The "Build/visualstudio" folder contains pre-generated VS2022 project files. For the dependencies to be properly fetched, vcpkg is required:
 ```
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
@@ -29,7 +29,7 @@ The back-end should be built into a library and then linked by either the front-
 
 
 ### RaspberryPi 4
-Building the RasPi kernel is very straightforward, as it uses the Zig build toolchain. In the "Build" folder the "build_zig.bat" file needs to be run, which will build both the C++ core and the Zig kernel and link them. 
+Building the RasPi kernel is very straightforward, as it uses the Zig build toolchain. In the "Build/zig/" folder the "build_zig.bat" file needs to be run, which will build both the C++ core and the Zig kernel and link them. 
 
 
 
