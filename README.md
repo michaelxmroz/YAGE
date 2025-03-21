@@ -10,8 +10,18 @@ Furthermore full game-state serialization is supported for save-states.
 
 ## Build
 ### Windows
-The "Build" folder contains pre-generated VS2022 project files, but any build system can be used in theory.
-
+The "Build" folder contains pre-generated VS2022 project files. For the dependencies to be properly fetched, vcpkg is required:
+```
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+./bootstrap-vcpkg.sh
+./vcpkg integrate install
+```
+Recent versions of VS2022 come with vcpkg pre-installed. In that case only integrate install needs to be run, if not done previously.
+```
+./vcpkg integrate install
+```
+#### Debugging
 > :warning: When running the app from Visual Studio, make sure to change the debugging working directory of the YAGEFrontend project to "$(OutDir)" (YAGEFrontend->Right Click->Properties->Debugging->Working Directory). Otherwise the relative path for the main shader file will be incorrect, and the emulator will crash on startup.
 
 The application consists of three projects: front-end (YAGEFrontend), back-end (YAGECore) and unit tests (Tests).
