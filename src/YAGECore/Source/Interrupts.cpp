@@ -25,17 +25,17 @@ namespace Interrupts
         memory.AddIOUnusedBitsOverride(INTERRUPT_FLAG_REGISTER, 0b11100000);
     }
 
-    void Interrupts::EnableInterrupt(Types type, Memory& memory)
+    void EnableInterrupt(Types type, Memory& memory)
     {
         memory.Write(INTERRUPT_ENABLE_REGISTER, memory[INTERRUPT_ENABLE_REGISTER] | (1 << static_cast<uint8_t>(type)));
     }
 
-    void Interrupts::DisableInterrupt(Types type, Memory& memory)
+    void DisableInterrupt(Types type, Memory& memory)
     {
         memory.Write(INTERRUPT_ENABLE_REGISTER, memory[INTERRUPT_ENABLE_REGISTER] & ~(1 << static_cast<uint8_t>(type)));
     }
 
-    void Interrupts::RequestInterrupt(Types type, Memory& memory)
+    void RequestInterrupt(Types type, Memory& memory)
     {
         memory.Write(INTERRUPT_FLAG_REGISTER, memory[INTERRUPT_FLAG_REGISTER] | (1 << static_cast<uint8_t>(type)));
     }
@@ -45,22 +45,22 @@ namespace Interrupts
         return (memory[INTERRUPT_FLAG_REGISTER] & (1 << static_cast<uint8_t>(type))) > 0;
     }
 
-    void Interrupts::ClearInterruptRequest(Types type, Memory& memory)
+    void ClearInterruptRequest(Types type, Memory& memory)
     {
         memory.Write(INTERRUPT_FLAG_REGISTER, memory[INTERRUPT_FLAG_REGISTER] & ~(1 << static_cast<uint8_t>(type)));
     }
 
-    bool Interrupts::ShouldHandleInterrupt(Memory& memory)
+    bool ShouldHandleInterrupt(Memory& memory)
     {
         return (memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER] & INTERRUPT_REGISTER_MASK) > 0;
     }
 
-    bool Interrupts::ShouldHandleInterrupt(Types type, Memory& memory)
+    bool ShouldHandleInterrupt(Types type, Memory& memory)
     {
         return (memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER] & INTERRUPT_REGISTER_MASK) == (1 << static_cast<uint8_t>(type));
     }
 
-    uint16_t Interrupts::GetJumpAddrAndClear(Memory& memory)
+    uint16_t GetJumpAddrAndClear(Memory& memory)
     {
         uint8_t interrupts = memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER] & INTERRUPT_REGISTER_MASK;
 

@@ -125,7 +125,7 @@
     <ClInclude Include="$(BaseItemPath)\PixelFIFO.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGECore\Include\Emulator.h">
+    <ClInclude Include="$(BaseItemPath)..\Include\Emulator.h">
       <Filter>Header Files\Interface</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Serial.h">
@@ -146,7 +146,7 @@
     <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGECore\Include\Emulator_C.h">
+    <ClInclude Include="$(BaseItemPath)..\Emulator_C.h">
       <Filter>Header Files\Interface</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Allocator.h">
@@ -155,10 +155,10 @@
     <ClInclude Include="$(BaseItemPath)\CppIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGECore\Source\YString.h">
+    <ClInclude Include="$(BaseItemPath)\YString.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGECore\Source\YVector.h">
+    <ClInclude Include="$(BaseItemPath)\YVector.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
   </ItemGroup>

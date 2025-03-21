@@ -551,8 +551,8 @@ APU::HighPassFilter::HighPassFilter() :
 
 void APU::HighPassFilter::SetParams(float cutoff, float sampleRate)
 {
-	const float M_PI = 3.141592654f;
-	m_alpha = 1.0f / (1.0f + 2.0f * M_PI * cutoff / sampleRate);
+	const float PI = 3.141592654f;
+	m_alpha = 1.0f / (1.0f + 2.0f * PI * cutoff / sampleRate);
 }
 
 float APU::HighPassFilter::ProcessSample(float inputSample)

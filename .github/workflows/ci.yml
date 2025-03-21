@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  SOLUTION_FILE_PATH: .\build\YAGE.sln
+  SOLUTION_FILE_PATH: .\build\visualstudio\YAGE.sln
   BUILD_CONFIGURATION: Release
   VCPKG_INSTALLED_DIR: .\build\vcpkg_installed
   VCPKG_DEFAULT_TRIPLET: x64-windows-static
@@ -31,11 +31,11 @@ jobs:
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
-          vcpkgDirectory: './build/vcpkg'
+          vcpkgDirectory: './build/visualstudio/vcpkg'
           vcpkgGitCommitId: 'b02e341c927f16d991edbd915d8ea43eac52096c'
           # Run vcpkg with the command specified by the `runVcpkgFormatString` input.
           runVcpkgInstall: true
-          vcpkgJsonGlob: './build/vcpkg.json'
+          vcpkgJsonGlob: './build/visualstudio/vcpkg.json'
 
       - name: Prints output of run-vcpkg's action.
         run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "

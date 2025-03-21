@@ -96,28 +96,28 @@
     <ClCompile Include="$(BaseItemPath)\UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\imgui.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\imgui_demo.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_demo.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\imgui_draw.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_draw.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\imgui_tables.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_tables.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\imgui_widgets.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_widgets.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_vulkan.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_win32.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_win32.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp">
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\EngineController.cpp">
@@ -126,10 +126,10 @@
     <ClCompile Include="$(BaseItemPath)\EngineState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\YAGEFrontend\UIStrings.cpp">
+    <ClCompile Include="$(BaseItemPath)\UIStrings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\YAGEFrontend\Tween.cpp">
+    <ClCompile Include="$(BaseItemPath)\Tween.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -185,31 +185,31 @@
     <ClInclude Include="$(BaseItemPath)\UI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imconfig.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imconfig.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imgui.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imgui.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imgui_internal.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imgui_internal.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imstb_rectpack.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_rectpack.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imstb_textedit.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_textedit.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\imstb_truetype.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_truetype.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_vulkan.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_win32.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_win32.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h">
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\misc\cpp\imgui_stdlib.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\EngineController.h">
@@ -224,10 +224,10 @@
     <ClInclude Include="$(BaseItemPath)\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGEFrontend\UIStrings.h">
+    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\UIStrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\YAGEFrontend\Tween.h">
+    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\Tween.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -235,13 +235,13 @@
     <None Include="$(BaseItemPath)\main.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter">
+    <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter">
       <Filter>Header Files\imgui</Filter>
     </None>
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\externalLibs\imgui\misc\debuggers\imgui.natvis">
+    <Natvis Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natvis">
       <Filter>Header Files\imgui</Filter>
     </Natvis>
   </ItemGroup>
@@ -251,7 +251,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\yage.ico">
+    <Image Include="$(ProjectRoot)\yage.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

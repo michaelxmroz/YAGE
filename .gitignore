@@ -356,7 +356,8 @@ assets/
 externalTests/
 
 #Zig Build Cache
-build/.zig-cache/
-build/zig-cache/
-build/vcpkg_installed/
-build/packages/
+build/zig/.zig-cache/
+build/zig/zig-cache/
+
+build/visualstudio/vcpkg_installed/
+build/visualstudio/packages/

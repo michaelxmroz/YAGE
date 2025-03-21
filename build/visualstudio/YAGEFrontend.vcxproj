@@ -16,7 +16,8 @@
     <ProjectGuid>{e522b312-42c3-4c11-b9f6-a4a40848cfee}</ProjectGuid>
     <RootNamespace>YAGEFrontend</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <BaseItemPath>$(SolutionDir)..\src\YAGEFrontend\</BaseItemPath>
+	<ProjectRoot>$(SolutionDir)..\..\</ProjectRoot>
+    <BaseItemPath>$(ProjectRoot)\src\YAGEFrontend\</BaseItemPath>
     <ProjectName>YAGEFrontend</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -47,13 +48,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(ProjectRoot)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\..\obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(ProjectRoot)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
@@ -71,7 +72,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CPP;_DEBUG;_LOGGING;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\YAGECore\Include\;$(SolutionDir)\..\externalLibs\imgui\;$(SolutionDir)\..\externalLibs\vulkan\include\;$(SolutionDir)\..\externalLibs\volk\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectRoot)\src\YAGECore\Include\;$(ProjectRoot)\externalLibs\imgui\;$(ProjectRoot)\externalLibs\vulkan\include\;$(ProjectRoot)\externalLibs\volk\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -92,7 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CPP;NDEBUG;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\src\YAGECore\Include\;$(SolutionDir)\..\externalLibs\vulkan\include\;$(SolutionDir)\..\externalLibs\imgui\;$(SolutionDir)\..\externalLibs\volk\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectRoot)\src\YAGECore\Include\;$(ProjectRoot)\externalLibs\vulkan\include\;$(ProjectRoot)\externalLibs\imgui\;$(ProjectRoot)\externalLibs\volk\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -113,14 +114,14 @@
     <ClCompile Include="$(BaseItemPath)\Input.cpp" />
     <ClCompile Include="$(BaseItemPath)\miniz.c" />
     <ClCompile Include="$(BaseItemPath)\ScreenshotUtility.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\imgui.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_demo.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_draw.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="$(ProjectRoot)\externalLibs\imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="$(BaseItemPath)\Audio.cpp" />
     <ClCompile Include="$(BaseItemPath)\AudioPortaudio.cpp" />
     <ClCompile Include="$(BaseItemPath)\BackendWin32.cpp" />
@@ -135,8 +136,8 @@
     <ClCompile Include="$(BaseItemPath)\Clock.cpp" />
     <ClCompile Include="$(BaseItemPath)\TimerWin32.cpp" />
     <ClCompile Include="$(BaseItemPath)\UI.cpp" />
-    <ClCompile Include="..\src\YAGEFrontend\Tween.cpp" />
-    <ClCompile Include="..\src\YAGEFrontend\UIStrings.cpp" />
+    <ClCompile Include="$(BaseItemPath)\Tween.cpp" />
+    <ClCompile Include="$(BaseItemPath)\UIStrings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -144,15 +145,15 @@
     <ClInclude Include="$(BaseItemPath)\Input.h" />
     <ClInclude Include="$(BaseItemPath)\miniz.h" />
     <ClInclude Include="$(BaseItemPath)\ScreenshotUtility.h" />
-    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_vulkan.h" />
-    <ClInclude Include="..\externalLibs\imgui\backends\imgui_impl_win32.h" />
-    <ClInclude Include="..\externalLibs\imgui\imconfig.h" />
-    <ClInclude Include="..\externalLibs\imgui\imgui.h" />
-    <ClInclude Include="..\externalLibs\imgui\imgui_internal.h" />
-    <ClInclude Include="..\externalLibs\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\externalLibs\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\externalLibs\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\externalLibs\imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_vulkan.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imconfig.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imgui.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imgui_internal.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_rectpack.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_textedit.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\imstb_truetype.h" />
+    <ClInclude Include="$(ProjectRoot)\externalLibs\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="$(BaseItemPath)\Audio.h" />
     <ClInclude Include="$(BaseItemPath)\AudioPortaudio.h" />
     <ClInclude Include="$(BaseItemPath)\Backend.h" />
@@ -173,7 +174,7 @@
     <ClInclude Include="..\src\YAGEFrontend\UIStrings.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
+    <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="$(BaseItemPath)\main.glsl" />
     <None Include="vcpkg.json" />
   </ItemGroup>
@@ -183,13 +184,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\externalLibs\imgui\misc\debuggers\imgui.natvis" />
+    <Natvis Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="YAGEFrontend.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\yage.ico" />
+    <Image Include="$(ProjectRoot)\yage.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
