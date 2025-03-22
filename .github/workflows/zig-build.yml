@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  checks: read
 
 jobs:
   build-zig:
@@ -25,19 +27,43 @@ jobs:
           version: 0.13.0
 
       - name: Build Zig Kernel
+        id: build
+        continue-on-error: true
         run: |
           cd build/zig
           zig build kernel --summary all -Doptimize=Debug
       
       - name: Create artifact directory
+        if: steps.build.outcome == 'success'
         shell: bash
         run: |
           mkdir -p artifacts/RasPi4
           cp bin/ARM64/Release/*.elf artifacts/RasPi4/
       
       - name: Upload Zig Build Artifacts
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: yage-RasPi4
           path: artifacts/RasPi4/
           retention-days: 7 
+          
+      - name: Generate RasPi4 Build Badge - Success
+        if: steps.build.outcome == 'success'
+        uses: peterrhodesdev/build-a-badge@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          filename: raspi4-build
+          label: RasPi4
+          message: passing
+          color: green
+          
+      - name: Generate RasPi4 Build Badge - Failure
+        if: steps.build.outcome == 'failure'
+        uses: peterrhodesdev/build-a-badge@v1.3.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          filename: raspi4-build
+          label: RasPi4
+          message: failing
+          color: red

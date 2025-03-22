@@ -1,5 +1,8 @@
 # Yet Another GB Emulator
 
+![Windows Build](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${{ github.repository_owner }}/GIST_ID/raw/windows-build.json)
+![RasPi4 Build](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${{ github.repository_owner }}/GIST_ID/raw/raspi4-build.json)
+
 <img src="yage.png?" alt="YAGE running the open-source game Demon3" width="400"/>
 
 YAGE is a classic (DMG) GB emulator. The emulator core is written in C++ with no dependencies on std headers, and is platform-independent. The main platform frontend uses WinAPI & Vulkan for windowing, input & rendering. A second frontend for running the emulator baremetal on a RaspberryPI 4 is currently in development using Zig.
