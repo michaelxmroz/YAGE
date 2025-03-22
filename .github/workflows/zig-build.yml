@@ -1,0 +1,43 @@
+name: Build Zig Kernel
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-zig:
+    
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
+
+      - name: Build Zig Kernel
+        run: |
+          cd build
+          zig build kernel --summary all -Doptimize=Debug
+      
+      - name: Create artifact directory
+        shell: bash
+        run: |
+          mkdir -p artifacts/RasPi4
+          cp bin/ARM64/Release/*.elf artifacts/RasPi4/
+      
+      - name: Upload Zig Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: yage-RasPi4
+          path: artifacts/RasPi4/
+          retention-days: 7 

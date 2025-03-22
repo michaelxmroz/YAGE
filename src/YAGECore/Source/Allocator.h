@@ -110,7 +110,10 @@ private:
 #else
 	~Allocator()
 	{
-		m_freeFunc(m_buffer);
+		if( m_freeFunc )
+		{
+			m_freeFunc(m_buffer);
+		}
 	}
 #endif
 
