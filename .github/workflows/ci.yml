@@ -67,7 +67,7 @@ jobs:
           cp bin/x64/Release/*.glsl artifacts/windows/
       
       - name: Upload Windows Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: yage-windows
           path: artifacts/windows/

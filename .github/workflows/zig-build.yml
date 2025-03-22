@@ -36,7 +36,7 @@ jobs:
           cp bin/ARM64/Release/*.elf artifacts/RasPi4/
       
       - name: Upload Zig Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: yage-RasPi4
           path: artifacts/RasPi4/
