@@ -5,6 +5,9 @@
 #include <fstream>
 #include <mutex>
 #include <cassert>
+#include <cstring>
+#include <atomic>
+#include <thread>
 
 //This can be your custom string type, as long as it supports .c_str()
 #define EzString std::string
@@ -346,7 +349,7 @@ namespace Logger
 
             ComposeMessage<level>(finalMessageBuffer, prefixLength, message, messageLength, postfixLength, pathLength, path, line);
 
-            output::Output<level>(finalMessageBuffer);
+            output::template Output<level>(finalMessageBuffer);
         }
 
         template<LogLevel level>
@@ -417,14 +420,14 @@ namespace Logger
     template<LogLevel level, class T>
     void ResolveVariadicLogCall(const char* message, const char* path, const int line)
     {
-        T::Log<level>(message, path, line);
+        T::template Log<level>(message, path, line);
     }
 
     template<LogLevel level, class T, class ... loggers>
     typename std::enable_if<sizeof ... (loggers) != 0, void>::type
         ResolveVariadicLogCall(const char* message, const char* path, const int line)
     {
-        T::Log<level>(message, path, line);
+        T::template Log<level>(message, path, line);
         ResolveVariadicLogCall<level, loggers ... >(message, path, line);
     }
 

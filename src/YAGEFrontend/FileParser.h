@@ -4,6 +4,7 @@
 #include <fstream>
 #include "Logger.h"
 #include <cassert>
+#include <thread>
 
 namespace FileParser
 {

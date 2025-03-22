@@ -1,7 +1,9 @@
 #include "EngineState.h"
 #include "FileParser.h"
 #include "Logging.h"
-#include "BackendWin32.h"
+#include "Backend.h"
+#include "PlatformDefines.h"
+
 #include "Input.h"
 
 const uint32_t INITIAL_STR_BUFFER_SIZE = 2048;

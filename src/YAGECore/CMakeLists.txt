@@ -9,6 +9,15 @@ target_include_directories(yagecore
         ${CMAKE_CURRENT_SOURCE_DIR}/Include
 )
 
-target_compile_definitions(yagecore PRIVATE YAGE_CORE_BUILD)
+target_compile_definitions(yagecore PRIVATE 
+    YAGE_CORE_BUILD
+)
+
+# Platform-specific configurations
+if(WIN32)
+    target_compile_definitions(yagecore PRIVATE
+        _CRT_SECURE_NO_WARNINGS
+    )
+endif()
 
 set_target_properties(yagecore PROPERTIES FOLDER "YAGE/Core")

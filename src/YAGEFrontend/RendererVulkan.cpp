@@ -1,9 +1,16 @@
-
 #ifndef VOLK_IMPLEMENTATION 
 #define VOLK_IMPLEMENTATION 
 #endif
 
 #include "volk.h"
+#include "PlatformDefines.h"
+
+// Platform-specific Vulkan headers
+#if YAGE_PLATFORM_WINDOWS
+#include <vulkan/vulkan_win32.h>
+#elif YAGE_PLATFORM_UNIX
+#include <vulkan/vulkan_xlib.h>
+#endif
 
 #include "RendererVulkan.h"
 #include "Logging.h"
@@ -538,8 +545,15 @@ void RendererVulkan::CreateInstance()
 
 	std::vector<const char*> active_instance_extensions;
 
+	// Common surface extension needed for all platforms
 	active_instance_extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	
+	// Platform-specific surface extension
+#if YAGE_PLATFORM_WINDOWS
 	active_instance_extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#elif YAGE_PLATFORM_UNIX
+	active_instance_extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+#endif
 
 #if VALIDATION_LAYERS
 	active_instance_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -1397,5 +1411,15 @@ void RendererVulkan::WaitForIdle()
 void* RendererVulkan::GetWindowHandle()
 {
 	return m_backend.GetWindowHandle();
+}
+
+void* RendererVulkan::GetDisplay()
+{
+#if YAGE_PLATFORM_UNIX
+	return m_backend.GetDisplay();
+#else
+	// Not needed on Windows
+	return nullptr;
+#endif
 }
 

@@ -1,11 +1,12 @@
 #pragma once
 
-#define WIN32_BACKEND 1
+#include "PlatformDefines.h"
 
-#if WIN32_BACKEND
+#if YAGE_PLATFORM_WINDOWS
 #include "BackendWin32.h"
-#endif
-
-
 typedef BackendWin32 Backend;
+#elif YAGE_PLATFORM_UNIX
+#include "BackendLinux.h"
+typedef BackendLinux Backend;
+#endif
 

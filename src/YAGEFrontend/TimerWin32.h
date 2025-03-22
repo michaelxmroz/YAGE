@@ -1,5 +1,9 @@
 #pragma once
 
+#include "PlatformDefines.h"
+
+#if YAGE_PLATFORM_WINDOWS
+
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -25,3 +29,5 @@ private:
 	LARGE_INTEGER m_frequency;
 	int64_t m_previous;
 };
+
+#endif // YAGE_PLATFORM_WINDOWS

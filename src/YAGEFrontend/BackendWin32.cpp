@@ -1,4 +1,7 @@
 #include "BackendWin32.h"
+
+#if YAGE_PLATFORM_WINDOWS
+
 #include <stdexcept>
 #include "imgui.h"
 
@@ -28,6 +31,8 @@
 #include "resource.h"
 
 #include "volk.h"
+#include "vulkan/vulkan.h"
+#include "vulkan/vulkan_win32.h" // For VkWin32SurfaceCreateInfoKHR and vkCreateWin32SurfaceKHR
 
 #define GET_SCAN_CODE(lParam) ((lParam >> 16) & 0x1FF)
 
@@ -283,6 +288,13 @@ HWND* BackendWin32::GetWindowHandle()
     return &m_window.m_hwnd;
 }
 
+void* BackendWin32::GetDisplay()
+{
+    // Windows doesn't have an X11 display equivalent
+    // This is only here to maintain a consistent interface with the Linux backend
+    return nullptr;
+}
+
 
 bool BackendWin32::ProcessEvents(KeyBindRequest& keyBindRequest)
 {
@@ -296,10 +308,10 @@ bool BackendWin32::ProcessEvents(KeyBindRequest& keyBindRequest)
 
         if (msg.message == WM_KEYDOWN)
         {
-            if(keyBindRequest.m_status == KeyBindRequest::Status::REQUESTED)
+            if(keyBindRequest.m_status == KeyBindRequest::RequestStatus::REQUESTED)
 			{
                 keyBindRequest.m_keyCode = GET_SCAN_CODE(msg.lParam);
-                keyBindRequest.m_status = KeyBindRequest::Status::CONFIRMED;
+                keyBindRequest.m_status = KeyBindRequest::RequestStatus::CONFIRMED;
 			}
             m_rawInputEvents[GET_SCAN_CODE(msg.lParam)] = true;
         }
@@ -391,3 +403,5 @@ uint32_t BackendWin32::ConvertCharToVirtualKey(char c)
     }
     return 0;
 }
+
+#endif // YAGE_PLATFORM_WINDOWS

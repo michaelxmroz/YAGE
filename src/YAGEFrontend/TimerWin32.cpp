@@ -1,4 +1,7 @@
 #include "TimerWin32.h"
+
+#if YAGE_PLATFORM_WINDOWS
+
 #include "synchapi.h"
 
 namespace
@@ -79,3 +82,5 @@ void TimerWin32::Limit(int64_t microSeconds)
 
     m_previous = now;
 }
+
+#endif // YAGE_PLATFORM_WINDOWS

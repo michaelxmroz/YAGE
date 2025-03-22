@@ -1,9 +1,12 @@
 #include "UI.h"
-#ifndef NOMINMAX
-#define NOMINMAX
+#include "PlatformDefines.h"
+
+#if YAGE_PLATFORM_WINDOWS
+#include <backends/imgui_impl_win32.h>
+#elif YAGE_PLATFORM_UNIX
+#include "imgui_impl_x11.h"
 #endif
 
-#include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Logger.h"
 #include "Logging.h"
@@ -11,6 +14,15 @@
 #include "Input.h"
 #include "UIStrings.h"
 #include "volk.h"
+#include "Backend.h"
+
+#if YAGE_PLATFORM_WINDOWS
+#include "BackendWin32.h"
+#endif
+
+#if YAGE_PLATFORM_UNIX
+#include "BackendLinux.h"
+#endif
 
 const char* FONT_PATH = "../../../externalLibs/imgui/misc/fonts/ProggyClean.ttf";
 
@@ -37,8 +49,14 @@ static void check_vk_result(VkResult err)
 static int ImGui_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
 {
     VkSurfaceKHR surface;
+#if YAGE_PLATFORM_WINDOWS
     HWND windowHandle = static_cast<HWND>(viewport->PlatformHandleRaw);
     Backend::CreateSurface((VkInstance)vk_instance, surface, windowHandle);
+#elif YAGE_PLATFORM_UNIX
+    Display* display = static_cast<Display*>(viewport->PlatformHandleRaw);
+    Window window = *(static_cast<Window*>(viewport->PlatformUserData));
+    ImGui_ImplX11_CreateVkSurface((VkInstance)vk_instance, display, window, (const VkAllocationCallbacks*)vk_allocator, &surface);
+#endif
     *out_vk_surface = (ImU64)surface;
     return 0;
 }
@@ -410,7 +428,7 @@ namespace
             if (openKeyBindingPopup)
             {
                 ImGui::OpenPopup(state.m_keybindingTitle.c_str());
-                data.m_keyBindRequest.m_status = KeyBindRequest::Status::REQUESTED;
+                data.m_keyBindRequest.m_status = KeyBindRequest::RequestStatus::REQUESTED;
             }
 
             //bool unused_open = true;
@@ -428,14 +446,14 @@ namespace
                 ImGui::SetCursorPosX((windowWidth - 120) * 0.5f);
                 if (ImGui::Button("Cancel", ImVec2(120, 0)))
                 {
-                    data.m_keyBindRequest.m_status = KeyBindRequest::Status::NONE;
+                    data.m_keyBindRequest.m_status = KeyBindRequest::RequestStatus::NONE;
                     ImGui::CloseCurrentPopup();
                 }
 
-                if(data.m_keyBindRequest.m_status == KeyBindRequest::Status::CONFIRMED)
+                if(data.m_keyBindRequest.m_status == KeyBindRequest::RequestStatus::CONFIRMED)
 				{
                     data.m_userSettings.m_keyBindings[state.m_keybindingIndex].SetValue(data.m_keyBindRequest.m_keyCode);
-					data.m_keyBindRequest.m_status = KeyBindRequest::Status::NONE;
+					data.m_keyBindRequest.m_status = KeyBindRequest::RequestStatus::NONE;
                     ImGui::CloseCurrentPopup();
 				}
 
@@ -619,8 +637,15 @@ UI::UI(RendererVulkan& renderer)
 
     ImGui::GetPlatformIO().Platform_CreateVkSurface = ImGui_CreateVkSurface;
     
+#if YAGE_PLATFORM_WINDOWS
     HWND* windowHandle = static_cast<HWND*>(renderer.GetWindowHandle());
     ImGui_ImplWin32_Init(*windowHandle);
+#elif YAGE_PLATFORM_UNIX
+    Display* display = static_cast<Display*>(renderer.GetDisplay());
+    Window* window = static_cast<Window*>(renderer.GetWindowHandle());
+    // Initialize ImGui for Unix/X11
+    ImGui_ImplX11_Init(display, *window);
+#endif
 
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = renderer.m_instance;
@@ -656,7 +681,11 @@ UI::UI(RendererVulkan& renderer)
 void UI::Prepare(EngineData& data, double deltaMs)
 {
     ImGui_ImplVulkan_NewFrame();
+#if YAGE_PLATFORM_WINDOWS
     ImGui_ImplWin32_NewFrame();
+#elif YAGE_PLATFORM_UNIX
+    ImGui_ImplX11_NewFrame();
+#endif
     ImGui::NewFrame();
 
     bool show = true;
@@ -673,6 +702,33 @@ void UI::Prepare(EngineData& data, double deltaMs)
     ShowInputOptions(m_state, data);
 
     DrawUIMessageBox(m_state, deltaMs);
+
+#if YAGE_PLATFORM_UNIX
+    // Render file dialogs on Linux
+    BackendLinux::RenderFileDialog();
+    
+    // Check if we have a file dialog result
+    if (BackendLinux::HasFileDialogResult()) {
+        std::string selectedFile = BackendLinux::GetFileDialogResult();
+        if (!selectedFile.empty()) {
+            // Handle the file based on the current operation
+            if (data.m_saveLoadState == EngineData::SaveLoadState::SAVE) {
+                data.m_saveLoadPath = selectedFile;
+                ShowUIMessage(m_state, UIStrings::STATE_SAVED);
+            } else if (data.m_saveLoadState == EngineData::SaveLoadState::LOAD) {
+                data.m_saveLoadPath = selectedFile;
+                ShowUIMessage(m_state, UIStrings::STATE_LOADED);
+            } else {
+                // Assume it's a ROM loading operation
+                data.m_gamePath = selectedFile;
+                data.m_userSettings.AddRecentFile(selectedFile);
+                data.m_engineState.SetState(StateMachine::EngineState::RESET);
+                data.m_userSettings.Save();
+                ShowUIMessage(m_state, UIStrings::SUCCESSFUL_LOAD);
+            }
+        }
+    }
+#endif
 
     if (m_state.m_submenuState.HasOpened() && data.m_engineState.GetState() == StateMachine::EngineState::RUNNING)
     {
@@ -698,6 +754,10 @@ void UI::Draw(RendererVulkan& renderer)
 UI::~UI()
 {
     ImGui_ImplVulkan_Shutdown();
+#if YAGE_PLATFORM_WINDOWS
     ImGui_ImplWin32_Shutdown();
+#elif YAGE_PLATFORM_UNIX
+    ImGui_ImplX11_Shutdown();
+#endif
     ImGui::DestroyContext();
 }

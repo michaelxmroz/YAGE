@@ -1,25 +1,29 @@
 #include "Logger.h"
+#include "PlatformDefines.h"
 #include <ctime>
 #include <sstream>
 #include <cassert>
+#include <iostream>
+#include <limits>
 
-
-#if VS_OUT
+#if YAGE_PLATFORM_WINDOWS
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include "Windows.h"
-#include "debugapi.h"
-#endif // VS_Out
-
-
-#if WIN_TIMER
-#include "synchapi.h"
+#include <Windows.h>
+#include <debugapi.h>
+#include <synchapi.h>
 #include <profileapi.h>
+#elif YAGE_PLATFORM_UNIX
+#include <chrono>
+#endif
+
+#include <time.h>
 
 class FileWriteTimer
 {
 public:
+#if YAGE_PLATFORM_WINDOWS
     FileWriteTimer() : m_startTime(), m_endingTime(), m_frequency()
     {
         QueryPerformanceFrequency(&m_frequency);
@@ -44,10 +48,24 @@ private:
     LARGE_INTEGER m_startTime;
     LARGE_INTEGER m_endingTime;
     LARGE_INTEGER m_frequency;
-};
-#endif
+#elif YAGE_PLATFORM_UNIX
+    FileWriteTimer() 
+    {
+        m_startTime = std::chrono::high_resolution_clock::now();
+    }
+    
+    ~FileWriteTimer() {}
 
-#include <iostream>
+    int64_t Query()
+    {
+        auto endTime = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration_cast<std::chrono::microseconds>(endTime - m_startTime).count();
+    }
+
+private:
+    std::chrono::high_resolution_clock::time_point m_startTime;
+#endif
+};
 
 unsigned int Logger::Logging_Helpers::UInt32ToStringInPlace(unsigned int value, char* buffer, unsigned int length)
 {
@@ -72,7 +90,13 @@ void Logger::Logging_Helpers::GetFormatedDateTime(char* buffer)
 {
     time_t now = std::time(0);
     std::tm ltm{};
+
+#if YAGE_PLATFORM_WINDOWS
     localtime_s(&ltm, &now);
+#elif YAGE_PLATFORM_UNIX
+    // Linux uses different parameter order or gmtime_r/localtime_r instead
+    localtime_r(&now, &ltm);
+#endif
 
     buffer += UInt32ToStringInPlace(ltm.tm_year + 1900, buffer, 4);
     AppendNextDateTimeTemplateElement(buffer, 0);
@@ -112,22 +136,28 @@ void Logger::Logging_Helpers::AppendNextDateTimeTemplateElement(char*& buffer, u
     buffer += ConstLen(GetDateTimeTemplate(index));
 }
 
-#if VS_OUT
+#if YAGE_PLATFORM_WINDOWS
 void Logger::Logging_Helpers::VSDebugOut(const char* message)
 {
     OutputDebugStringA(message);
+}
+#elif YAGE_PLATFORM_UNIX
+void Logger::Logging_Helpers::VSDebugOut(const char* message)
+{
+    // On Linux, redirect to console/stderr as there's no OutputDebugString equivalent
+    fprintf(stderr, "%s", message);
 }
 #endif
 
 void Logger::Logging_Helpers::ConsoleOut(const char* message)
 {
-    printf(message);
+    printf("%s", message);
 }
 
 //see https://stackoverflow.com/questions/1068849/how-do-i-determine-the-number-of-digits-of-an-integer-in-c
 unsigned int Logger::Logging_Helpers::GetDigits(int value)
 {
-    if (value < 0) value = (value == INT_MIN) ? INT_MAX : -value;
+    if (value < 0) value = (value == std::numeric_limits<int>::min()) ? std::numeric_limits<int>::max() : -value;
     if (value > 999999999) return 10;
     if (value > 99999999) return 9;
     if (value > 9999999) return 8;

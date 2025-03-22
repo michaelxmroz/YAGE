@@ -37,6 +37,7 @@ public:
 	void WaitForIdle();
 
 	void* GetWindowHandle();
+	void* GetDisplay();
 
 private:
 

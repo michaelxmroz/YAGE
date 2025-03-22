@@ -40,6 +40,12 @@
     <Filter Include="Source Files\imgui">
       <UniqueIdentifier>{36658829-5bd2-47ec-a0d1-43fea11b9aa6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Platforms\Linux">
+      <UniqueIdentifier>{01A7D23C-4E76-4D5A-B3CA-0D0F8EEFB02E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Platforms\Linux">
+      <UniqueIdentifier>{AFD28C7A-0E6C-4B64-9F4E-8D0F3F6E9E4B}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(BaseItemPath)\CommandLineArguments.cpp">
@@ -84,8 +90,14 @@
     <ClCompile Include="$(BaseItemPath)\TimerWin32.cpp">
       <Filter>Source Files\Platforms\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\TimerLinux.cpp">
+      <Filter>Source Files\Platforms\Linux</Filter>
+    </ClCompile>
     <ClCompile Include="$(BaseItemPath)\BackendWin32.cpp">
       <Filter>Source Files\Platforms\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\BackendLinux.cpp">
+      <Filter>Source Files\Platforms\Linux</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\Logger.cpp">
       <Filter>Source Files</Filter>
@@ -167,11 +179,23 @@
     <ClInclude Include="$(BaseItemPath)\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\BackendWin32.h">
-      <Filter>Header Files\Platforms\Windows</Filter>
+    <ClInclude Include="$(BaseItemPath)\Timer.h">
+      <Filter>Header Files\Platforms</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\TimerWin32.h">
       <Filter>Header Files\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\TimerLinux.h">
+      <Filter>Header Files\Platforms\Linux</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\BackendWin32.h">
+      <Filter>Header Files\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\BackendLinux.h">
+      <Filter>Header Files\Platforms\Linux</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)\PlatformDefines.h">
+      <Filter>Header Files\Platforms</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Logger.h">
       <Filter>Header Files</Filter>
@@ -218,16 +242,16 @@
     <ClInclude Include="$(BaseItemPath)\EngineState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\Backend.h">
-      <Filter>Header Files\Platforms</Filter>
-    </ClInclude>
     <ClInclude Include="$(BaseItemPath)\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\UIStrings.h">
+    <ClInclude Include="$(BaseItemPath)\Backend.h">
+      <Filter>Header Files\Platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\YAGEFrontend\Tween.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\Tween.h">
+    <ClInclude Include="..\src\YAGEFrontend\UIStrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

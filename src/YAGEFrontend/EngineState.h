@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <functional>
 #include "FileParser.h"
-#include "logging.h"
-#include "logger.h"
+#include "Logging.h"
+#include "Logger.h"
 
 class RegisteredTypes;
 
@@ -252,7 +252,7 @@ private:
 
 struct KeyBindRequest
 {
-	enum class Status : uint32_t
+	enum class RequestStatus : uint32_t
 	{
 		NONE = 0,
 		REQUESTED,
@@ -260,7 +260,7 @@ struct KeyBindRequest
 		COUNT
 	};
 
-	Status m_status = Status::NONE;
+	RequestStatus m_status = RequestStatus::NONE;
 	uint32_t m_keyCode = 0;
 };
 
