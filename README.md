@@ -1,7 +1,7 @@
 # Yet Another GB Emulator
 
-![Windows Build](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${{ github.repository_owner }}/GIST_ID/raw/windows-build.json)
-![RasPi4 Build](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/${{ github.repository_owner }}/GIST_ID/raw/raspi4-build.json)
+[![Build Windows](https://github.com/michaelxmroz/YAGE/actions/workflows/ci.yml/badge.svg)](https://github.com/michaelxmroz/YAGE/actions/workflows/ci.yml)
+[![Build Zig Kernel](https://github.com/michaelxmroz/YAGE/actions/workflows/zig-build.yml/badge.svg)](https://github.com/michaelxmroz/YAGE/actions/workflows/zig-build.yml)
 
 <img src="yage.png?" alt="YAGE running the open-source game Demon3" width="400"/>
 

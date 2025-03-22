@@ -1,4 +1,4 @@
-name: Build Windows
+name: Windows
 
 on: 
   push:
@@ -55,7 +55,6 @@ jobs:
         
       - name: Build
         id: build
-        continue-on-error: true
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
@@ -65,36 +64,14 @@ jobs:
                   ${{env.SOLUTION_FILE_PATH}}
       
       - name: Create Windows artifact directory
-        if: steps.build.outcome == 'success'
         run: |
           mkdir -p artifacts/windows
           cp bin/x64/Release/*.exe artifacts/windows/
           cp bin/x64/Release/*.glsl artifacts/windows/
       
       - name: Upload Windows Build Artifacts
-        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: yage-windows
           path: artifacts/windows/
           retention-days: 7
-          
-      - name: Generate Windows Build Badge - Success
-        if: steps.build.outcome == 'success'
-        uses: peterrhodesdev/build-a-badge@v1.3.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          filename: windows-build
-          label: Windows
-          message: passing
-          color: green
-          
-      - name: Generate Windows Build Badge - Failure
-        if: steps.build.outcome == 'failure'
-        uses: peterrhodesdev/build-a-badge@v1.3.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          filename: windows-build
-          label: Windows
-          message: failing
-          color: red
