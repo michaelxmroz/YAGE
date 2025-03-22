@@ -15,7 +15,7 @@ env:
   VCPKG_DEFAULT_TRIPLET: x64-windows-static
 
 permissions:
-  contents: read
+  contents: write
   actions: read
   checks: read
 
@@ -69,9 +69,26 @@ jobs:
           cp bin/x64/Release/*.exe artifacts/windows/
           cp bin/x64/Release/*.glsl artifacts/windows/
       
+      - name: Zip Windows artifacts
+        run: |
+          Compress-Archive -Path artifacts/windows/* -DestinationPath artifacts/yage-windows.zip -Force
+      
       - name: Upload Windows Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: yage-windows
-          path: artifacts/windows/
+          path: artifacts/yage-windows.zip
           retention-days: 7
+      
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/yage-windows.zip
+          name: Windows Build ${{ github.sha }}
+          tag_name: windows-${{ github.run_number }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -9,7 +9,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
   actions: read
   checks: read
 
@@ -38,9 +38,26 @@ jobs:
           mkdir -p artifacts/RasPi4
           cp bin/ARM64/Release/*.elf artifacts/RasPi4/
       
+      - name: Zip RasPi4 artifacts
+        run: |
+          Compress-Archive -Path artifacts/RasPi4/* -DestinationPath artifacts/yage-RasPi4.zip -Force
+      
       - name: Upload Zig Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: yage-RasPi4
-          path: artifacts/RasPi4/
+          path: artifacts/yage-RasPi4.zip
           retention-days: 7 
+          
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/yage-RasPi4.zip
+          name: RasPi4 Build ${{ github.sha }}
+          tag_name: raspi4-${{ github.run_number }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
