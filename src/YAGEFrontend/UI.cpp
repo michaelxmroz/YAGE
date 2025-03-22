@@ -638,7 +638,7 @@ UI::UI(RendererVulkan& renderer)
     init_info.Allocator = nullptr;
     init_info.CheckVkResultFn = check_vk_result;
 
-    ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void* instance) { return vkGetInstanceProcAddr(static_cast<VkInstance>(instance), function_name); }, renderer.m_instance);
+    ImGui_ImplVulkan_LoadFunctions(VK_API_VERSION_1_3, [](const char* function_name, void* instance) { return vkGetInstanceProcAddr(static_cast<VkInstance>(instance), function_name); }, renderer.m_instance);
 
     if (!ImGui_ImplVulkan_Init(&init_info))
     {
