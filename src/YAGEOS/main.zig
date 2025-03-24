@@ -7,6 +7,7 @@ const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
 const emmc = @import("emmc.zig");
 const alloc = @import("allocation.zig");
+const dwarf = @import("dwarf.zig");
 
 const cpp = @cImport({
     @cDefine("_CINTERFACE", "1");
@@ -164,6 +165,16 @@ export fn main() void {
     renderer.initFramebuffer();
 
     renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
+
+    // Initialize DWARF parser for call stacks
+    log.INFO("Initializing DWARF parser for call stacks...\n", .{});
+    const dwarfParser = dwarf.getDwarfSections();
+    dwarfParser.parse() catch |err| {
+        log.ERROR("Failed to parse DWARF sections: {}\n", .{err});
+    };
+
+    // Uncomment to test kernel panic with call stacks
+    // dwarf.testKernelPanic();
 
     const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
     cpp.Delete(emu);
