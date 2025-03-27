@@ -36,7 +36,7 @@ Building the RasPi kernel is very straightforward, as it uses the Zig build tool
 
 
 
-> :warning: The Kernel is currently using Zig Version 0.13.0 Due to the amount of breaking changes between Zig versions I guarantee that it will not compile with any other version of Zig.
+> :warning: The Kernel is currently using Zig Version 0.14.0. Due to the amount of breaking changes between Zig versions I can almost guarantee that it will not compile with any other version of Zig.
 
 Please note that the Zig frontend is still very much a work-in-progress and development is ongoing for properly supporting crucial systems such as I/O, timing and rendering.
 

@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <memory>
 #endif
+
 #include <algorithm>
 #include <utility>
 
@@ -41,6 +42,11 @@ inline uint32_t pow_y( uint32_t base, uint32_t exponent )
 inline void* operator new(size_t /* count */, void* ptr) noexcept
 {
 	return ptr;
+}
+
+inline void operator delete(void* ptr, size_t /* count */) noexcept
+{
+	// We never allocate memory through new/delete/malloc/free, so this can be empty
 }
 
 inline void operator delete(void* ptr) noexcept
