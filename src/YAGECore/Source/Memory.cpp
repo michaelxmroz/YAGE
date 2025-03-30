@@ -69,6 +69,9 @@ Memory::~Memory()
 
 void Memory::Write(uint16_t addr, uint8_t value)
 {
+#if _DEBUG
+	CheckForMemoryCallback(addr);
+#endif
 	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
 	{
 		return;
@@ -352,6 +355,10 @@ uint8_t Memory::ReadIO(uint16_t addr) const
 //IO Register write function that skips read only overrides
 void Memory::WriteIO(uint16_t addr, uint8_t value)
 {
+#if _DEBUG
+	CheckForMemoryCallback(addr);
+#endif
+
 	if (addr < IO_REGISTERS_BEGIN || addr > IO_REGISTERS_END)
 	{
 		LOG_ERROR(string_format("Trying to write IO registers at invalid address %x", addr).c_str());
@@ -552,3 +559,28 @@ void Memory::AddIOWriteOnlyRange(uint16_t start, uint16_t end)
 		AddIOWriteOnlyBitsOverride(i, 0xFF);
 	}
 }
+
+#if _DEBUG
+void Memory::ClearCallbacks()
+{
+	DEBUG_MemoryCallbackMap.clear();
+	DEBUG_MemoryCallbackUserData.clear();
+}
+
+void Memory::SetMemoryCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData)
+{
+	DEBUG_MemoryCallbackMap.emplace(addr, callback);
+	DEBUG_MemoryCallbackUserData.emplace(addr, userData);
+}
+
+void Memory::CheckForMemoryCallback(uint16_t addr)
+{
+	if (DEBUG_MemoryCallbackMap.size() > 0)
+	{
+		if (DEBUG_MemoryCallbackMap.count(addr))
+		{
+			DEBUG_MemoryCallbackMap[addr](DEBUG_MemoryCallbackUserData[addr]);
+		}
+	}
+}
+#endif

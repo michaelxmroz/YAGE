@@ -40,6 +40,7 @@ public:
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) override;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData) override;
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) override;
+	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) override;
 	virtual void ClearCallbacks() override;
 
 	void StopOnInstruction(uint8_t instr);

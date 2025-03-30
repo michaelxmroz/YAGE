@@ -131,9 +131,15 @@ void VirtualMachine::SetPCCallback(uint16_t pc, Emulator::DebugCallback callback
 	m_cpu.SetPCCallback(pc, callback, userData);
 }
 
+void VirtualMachine::SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData)
+{
+	m_memory.SetMemoryCallback(addr, callback, userData);
+}
+
 void VirtualMachine::ClearCallbacks()
 {
 	m_cpu.ClearCallbacks();
+	m_memory.ClearCallbacks();
 }
 
 void VirtualMachine::StopOnInstruction(uint8_t instr)

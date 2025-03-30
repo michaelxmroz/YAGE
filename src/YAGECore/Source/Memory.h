@@ -94,6 +94,11 @@ public:
 	void RemoveIOReadOnlyRange(uint16_t start, uint16_t end);
 	void AddIOWriteOnlyRange(uint16_t start, uint16_t end);
 
+#if _DEBUG
+	void ClearCallbacks();
+	void SetMemoryCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData);
+#endif
+
 private:
 
 	void Init();
@@ -152,6 +157,13 @@ private:
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	uint8_t* m_initializationTracker;
+#endif
+
+#if _DEBUG
+	void CheckForMemoryCallback(uint16_t addr);
+
+	std::map<uint16_t, Emulator::DebugCallback> DEBUG_MemoryCallbackMap;
+	std::map<uint16_t, void*> DEBUG_MemoryCallbackUserData;
 #endif
 };
 

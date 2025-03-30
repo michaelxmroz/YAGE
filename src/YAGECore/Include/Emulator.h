@@ -91,6 +91,7 @@ public:
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) = 0;
+	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void ClearCallbacks() = 0;
 #endif
 	virtual ~Emulator();
