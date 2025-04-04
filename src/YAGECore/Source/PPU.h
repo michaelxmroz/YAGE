@@ -68,6 +68,17 @@ private:
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 
+	struct TrackedBool
+	{
+		bool m_previous;
+		bool m_current;
+
+		void Reset();
+
+		void Add(bool val);
+
+		bool ShouldTrigger();
+	};
 
 	struct PPUData
 	{
@@ -87,8 +98,8 @@ private:
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
-			, m_cyclesSinceStateChange(0)
 			, m_fineScrollX(0)
+			, m_cyclesInLine(0)
 		{}
 
 		uint32_t m_totalCycles;
@@ -99,6 +110,7 @@ private:
 		SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
 		uint16_t m_lineSpriteMask;
 		uint8_t m_spritePrefetchLine;
+		uint32_t m_cyclesInLine;
 
 		PixelFIFO m_spriteFIFO;
 		PixelFIFO m_backgroundFIFO;
@@ -112,9 +124,10 @@ private:
 
 		PPUState m_state;
 		PPUState m_previousState;
-		uint32_t m_cyclesSinceStateChange;
 
 		uint8_t m_fineScrollX;
+		TrackedBool m_statLine;
+		TrackedBool m_vblankLine;
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];

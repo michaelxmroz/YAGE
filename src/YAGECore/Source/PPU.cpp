@@ -20,6 +20,7 @@
 #define OAM_SCAN_DURATION 80
 #define SCANLINE_DURATION 456
 #define MAX_LINES_Y 154
+#define VBLANK_START_LINE_Y 144
 
 #define SPRITE_SINGLE_SIZE 8
 #define SPRITE_DOUBLE_SIZE 16
@@ -88,6 +89,7 @@ namespace PPUHelpers
 		if (currentLine != newLineY)
 		{
 			currentLine = newLineY % MAX_LINES_Y;
+			memory.WriteIO(LY_REGISTER, currentLine);
 			return true;
 		}
 		return false;
@@ -132,12 +134,60 @@ void PPU::Init(Memory& memory)
 	TransitionToOAMScan(memory);
 }
 
-//TODO handle stat blocking for interrupts
+void PPU::CheckForInterrupts(Memory& memory)
+{
+	data.m_statLine.Reset();
+
+	if (memory.ReadIO(LY_REGISTER) == memory.ReadIO(LYC_REGISTER))
+	{
+		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
+		data.m_statLine.Add(PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory));
+	}
+	else
+	{
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+	}
+
+	if (data.m_state != PPUState::Drawing)
+	{
+		bool statFlagForCurrentMode = PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory);
+		//HArdware quirk: Mode 2 interrupts happen even in Vblank
+		if (data.m_lineY >= VBLANK_START_LINE_Y && data.m_cyclesInLine == 4)
+		{
+			statFlagForCurrentMode |= PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(PPUState::OAMScan)], memory);
+		}
+		data.m_statLine.Add(statFlagForCurrentMode);
+	}
+
+	if (data.m_statLine.ShouldTrigger())
+	{
+		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+	}
+
+	data.m_vblankLine.Reset();
+	data.m_vblankLine.Add(data.m_state == PPUState::VBlank);
+
+	if (data.m_vblankLine.ShouldTrigger())
+	{
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
+	}
+}
+
 void PPU::Render(uint32_t mCycles, Memory& memory)
 {
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
 		return;
+	}
+
+	PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+
+	CheckForInterrupts(memory);
+
+	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
+	if (data.m_lineY == MAX_LINES_Y - 1)
+	{
+		memory.WriteIO(LY_REGISTER, 0);
 	}
 
 	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
@@ -148,10 +198,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	if (data.m_previousState != data.m_state)
 	{
 		data.m_previousState = data.m_state;
-		data.m_cyclesSinceStateChange = 0;
 		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
-
 
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
@@ -185,6 +233,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
+					data.m_cyclesInLine = 0;
 					if (data.m_totalCycles % 2 != 0)
 					{
 						data.m_totalCycles--;
@@ -201,16 +250,17 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						TransitionToOAMScan(memory);
 					}
 				}
-				else
-				{
-					
-				}
 			}
 			break;
 			case PPUState::VBlank:
 			{
-				if (PPUHelpers::IsNewScanline(totalCycles, data.m_lineY, memory))
+				processedCycles += 2;
+				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
+					if (processedCycles % 4 != 0)
+						LOG_ERROR("non-4 divisible cycle count");
+
+					data.m_cyclesInLine = 0;
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
@@ -219,11 +269,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						data.m_totalCycles = totalCycles;
 						data.m_frameCount++;
 						TransitionToOAMScan(memory);
+						return;
 					}
-				}
-				else
-				{
-					processedCycles += 2;
 				}
 			}
 			break;
@@ -231,50 +278,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 		totalCycles = data.m_totalCycles + processedCycles;
 	}
-
-	data.m_cyclesSinceStateChange += processedCycles;
-
-	uint32_t writtenLine = data.m_lineY;
-
-	if (data.m_lineY == MAX_LINES_Y - 1 && data.m_cyclesSinceStateChange > 0)
-	{
-		writtenLine = 0;
-	}
-
-	memory.WriteIO(LY_REGISTER, writtenLine);
-	if (writtenLine == memory.ReadIO(LYC_REGISTER))
-	{
-		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
-	}
-	else
-	{
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
-	}
-
-
-	if (data.m_cyclesSinceStateChange == 4)
-	{
-		if ((data.m_state == PPUState::OAMScan || data.m_state == PPUState::VBlank) && writtenLine == memory.ReadIO(LYC_REGISTER))
-		{
-			if (PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory))
-			{
-				Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-			}
-			PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
-		}
-
-		if (data.m_state == PPUState::VBlank)
-		{
-			Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
-		}
-
-		if (PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory))
-		{
-			Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-		}
-
-		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
-	}
+	
+	data.m_cyclesInLine += processedCycles;
 
 	data.m_cycleDebt =  targetCycles - processedCycles;
 
@@ -329,11 +334,11 @@ void PPU::TransitionToOAMScan(Memory& memory)
 
 void PPU::DisableScreen(Memory& memory)
 {
-
 	memory.WriteIO(LY_REGISTER, 0);
 	data.m_totalCycles = 4; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
+	data.m_cyclesInLine = 0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
@@ -390,11 +395,9 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	if (data.m_lineX == 0)
 	{
 		if (data.m_fineScrollX > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
-		{
-			
+		{	
 			for (uint8_t i = 0; i < 2; ++i)
 			{
-
 				data.m_backgroundFIFO.Pop();
 				data.m_fineScrollX--;
 				if (data.m_fineScrollX == 0)
@@ -493,7 +496,6 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	PPU* ppu = reinterpret_cast<PPU*>(userData);
 	ppu->data.m_cachedBackgroundEnabled = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::BgEnable))) > 0;
 
-
 	bool PPUPowerPrev = (prevValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
 	bool PPUPowerNew = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
 	if (PPUPowerPrev && !PPUPowerNew)
@@ -520,4 +522,26 @@ void PPU::Deserialize(const uint8_t* sData)
 uint32_t PPU::GetSerializationSize()
 {
 	return sizeof(data);
+}
+
+void PPU::TrackedBool::Reset()
+{
+	m_current = 0;
+}
+
+void PPU::TrackedBool::Add(bool val)
+{
+	m_current |= val;
+}
+
+bool PPU::TrackedBool::ShouldTrigger()
+{
+	bool shouldTrigger = false;
+	if (m_current && !m_previous)
+	{
+		shouldTrigger = true;
+	}
+	m_previous = m_current;
+
+	return shouldTrigger;
 }

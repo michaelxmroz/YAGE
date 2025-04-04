@@ -305,7 +305,7 @@ uint8_t Memory::operator[](uint16_t addr) const
 	}
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
-	if (m_initializationTracker[addr] == 0 && !m_externalMemory)
+	if (m_initializationTracker[addr] == 0 && !m_externalMemory && (addr < IO_REGISTERS_BEGIN || addr > IO_REGISTERS_END))
 	{
 		LOG_ERROR(string_format("Uninitialized memory read at location %x", addr).c_str());
 	}
