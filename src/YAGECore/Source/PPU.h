@@ -62,6 +62,7 @@ private:
 
 	void DisableScreen(Memory& memory);
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
+	void CheckForInterrupts(Memory& memory);
 
 	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
@@ -141,4 +142,3 @@ private:
 	void Deserialize(const uint8_t* data) override;
 	virtual uint32_t GetSerializationSize() override;
 };
-
