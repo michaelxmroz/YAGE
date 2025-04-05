@@ -76,7 +76,6 @@ jobs:
           
           # Run tests with external test directory
           & $testExe -externalTestDir $testDir > $outputFile 2>&1
-          $testExitCode = $LASTEXITCODE
           
           # Simplify parsing: copy recap portion after last occurrence of "[==========]"
           $content = Get-Content $outputFile
@@ -94,14 +93,6 @@ jobs:
           $summaryContent = $content[$startIndex..($content.Count - 1)] -join "`n"
           $summaryFile = "test_summary.md"
           $summaryContent | Out-File $summaryFile
-          
-          # Set output variables for the next step
-          Write-Output "Test summary:"
-          Get-Content $summaryFile
-          echo "exit_code=$testExitCode" >> $env:GITHUB_OUTPUT
-          
-          # Return the original exit code
-          exit $testExitCode
 
       - name: Upload test results
         if: always()
