@@ -152,7 +152,7 @@ void PPU::CheckForInterrupts(Memory& memory)
 	{
 		bool statFlagForCurrentMode = PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory);
 		//HArdware quirk: Mode 2 interrupts happen even in Vblank
-		if (data.m_lineY >= VBLANK_START_LINE_Y && data.m_cyclesInLine == 4)
+		if (data.m_lineY == VBLANK_START_LINE_Y && data.m_cyclesInLine == 4)
 		{
 			statFlagForCurrentMode |= PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(PPUState::OAMScan)], memory);
 		}
