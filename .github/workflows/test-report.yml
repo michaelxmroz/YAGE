@@ -192,7 +192,7 @@ jobs:
               summaryContent += 'Test results not available.';
             }
             
-            const issueTitle = `Test Report - ${new Date().toISOString().split('T')[0]}`;
+            const issueTitle = `Mooneye Test Report - ${new Date().toISOString().split('T')[0]}`;
             const issueBody = `${summaryContent}\n\nCommit: ${context.sha}\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             
             try {
