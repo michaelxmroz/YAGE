@@ -5,6 +5,16 @@
 
 #define MOONEYE_STOP_INSTR 0x40
 
+void* AllocFunc(uint32_t size)
+{
+    return new uint8_t[size];
+}
+
+void FreeFunc(void* ptr)
+{
+    delete[] reinterpret_cast<uint8_t*>(ptr);
+}
+
 std::vector<std::string> GetExternalTests()
 {
     return FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("-externalTestDir"));
@@ -33,22 +43,22 @@ TEST_P(ExternalTestFixture, Main) {
     {
         FAIL();
     }
+    VirtualMachine* emu = static_cast<VirtualMachine*>(Emulator::Create(AllocFunc, FreeFunc));
 
-    VirtualMachine vm;
+    emu->Load(test.c_str(), romBlob.data(), static_cast<uint32_t>(romBlob.size()));
 
-    vm.Load("External Tests", romBlob.data(), static_cast<uint32_t>(romBlob.size()));
-
-    vm.StopOnInstruction(MOONEYE_STOP_INSTR);
+    emu->StopOnInstruction(MOONEYE_STOP_INSTR);
 
     bool stopReached = false;
     while (!stopReached)
     {
         EmulatorInputs::InputState inputState;
-        vm.Step(inputState, 16.67);
-        stopReached = vm.HasReachedInstruction(MOONEYE_STOP_INSTR);
+        emu->Step(inputState, 16.67);
+        stopReached = emu->HasReachedInstruction(MOONEYE_STOP_INSTR);
     }
 
-    EXPECT_TRUE(IsFibonacci(vm.GetRegisters()));
+    EXPECT_TRUE(IsFibonacci(emu->GetRegisters()));
+    Emulator::Delete(emu);
 }
 
 std::string GetTestName(testing::TestParamInfo<std::string> param)
