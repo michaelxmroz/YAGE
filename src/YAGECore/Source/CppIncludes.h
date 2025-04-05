@@ -20,6 +20,7 @@
 #define memset_y memset
 #define strlen_y strlen
 #define pow_y pow
+#define abs_y abs
 
 #else
 
@@ -28,6 +29,7 @@
 #define memcpy_y __builtin_memcpy
 #define memset_y __builtin_memset
 #define strlen_y __builtin_strlen
+#define abs_y __builtin_abs
 
 inline uint32_t pow_y( uint32_t base, uint32_t exponent )
 {

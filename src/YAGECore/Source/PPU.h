@@ -101,6 +101,7 @@ private:
 			, m_cachedBackgroundColors()
 			, m_fineScrollX(0)
 			, m_cyclesInLine(0)
+			, m_windowLineY(0)
 		{}
 
 		uint32_t m_totalCycles;
@@ -120,6 +121,7 @@ private:
 		PixelFetcher m_spriteFetcher;
 
 		WindowState m_windowState;
+		uint8_t m_windowLineY;
 
 		uint32_t m_frameCount;
 

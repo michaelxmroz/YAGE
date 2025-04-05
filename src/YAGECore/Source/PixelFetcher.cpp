@@ -59,11 +59,13 @@ void PixelFetcher::Reset()
 	m_x = 0;
 	m_y = 0;
 	m_window = false;
+	m_windowY = 0;
 }
 
-void PixelFetcher::FetchWindow()
+void PixelFetcher::FetchWindow(uint8_t windowY)
 {
 	m_window = true;
+	m_windowY = windowY;
 }
 
 void PixelFetcher::SetSpriteAttributes(const SpriteAttributes* attributes)
@@ -81,9 +83,9 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 		{
 			uint16_t block = TILE_DATA_BLOCK_1;
 			uint8_t yOffset = y + 16 - m_spriteAttributes->m_posY;
+			bool doubleSize = IsControlFlagSet(LCDControlFlags::ObjSize, memory);
 			if (IsSpriteFlagSet(SpriteFlags::YFlip, m_spriteAttributes->m_flags))
-			{
-				bool doubleSize = IsControlFlagSet(LCDControlFlags::ObjSize, memory);
+			{			
 				uint8_t tileSize = TILE_SIZE;
 				if (doubleSize)
 				{
@@ -91,7 +93,14 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 				}
 				yOffset = tileSize - 1 - yOffset;
 			}
-			m_tileAddr = m_spriteAttributes->m_tileIndex * TILE_BYTE_SIZE + yOffset * 2;
+
+			uint16_t tileIndex = m_spriteAttributes->m_tileIndex;
+			if (doubleSize)
+			{
+				tileIndex &= ~static_cast<uint16_t>(1);
+			}
+
+			m_tileAddr = tileIndex * TILE_BYTE_SIZE + yOffset * 2;
 			m_tileAddr += block;
 
 			processedCycles += 2;
@@ -216,7 +225,7 @@ void PixelFetcher::GetBackgroundTile(Memory& memory, const uint8_t& y)
 	}
 	else
 	{
-		uint8_t tileCoordY = (y - memory.ReadIO(WY_REGISTER)) & 0xFF;
+		uint8_t tileCoordY = m_windowY & 0xFF;
 		tilePosY = tileCoordY / TILE_SIZE;
 		fineScrollY = tileCoordY % TILE_SIZE;
 	}

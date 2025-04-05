@@ -8,7 +8,7 @@ public:
 	PixelFetcher(bool spriteMode);
 
 	void Reset();
-	void FetchWindow();
+	void FetchWindow(uint8_t windowY);
 	void SetSpriteAttributes(const SpriteAttributes* attributes);
 	bool Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& processedCycles, Memory& memory);
 
@@ -31,6 +31,7 @@ private:
 	uint8_t m_y;
 	uint8_t m_tileDataLow;
 	uint8_t m_tileDataHigh;
+	uint8_t m_windowY;
 	bool m_window;
 	bool m_spriteMode;
 };

@@ -264,7 +264,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
-
+						data.m_windowLineY = 0;
 						totalCycles = 0;
 						data.m_totalCycles = totalCycles;
 						data.m_frameCount++;
@@ -307,6 +307,11 @@ void PPU::TransitionToHBlank(Memory& memory)
 {
 	memory.SetVRamAccess(Memory::VRamAccess::All);
 	data.m_state = PPUState::HBlank;
+
+	if (data.m_windowState == WindowState::Draw)
+	{
+		data.m_windowLineY++;
+	}
 }
 
 void PPU::TransitionToDraw(Memory& memory)
@@ -339,6 +344,7 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
 	data.m_cyclesInLine = 0;
+	data.m_windowLineY = 0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
@@ -352,7 +358,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	{
 		data.m_backgroundFetcher.Reset();
 		data.m_backgroundFIFO.Clear();
-		data.m_backgroundFetcher.FetchWindow();
+		data.m_backgroundFetcher.FetchWindow(data.m_windowLineY);
 		data.m_windowState = WindowState::Draw;
 		data.m_fineScrollX = 0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
 	}
@@ -415,10 +421,6 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		RenderNextPixel(memory);
 		RenderNextPixel(memory);
 	}
-	else
-	{
-		int x = 0;
-	}
 }
 
 void PPU::RenderNextPixel(Memory& memory)
@@ -468,17 +470,20 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
 
 bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 {
+	bool foundSprite = false;
+	int16_t minDifference = SCANLINE_DURATION;
 	for (uint8_t i = 0; i < data.m_lineSpriteCount; ++i)
 	{
 		int16_t posDifference = data.m_lineSprites[i].m_posX - (data.m_lineX + offset);
 		bool isAvailable = (data.m_lineSpriteMask & (1 << i)) == 0;
-		if (isAvailable && (posDifference == 0 || posDifference == 1))
+		if (isAvailable && (posDifference == 0 || posDifference == 1) && abs_y(posDifference) < minDifference)
 		{
+			minDifference = abs_y(posDifference);
 			spriteIndex = i;
-			return true;
+			foundSprite = true;
 		}
 	}
-	return false;
+	return foundSprite;
 }
 
 void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
