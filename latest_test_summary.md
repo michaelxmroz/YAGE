@@ -1,5 +1,5 @@
-[  PASSED  ] 35 tests.
-[  FAILED  ] 31 tests, listed below:
+[  PASSED  ] 36 tests.
+[  FAILED  ] 30 tests, listed below:
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/addxspxextiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\add_sp_e_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/bootxdivxdmgABCmgb, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\boot_div-dmgABCmgb.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/bootxhwioxdmgABCmgb, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\boot_hwio-dmgABCmgb.gb"
@@ -16,7 +16,6 @@
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxrestart, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_restart.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxstart, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_start.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_timing.gb"
-[  FAILED  ] ExternalTests/ExternalTestFixture.Main/intrx1x2xtimingxGS, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\intr_1_2_timing-GS.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/intrx2xmode0xtimingxsprites, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\intr_2_mode0_timing_sprites.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/intrx2xoamxokxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\intr_2_oam_ok_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/lcdonxtimingxGS, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\lcdon_timing-GS.gb"
@@ -32,4 +31,4 @@
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/timaxwritexreloading, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\timer\\tima_write_reloading.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/tmaxwritexreloading, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\timer\\tma_write_reloading.gb"
 
-31 FAILED TESTS
+30 FAILED TESTS
