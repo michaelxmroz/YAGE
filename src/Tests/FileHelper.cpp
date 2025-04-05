@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -72,6 +73,7 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 	fs::path dirPath(path);
 	if (!fs::exists(dirPath))
 	{
+		std::cout << "Path does not exist:" << path << std::endl;
 		return {};
 	}
 

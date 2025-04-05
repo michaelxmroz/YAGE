@@ -59,6 +59,7 @@ jobs:
           # Use absolute path for the test directory as well
           $testDir = "$env:GITHUB_WORKSPACE\${{ env.TEST_REPO_DIR }}\acceptance"
           $outputFile = "test_results.txt"
+          Write-Output "Absolute path of acceptance directory: $testDir"
           
           # Run tests with external test directory
           & $testExe -externalTestDir $testDir > $outputFile 2>&1
