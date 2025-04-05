@@ -68,16 +68,7 @@ Currently the default control scheme is as follows, but this can be remapped thr
 
 ## Accuracy
 
-[Blargg's test roms](https://github.com/retrio/gb-test-roms)
-| Tests    | Result |
-| -------- | ------- |
-| cpu_instr  | ✅ |
-| dmg_sound | ✅ (Except wave ram read/writes) |
-| instr_timing    |  ✅  |
-| mem_timing | ✅ |
-| mem_timing-2 | ✅ |
-| oam_bug | ❌ |
-| halt_bug | ✅ |
+YAGE aims to be a highly-accurate GB emulator. For a breakdown of automated test results, and the test suites it is being run against see [the wiki](https://github.com/michaelxmroz/YAGE/wiki/Accuracy).
 
 ## Roadmap
 - Implementation of I/O, DMA graphics writing and timing for Zig kernel
