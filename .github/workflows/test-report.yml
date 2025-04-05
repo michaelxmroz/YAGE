@@ -78,7 +78,7 @@ jobs:
           & $testExe -externalTestDir $testDir > $outputFile 2>&1
           $testExitCode = $LASTEXITCODE
           
-          # Simplify parsing: copy recap portion after last occurrence of "[==========]"
+          # Simplify parsing: copy recap portion after the last occurrence of "[==========]"
           $content = Get-Content $outputFile
           $indexes = @()
           for ($i = 0; $i -lt $content.Count; $i++) {
@@ -95,13 +95,77 @@ jobs:
           $summaryFile = "test_summary.md"
           $summaryContent | Out-File $summaryFile
           
-          # Set output variables for the next step
+          # Output the test summary for debugging
           Write-Output "Test summary:"
           Get-Content $summaryFile
-          echo "exit_code=$testExitCode" >> $env:GITHUB_OUTPUT
           
-          # Return the original exit code
-          exit 0
+          echo "exit_code=$testExitCode" >> $env:GITHUB_OUTPUT
+          exit $testExitCode
+
+      # Checkout the test-history branch into a subdirectory (if it exists)
+      - name: Checkout test history branch
+        uses: actions/checkout@v4
+        with:
+          ref: test-history
+          path: test-history
+        continue-on-error: true
+
+      - name: Compare test summary with previous run
+        shell: pwsh
+        run: |
+          if (Test-Path "test_summary.md") {
+              $currentSummary = Get-Content "test_summary.md" -Raw
+              $currentFirstLine = $currentSummary.Split("`n")[0].Trim()
+              Write-Output "Current summary first line: $currentFirstLine"
+              
+              if ($currentFirstLine -match "\[ *PASSED *\] +(\d+) test") {
+                  $currentPassed = [int]$matches[1]
+                  Write-Output "Current passed tests: $currentPassed"
+              } else {
+                  Write-Error "Current summary does not have the expected format."
+                  exit 1
+              }
+          } else {
+              Write-Error "Current test summary file not found."
+              exit 1
+          }
+          
+          if (Test-Path "test-history/latest_test_summary.md") {
+              $prevSummary = Get-Content "test-history/latest_test_summary.md" -Raw
+              $prevFirstLine = $prevSummary.Split("`n")[0].Trim()
+              Write-Output "Previous summary first line: $prevFirstLine"
+              
+              if ($prevFirstLine -match "\[ *PASSED *\] +(\d+) test") {
+                  $prevPassed = [int]$matches[1]
+                  Write-Output "Previous passed tests: $prevPassed"
+              } else {
+                  Write-Error "Previous summary does not have the expected format."
+                  exit 1
+              }
+              
+              if ($currentPassed -lt $prevPassed) {
+                  Write-Error "Test regressions detected: current passed tests ($currentPassed) is lower than previous ($prevPassed)."
+                  exit 1
+              } else {
+                  Write-Output "No regressions: current passed tests ($currentPassed) vs previous ($prevPassed)."
+              }
+          } else {
+              Write-Output "No previous test summary found, skipping comparison."
+          }
+
+      - name: Update test history branch
+        if: success()
+        shell: pwsh
+        run: |
+          # Update the test history file with the current summary
+          Copy-Item test_summary.md test-history/latest_test_summary.md -Force
+          cd test-history
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add latest_test_summary.md
+          $commitMsg = "Update test summary for run $(Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ')"
+          git commit -m $commitMsg || Write-Output "No changes to commit."
+          git push origin test-history
 
       - name: Upload test results
         if: always()
@@ -132,7 +196,6 @@ jobs:
             const issueBody = `${summaryContent}\n\nCommit: ${context.sha}\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             
             try {
-              // Try to update the existing issue
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -142,7 +205,6 @@ jobs:
                 labels: ['test-report']
               });
             } catch (error) {
-              // If the issue doesn't exist, create it
               if (error.status === 404) {
                 await github.rest.issues.create({
                   owner: context.repo.owner,
@@ -152,7 +214,6 @@ jobs:
                   labels: ['test-report']
                 });
               } else {
-                // Re-throw other errors
                 throw error;
               }
             }
