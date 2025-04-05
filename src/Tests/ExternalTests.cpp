@@ -51,11 +51,16 @@ TEST_P(ExternalTestFixture, Main) {
     emu->StopOnInstruction(MOONEYE_STOP_INSTR);
 
     bool stopReached = false;
-    while (!stopReached)
+    //If a test takes longer than 2 sec, abort
+    constexpr int MAX_FRAMES = 120;
+    int currentFrames = 0;
+
+    while (!stopReached && currentFrames < MAX_FRAMES)
     {
         EmulatorInputs::InputState inputState;
         emu->Step(inputState, 16.67);
         stopReached = emu->HasReachedInstruction(MOONEYE_STOP_INSTR);
+        currentFrames++;
     }
 
     EXPECT_TRUE(IsFibonacci(emu->GetRegisters()));
