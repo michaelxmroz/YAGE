@@ -653,8 +653,7 @@ CPU::~CPU()
 	Y_DELETE_A(DEBUG_CPUInstructionLog);
 #endif
 }
-
-#if _DEBUG
+#if _TESTING
 void CPU::StopOnInstruction(uint8_t instr)
 {
 	DEBUG_stopInstructions.emplace(instr, false);
@@ -668,7 +667,9 @@ bool CPU::HasReachedInstruction(uint8_t instr)
 	}
 	return false;
 }
+#endif
 
+#if _DEBUG
 void CPU::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData)
 {
 	DEBUG_instrCallbackMap.emplace(instr, callback);
@@ -692,7 +693,6 @@ void CPU::ClearCallbacks()
 	DEBUG_PCCallbackMap.clear();
 	DEBUG_instrCallbackMap.clear();
 	DEBUG_instrCountCallbackMap.clear();
-	DEBUG_stopInstructions.clear();
 }
 #endif
 
@@ -781,7 +781,9 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 			DEBUG_instrCountCallbackMap[DEBUG_instructionCount](DEBUG_instrCountCallbackUserData[DEBUG_instructionCount]);
 		}
 	}
+#endif
 
+#ifdef _TESTING
 	if (DEBUG_stopInstructions.size() > 0)
 	{
 		uint8_t instr = memory[m_registers.PC];

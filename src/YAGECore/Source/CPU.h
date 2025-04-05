@@ -26,9 +26,14 @@ public:
 	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback, void* userData);
 	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData);
 	void ClearCallbacks();
+#endif
+#if _TESTING
 	void StopOnInstruction(uint8_t instr);
 	bool HasReachedInstruction(uint8_t instr);
-
+	Registers& GetRegisters()
+	{
+		return m_registers;
+	}
 #endif
 	uint32_t Step(Memory& memory);
 
@@ -36,21 +41,6 @@ public:
 
 	void Reset();
 	void ResetToBootromValues();
-
-	// For tests
-#ifdef _DEBUG
-
-	uint32_t Step(uint8_t* memory)
-	{
-		Memory mem(memory);
-		return Step(mem);
-	}
-
-	Registers& GetRegisters()
-	{
-		return m_registers;
-	}
-#endif // _DEBUG
 
 private:
 	typedef InstructionResult (*InstructionFunc)(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory);
@@ -94,7 +84,7 @@ private:
 	std::map<uint8_t, void*> DEBUG_instrCallbackUserData;
 	std::map<uint64_t, void*> DEBUG_instrCountCallbackUserData;
 
-	std::map<uint8_t, bool> DEBUG_stopInstructions;
+
 
 	uint64_t DEBUG_instructionCount = 0;
 
@@ -102,6 +92,9 @@ private:
 	char* DEBUG_CPUInstructionLog;
 	const char* DEBUG_LogTemplate = "A:00 F:00 B:00 C:00 D:00 E:00 H:00 L:00 SP:0000 PC:0000 PCMEM:00,00,00,00 IO:00 ITR:0 OP:           \n"; 
 #endif // CPU_STATE_LOGGING
+#endif
+#if _TESTING
+	std::map<uint8_t, bool> DEBUG_stopInstructions;
 #endif
 };
 

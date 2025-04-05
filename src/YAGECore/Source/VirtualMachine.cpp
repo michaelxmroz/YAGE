@@ -141,7 +141,9 @@ void VirtualMachine::ClearCallbacks()
 	m_cpu.ClearCallbacks();
 	m_memory.ClearCallbacks();
 }
+#endif
 
+#ifdef _TESTING
 void VirtualMachine::StopOnInstruction(uint8_t instr)
 {
 	m_cpu.StopOnInstruction(instr);

@@ -4,7 +4,7 @@
 
 #ifndef FREESTANDING
 
-#if _DEBUG
+#if defined(_DEBUG) || defined(_TESTING)
 #include <map>
 #include <stdexcept>
 #include <memory>

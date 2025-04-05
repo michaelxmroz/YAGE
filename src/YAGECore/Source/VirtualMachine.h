@@ -10,7 +10,6 @@
 #include "Serial.h"
 #include "APU.h"
 
-
 class VirtualMachine : public Emulator
 {
 public:
@@ -42,7 +41,9 @@ public:
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) override;
 	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) override;
 	virtual void ClearCallbacks() override;
+#endif
 
+#if _TESTING
 	void StopOnInstruction(uint8_t instr);
 	bool HasReachedInstruction(uint8_t instr);
 	Registers& GetRegisters();

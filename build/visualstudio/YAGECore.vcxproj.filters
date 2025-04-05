@@ -146,9 +146,6 @@
     <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)..\Emulator_C.h">
-      <Filter>Header Files\Interface</Filter>
-    </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Allocator.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
@@ -160,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\YVector.h">
       <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BaseItemPath)..\Include\Emulator_C.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
