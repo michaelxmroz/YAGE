@@ -12,11 +12,9 @@ on:
 env:
   SOLUTION_FILE_PATH: .\build\visualstudio\YAGE.sln
   BUILD_CONFIGURATION: TestOnly
-  VCPKG_INSTALLED_DIR: .\build\visualstudio\vcpkg_installed
-  VCPKG_DEFAULT_TRIPLET: x64-windows-static
   TEST_REPO_URL: https://github.com/Gekkio/mooneye-test-suite.git
   TEST_REPO_DIR: mooneye-test-suite
-  TEST_REPORT_ISSUE_NUMBER: 1  # You can change this to any existing issue number
+  TEST_REPORT_ISSUE_NUMBER: 31  # You can change this to any existing issue number
 
 permissions:
   contents: write
@@ -31,7 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
           fetch-depth: 0
         
       - name: Clone test repository
@@ -40,22 +38,6 @@ jobs:
         
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
-
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        id: runvcpkg
-        with:
-          vcpkgDirectory: './build/visualstudio/vcpkg'
-          vcpkgGitCommitId: 'b02e341c927f16d991edbd915d8ea43eac52096c'
-          runVcpkgInstall: true
-          vcpkgJsonGlob: './build/visualstudio/vcpkg.json'
-
-      - name: Prints output of run-vcpkg's action.
-        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
-  
-      - name: Integrate vcpkg with MSBuild
-        run: |
-          ./build/visualstudio/vcpkg/vcpkg integrate install
 
       - name: Restore NuGet packages
         working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -66,9 +48,6 @@ jobs:
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
-                  /p:VcpkgRoot=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }} `
-                  /p:VcpkgInstalledDir=${{env.VCPKG_INSTALLED_DIR}} `
-                  /p:VcpkgTriplet=${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }} `
                   ${{env.SOLUTION_FILE_PATH}}
       
       - name: Run tests
