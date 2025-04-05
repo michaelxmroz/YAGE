@@ -40,22 +40,24 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Restore NuGet packages
-        working-directory: ${{env.GITHUB_WORKSPACE}}
-        run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
         
       - name: Build
         id: build
-        working-directory: ${{env.GITHUB_WORKSPACE}}
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: |
-          msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} `
-                  ${{env.SOLUTION_FILE_PATH}}
+          msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
+                  ${{ env.SOLUTION_FILE_PATH }}
       
       - name: Run tests
         id: run-tests
-        working-directory: ${{env.GITHUB_WORKSPACE}}
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: |
-          $testExe = "bin\x64\TestOnly\AccuracyTests.exe"
-          $testDir = "${{ env.TEST_REPO_DIR }}\acceptance"
+          # Compute absolute path for AccuracyTests.exe
+          $testExe = "$env:GITHUB_WORKSPACE\bin\x64\TestOnly\AccuracyTests.exe"
+          # Use absolute path for the test directory as well
+          $testDir = "$env:GITHUB_WORKSPACE\${{ env.TEST_REPO_DIR }}\acceptance"
           $outputFile = "test_results.txt"
           
           # Run tests with external test directory
@@ -154,4 +156,4 @@ jobs:
                 // Re-throw other errors
                 throw error;
               }
-            } 
+            }
