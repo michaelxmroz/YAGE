@@ -100,7 +100,7 @@ jobs:
           Get-Content $summaryFile
           
           echo "exit_code=$testExitCode" >> $env:GITHUB_OUTPUT
-          exit $testExitCode
+          exit 0
 
       # Checkout the test-history branch into a subdirectory (if it exists)
       - name: Checkout test history branch
