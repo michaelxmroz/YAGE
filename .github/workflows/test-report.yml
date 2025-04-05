@@ -78,42 +78,27 @@ jobs:
           & $testExe -externalTestDir $testDir > $outputFile 2>&1
           $testExitCode = $LASTEXITCODE
           
-          # Parse test results
-          $testResults = Get-Content $outputFile
-          $passedTests = @()
-          $failedTests = @()
-          
-          foreach ($line in $testResults) {
-            if ($line -match "\[  PASSED  \] (\d+) test") {
-              $passedCount = $matches[1]
-            }
-            elseif ($line -match "\[  FAILED  \] (\d+) test") {
-              $failedCount = $matches[1]
-            }
-            elseif ($line -match "FAIL\((\d+)\): ExternalTestFixture\.Main") {
-              $failedTestName = $line -replace ".*FAIL\(\d+\): ExternalTestFixture\.Main", ""
-              $failedTests += $failedTestName.Trim()
-            }
+          # Simplify parsing: copy recap portion after last occurrence of "[==========]"
+          $content = Get-Content $outputFile
+          $indexes = @()
+          for ($i = 0; $i -lt $content.Count; $i++) {
+              if ($content[$i] -match "\[==========\]") {
+                  $indexes += $i
+              }
           }
-          
-          # Create a summary file
+          if ($indexes.Count -gt 0) {
+              $startIndex = $indexes[-1] + 1
+          } else {
+              $startIndex = 0
+          }
+          $summaryContent = $content[$startIndex..($content.Count - 1)] -join "`n"
           $summaryFile = "test_summary.md"
-          "## Test Summary" | Out-File $summaryFile
-          "Total tests: $($passedCount + $failedCount)" | Out-File $summaryFile -Append
-          "Passed: $passedCount" | Out-File $summaryFile -Append
-          "Failed: $failedCount" | Out-File $summaryFile -Append
-          
-          if ($failedTests.Count -gt 0) {
-            "" | Out-File $summaryFile -Append
-            "### Failed Tests" | Out-File $summaryFile -Append
-            foreach ($test in $failedTests) {
-              "- $test" | Out-File $summaryFile -Append
-            }
-          }
+          $summaryContent | Out-File $summaryFile
           
           # Set output variables for the next step
-          echo "passed_count=$passedCount" >> $env:GITHUB_OUTPUT
-          echo "failed_count=$failedCount" >> $env:GITHUB_OUTPUT
+          Write-Output "Test summary:"
+          Get-Content $summaryFile
+          echo "exit_code=$testExitCode" >> $env:GITHUB_OUTPUT
           
           # Return the original exit code
           exit $testExitCode
