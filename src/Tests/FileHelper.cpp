@@ -64,11 +64,25 @@ bool FileParser::Read(std::string path, std::vector<char>& parsedBlob)
 	}
 }
 
+bool HasExcludedSuffix(const std::string& filename, const std::vector<std::string>& excludedSuffixes) 
+{
+	for (const auto& suffix : excludedSuffixes) 
+	{
+		if (filename.size() >= suffix.size() &&
+			filename.compare(filename.size() - suffix.size(), suffix.size(), suffix) == 0) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 std::string FileParser::GetFileNameFromPath(std::string path)
 {
 	fs::path parsedPath(path);
 	return parsedPath.stem().string();
 }
+
 std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 {
 	fs::path dirPath(path);
@@ -77,6 +91,15 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		std::cout << "Path does not exist:" << path << std::endl;
 		return {};
 	}
+
+	std::vector<std::string> excludedSuffixes = { 
+		"-S", // Combined SGB tests
+		"-dmg0", // DMG0 tests
+		"-mgb", // MGB tests
+		"-sgb", // SGB1 tests
+		"-sgb2" // SGB2 tests
+	};
+
 	std::vector<std::string> files;
 	for (const fs::directory_entry& dir_entry :
 		std::filesystem::recursive_directory_iterator(dirPath))
@@ -84,8 +107,13 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		fs::path filePath = dir_entry.path();
 		if (filePath.extension().string().compare(".gb") == 0)
 		{
-			std::string file = dir_entry.path().string();
-			files.push_back(file);
+			std::string filename = dir_entry.path().stem().string();
+			// Only add the file if it does not have one of the excluded suffixes.
+			if (!HasExcludedSuffix(filename, excludedSuffixes)) 
+			{
+				std::string file = dir_entry.path().string();
+				files.push_back(file);
+			}
 		}
 	}
 
