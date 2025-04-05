@@ -83,6 +83,7 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		std::filesystem::recursive_directory_iterator(dirPath))
 	{
 		fs::path filePath = dir_entry.path();
+		std::cout << "Checking file:" << filePath << std::endl;
 		if (filePath.extension().string().compare(".gb") == 0)
 		{
 			std::string file = dir_entry.path().string();

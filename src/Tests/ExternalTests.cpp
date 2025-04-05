@@ -17,7 +17,9 @@ void FreeFunc(void* ptr)
 
 std::vector<std::string> GetExternalTests()
 {
-    return FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("-externalTestDir"));
+    auto tests = FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("-externalTestDir"));
+    std::cout << tests.size() << " tests found" << std::endl;
+    return tests;
 }
 
 bool IsFibonacci(Registers& regs)
