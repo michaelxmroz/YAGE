@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  SOLUTION_FILE_PATH: .\build\visualstudio\YAGE.sln
-  BUILD_CONFIGURATION: TestOnly
+  SOLUTION_FILE_PATH: .\build\visualstudio\Tests.sln
+  BUILD_CONFIGURATION: Tests
   TEST_REPO_URL: https://github.com/Gekkio/mooneye-test-suite.git
   TEST_REPO_DIR: mooneye-test-suite
   TEST_REPORT_ISSUE_NUMBER: 31  # You can change this to any existing issue number
