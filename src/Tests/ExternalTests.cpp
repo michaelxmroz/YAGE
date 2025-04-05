@@ -18,7 +18,6 @@ void FreeFunc(void* ptr)
 std::vector<std::string> GetExternalTests()
 {
     auto tests = FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("-externalTestDir"));
-    std::cout << tests.size() << " tests found" << std::endl;
     return tests;
 }
 

@@ -77,13 +77,11 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		std::cout << "Path does not exist:" << path << std::endl;
 		return {};
 	}
-	std::cout << "Found path:" << path << std::endl;
 	std::vector<std::string> files;
 	for (const fs::directory_entry& dir_entry :
 		std::filesystem::recursive_directory_iterator(dirPath))
 	{
 		fs::path filePath = dir_entry.path();
-		std::cout << "Checking file:" << filePath << std::endl;
 		if (filePath.extension().string().compare(".gb") == 0)
 		{
 			std::string file = dir_entry.path().string();
