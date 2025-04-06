@@ -268,6 +268,7 @@ void Memory::Update()
 	{
 		m_DMAStatus = DMAStatus::InProgress;
 		m_DMAProgress = 0;
+		LOG_CPU_STATE("DMA BEGIN\n");
 	}
 	else if (m_DMAStatus == DMAStatus::InProgress)
 	{
@@ -293,13 +294,14 @@ void Memory::Update()
 			m_DMAStatus = DMAStatus::Idle;
 			m_DMAProgress = 0;
 			m_DMAMemoryAccessBlocked = false;
+			LOG_CPU_STATE("DMA COMPLETE\n");
 		}
 	}
 }
 
 uint8_t Memory::operator[](uint16_t addr) const
 {
-	if (m_DMAMemoryAccessBlocked && addr < IO_REGISTERS_BEGIN)
+	if (m_DMAMemoryAccessBlocked && addr < IO_REGISTERS_BEGIN && addr >= OAM_START)
 	{
 		return 0xFF;
 	}
