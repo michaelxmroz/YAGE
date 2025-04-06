@@ -1,5 +1,5 @@
-[  PASSED  ] 41 tests.
-[  FAILED  ] 25 tests, listed below:
+[  PASSED  ] 43 tests.
+[  FAILED  ] 23 tests, listed below:
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/addxspxextiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\add_sp_e_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/callxccxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\call_cc_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/callxccxtiming2, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\call_cc_timing2.gb"
@@ -10,12 +10,10 @@
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/jpxccxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\jp_cc_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/jpxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\jp_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/ldxhlxspxextiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ld_hl_sp_e_timing.gb"
-[  FAILED  ] ExternalTests/ExternalTestFixture.Main/sourcesxGS, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma\\sources-GS.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxrestart, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_restart.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxstart, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_start.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/oamxdmaxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\oam_dma_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/intrx2xmode0xtimingxsprites, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\intr_2_mode0_timing_sprites.gb"
-[  FAILED  ] ExternalTests/ExternalTestFixture.Main/intrx2xoamxokxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\intr_2_oam_ok_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/lcdonxtimingxGS, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\lcdon_timing-GS.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/lcdonxwritextimingxGS, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\lcdon_write_timing-GS.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/statxlycxonoff, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\ppu\\stat_lyc_onoff.gb"
@@ -26,4 +24,4 @@
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/rstxtiming, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\rst_timing.gb"
 [  FAILED  ] ExternalTests/ExternalTestFixture.Main/bootxsclkxalignxdmgABCmgb, where GetParam() = "D:\\a\\YAGE\\YAGE\\mts-20240926-1737-443f6e1\\acceptance\\serial\\boot_sclk_align-dmgABCmgb.gb"
 
-25 FAILED TESTS
+23 FAILED TESTS
