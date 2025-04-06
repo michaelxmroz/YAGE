@@ -73,7 +73,7 @@ void Memory::Write(uint16_t addr, uint8_t value)
 #if _DEBUG
 	CheckForMemoryCallback(addr);
 #endif
-	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
+	if (m_DMAMemoryAccessBlocked && addr < IO_REGISTERS_BEGIN)
 	{
 		return;
 	}
@@ -217,8 +217,9 @@ void Memory::Init()
 	m_bootrom = nullptr;
 	m_mbc = nullptr;
 
-	m_DMAInProgress = false;
+	m_DMAStatus = DMAStatus::Idle;
 	m_DMAProgress = 0;
+	m_DMAMemoryAccessBlocked = false;
 
 	memset_y(m_unusedIOBitsOverride, 0, IOPORTS_COUNT);
 	memset_y(m_writeOnlyIOBitsOverride, 0, IOPORTS_COUNT);
@@ -247,28 +248,7 @@ void Memory::Init()
 
 void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
-	if (memory->m_DMAInProgress)
-	{
-		return;
-	}
-	uint16_t source = static_cast<uint16_t>((*memory)[DMA_REGISTER]) << 8;
-
-	if (source >= ECHO_RAM_BEGIN)
-	{
-		source -= ECHO_RAM_OFFSET;
-	}
-
-	//TODO DMA from external ram?
-	if (source < ROM_END && !memory->m_externalMemory)
-	{
-		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
-	}
-	else if(source != OAM_START)
-	{
-		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
-	}
-
-	memory->m_DMAInProgress = true;
+	memory->m_DMAStatus = DMAStatus::Initializing;
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	memset_y(memory->m_initializationTracker + OAM_START, 1, OAM_SIZE);
@@ -282,21 +262,44 @@ void Memory::UnmapBootrom(Memory* memory, uint16_t addr, uint8_t prevValue, uint
 
 void Memory::Update()
 {
-	const uint32_t DMA_DURATION = 160;
-	if (m_DMAInProgress)
+	constexpr uint32_t DMA_DURATION = 162;
+
+	if (m_DMAStatus == DMAStatus::Initializing)
 	{
+		m_DMAStatus = DMAStatus::InProgress;
+		m_DMAProgress = 0;
+	}
+	else if (m_DMAStatus == DMAStatus::InProgress)
+	{
+		m_DMAMemoryAccessBlocked = true;
 		m_DMAProgress++;
 		if (m_DMAProgress == DMA_DURATION - 1)
 		{
+			uint16_t source = static_cast<uint16_t>((*this)[DMA_REGISTER]) << 8;
+
+			if (source >= ECHO_RAM_BEGIN)
+			{
+				source -= ECHO_RAM_OFFSET;
+			}
+
+			if (source < ROM_END && !m_externalMemory)
+			{
+				memcpy_y(m_mappedMemory + OAM_START, m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
+			}
+			else if (source != OAM_START)
+			{
+				memcpy_y(m_mappedMemory + OAM_START, m_mappedMemory + source, OAM_SIZE);
+			}
+			m_DMAStatus = DMAStatus::Idle;
 			m_DMAProgress = 0;
-			m_DMAInProgress = false;
+			m_DMAMemoryAccessBlocked = false;
 		}
 	}
 }
 
 uint8_t Memory::operator[](uint16_t addr) const
 {
-	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
+	if (m_DMAMemoryAccessBlocked && addr < IO_REGISTERS_BEGIN)
 	{
 		return 0xFF;
 	}
@@ -389,8 +392,9 @@ void Memory::Serialize(uint8_t* data)
 	WriteAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
 	WriteAndMove(data, &m_isBootromMapped, sizeof(bool));
-	WriteAndMove(data, &m_DMAInProgress, sizeof(bool));
-	WriteAndMove(data, &m_DMAProgress, sizeof(uint32_t));
+	WriteAndMove(data, &m_DMAStatus, sizeof(uint8_t));
+	WriteAndMove(data, &m_DMAProgress, sizeof(uint8_t));
+	WriteAndMove(data, &m_DMAMemoryAccessBlocked, sizeof(bool));
 }
 
 void Memory::Deserialize(const uint8_t* data)
@@ -400,8 +404,9 @@ void Memory::Deserialize(const uint8_t* data)
 	ReadAndMove(data, m_mappedMemory + OAM_START, HRAM_SIZE);
 
 	ReadAndMove(data, &m_isBootromMapped, sizeof(bool));
-	ReadAndMove(data, &m_DMAInProgress, sizeof(bool));
-	ReadAndMove(data, &m_DMAProgress, sizeof(uint32_t));
+	ReadAndMove(data, &m_DMAStatus, sizeof(uint8_t));
+	ReadAndMove(data, &m_DMAProgress, sizeof(uint8_t));
+	ReadAndMove(data, &m_DMAMemoryAccessBlocked, sizeof(bool));
 }
 
 uint32_t Memory::GetSerializationSize()

@@ -145,8 +145,17 @@ private:
 	VRamAccess m_vRamAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
-	bool m_DMAInProgress;
-	uint32_t m_DMAProgress;
+
+	enum class DMAStatus : uint8_t
+	{
+		Idle,
+		Initializing,
+		InProgress
+	};
+
+	DMAStatus m_DMAStatus;
+	uint8_t m_DMAProgress;
+	bool m_DMAMemoryAccessBlocked;
 
 	//Unused bits in IO ports return 1 when read
 	uint8_t m_unusedIOBitsOverride[IOPORTS_COUNT];
