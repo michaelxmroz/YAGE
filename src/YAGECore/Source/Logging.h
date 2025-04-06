@@ -26,6 +26,12 @@ if(Logger_Helpers::loggerCallback != nullptr) \
 Logger_Helpers::loggerCallback(message, 2); \
 }
 
+#define LOG_CPU_STATE(message) \
+{ \
+if(Logger_Helpers::loggerCallback != nullptr) \
+Logger_Helpers::loggerCallback(message, 3); \
+}
+
 #else
 #define LOG_INFO(message) \
 { \
@@ -41,10 +47,11 @@ Logger_Helpers::loggerCallback(message, 2); \
 { \
  (void) (message); \
 }
-#endif
 
 #define LOG_CPU_STATE(message) \
 { \
-if(Logger_Helpers::loggerCallback != nullptr) \
-Logger_Helpers::loggerCallback(message, 3); \
+ (void) (message); \
 }
+#endif
+
+

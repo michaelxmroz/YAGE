@@ -182,6 +182,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
 
+	SetVRamAccess(memory);
+
 	CheckForInterrupts(memory);
 
 	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
@@ -286,6 +288,22 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	data.m_totalCycles += processedCycles;
 }
 
+void PPU::SetVRamAccess(Memory& memory)
+{
+	if (data.m_state == PPUState::OAMScan)
+	{
+		memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
+	}
+	else if (data.m_state == PPUState::Drawing)
+	{
+		memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
+	}
+	else
+	{
+		memory.SetVRamAccess(Memory::VRamAccess::All);
+	}
+}
+
 void PPU::SwapBackbuffer()
 {
 	RGBA* swap = m_backBuffer;
@@ -305,13 +323,13 @@ void PPU::TransitionToVBlank(Memory& memory)
 
 void PPU::TransitionToHBlank(Memory& memory)
 {
-	memory.SetVRamAccess(Memory::VRamAccess::All);
 	data.m_state = PPUState::HBlank;
 
 	if (data.m_windowState == WindowState::Draw)
 	{
 		data.m_windowLineY++;
 	}
+	LOG_CPU_STATE("OAM READABLE\n");
 }
 
 void PPU::TransitionToDraw(Memory& memory)
@@ -322,7 +340,6 @@ void PPU::TransitionToDraw(Memory& memory)
 	data.m_backgroundFetcher.Reset();
 	data.m_spriteFetcher.Reset();
 
-	memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
 	data.m_state = PPUState::Drawing;
 }
 
@@ -333,8 +350,8 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
-	memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
 	data.m_state = PPUState::OAMScan;
+	LOG_CPU_STATE("OAM BLOCKED\n");
 }
 
 void PPU::DisableScreen(Memory& memory)

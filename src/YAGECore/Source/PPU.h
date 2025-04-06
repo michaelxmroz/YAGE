@@ -52,6 +52,7 @@ private:
 		Draw = 2
 	};
 
+	void SetVRamAccess(Memory& memory);
 	void ScanOAM(const uint32_t& positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
@@ -102,6 +103,9 @@ private:
 			, m_fineScrollX(0)
 			, m_cyclesInLine(0)
 			, m_windowLineY(0)
+			, m_statLine()
+			, m_vblankLine()
+			, m_cachedBackgroundEnabled()
 		{}
 
 		uint32_t m_totalCycles;

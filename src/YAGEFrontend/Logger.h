@@ -91,10 +91,12 @@ namespace Logger
 
                 m_buffer[writeIndex] = message;
                 bool oldVal = false;
-                if (!m_readable[writeIndex].compare_exchange_strong(oldVal, true))
+                while (m_readable[writeIndex].load())
                 {
-                    assert(((void)"Message buffer overflow in logging system. Consider increasing buffer size", false));
+                    //busy loop
                 }
+                m_buffer[writeIndex] = message;
+                m_readable[writeIndex].store(true);
             }
             bool PopIfPossible(EzString& messageOut)
             {

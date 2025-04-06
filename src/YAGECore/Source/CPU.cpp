@@ -17,7 +17,7 @@
 
 #if CPU_STATE_LOGGING
 
-#define IO_REG_LOG 0xFF44
+#define IO_REG_LOG 0xFF41
 
 void HexToString(uint8_t value, char* buffer)
 {
@@ -32,7 +32,7 @@ void HexToString(uint16_t value, char* buffer)
 	HexToString(static_cast<uint8_t>(value), buffer + 2);
 }
 
-void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory, const char* mnemonic)
+void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory, const char* mnemonic, uint8_t duration)
 {
 	const char* hexTemplate = "%02X";
 	const char* hexTemplateLong = "%04X";
@@ -61,7 +61,7 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 	HexToString(memory[IO_REG_LOG], strBuffer + offsets[14]);
 
 	char* itrPos = strBuffer + offsets[15];
-	itrPos[0] = '0';//TODO fix interrupt messaging here
+	*itrPos = ('0' + duration);
 
 	memset_y(strBuffer + offsets[16], ' ', 11);
 	memcpy_y(strBuffer + offsets[16], mnemonic, strlen_y(mnemonic));
@@ -726,7 +726,8 @@ void CPU::ExecuteInstruction(Memory& memory)
 	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
 	{
 		const char* mnemonic = m_instructions[m_instructionTempData.m_opcode].m_mnemonic;
-		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory, mnemonic);
+		uint8_t duration = m_instructions[m_instructionTempData.m_opcode].m_duration;
+		LogCPUState(DEBUG_CPUInstructionLog, m_registers, m_instructionTempData.m_atPC, memory, mnemonic, duration);
 	}
 #endif
 
@@ -872,7 +873,7 @@ bool CPU::CheckForWakeup(Memory& memory, bool postFetch)
 				m_instructionTempData.Reset();
 				m_instructionTempData.m_opcode = PSEUDO_NOP_OPCODE;
 			}
-
+			LOG_CPU_STATE("INTERRUPT\n");
 			return true;
 		}
 	}

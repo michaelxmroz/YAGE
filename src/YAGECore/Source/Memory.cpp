@@ -5,6 +5,7 @@
 
 #define ECHO_RAM_BEGIN 0xE000
 #define ECHO_RAM_END 0xE000
+#define ECHO_RAM_OFFSET 0x2000
 #define UNUSABLE_BEGIN 0xFEA0
 #define UNUSABLE_END 0xFEFF
 #define DMA_REGISTER 0xFF46
@@ -76,6 +77,12 @@ void Memory::Write(uint16_t addr, uint8_t value)
 	{
 		return;
 	}
+
+	if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
+	{
+		addr -= ECHO_RAM_OFFSET;
+	}
+
 	if (!m_externalMemory)
 	{
 		if (m_vRamAccess != VRamAccess::All)
@@ -98,10 +105,6 @@ void Memory::Write(uint16_t addr, uint8_t value)
 		else if (addr >= EXTERNAL_RAM_BEGIN && addr < EXTERNAL_RAM_BEGIN + RAM_BANK_SIZE)
 		{
 			m_mbc->Write(addr, value);
-		}
-		else if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
-		{
-			LOG_INFO(string_format("Trying to write echo RAM addr %x", addr).c_str());
 		}
 		else if (addr >= UNUSABLE_BEGIN && addr <= UNUSABLE_END)
 		{
@@ -249,12 +252,18 @@ void Memory::DoDMA(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t new
 		return;
 	}
 	uint16_t source = static_cast<uint16_t>((*memory)[DMA_REGISTER]) << 8;
+
+	if (source >= ECHO_RAM_BEGIN)
+	{
+		source -= ECHO_RAM_OFFSET;
+	}
+
 	//TODO DMA from external ram?
 	if (source < ROM_END && !memory->m_externalMemory)
 	{
 		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mbc->GetROMMemoryOffset(source), OAM_SIZE);
 	}
-	else
+	else if(source != OAM_START)
 	{
 		memcpy_y(memory->m_mappedMemory + OAM_START, memory->m_mappedMemory + source, OAM_SIZE);
 	}
@@ -290,6 +299,11 @@ uint8_t Memory::operator[](uint16_t addr) const
 	if (m_DMAInProgress && addr < IO_REGISTERS_BEGIN)
 	{
 		return 0xFF;
+	}
+
+	if (addr >= ECHO_RAM_BEGIN && addr <= ECHO_RAM_END)
+	{
+		addr -= ECHO_RAM_OFFSET;
 	}
 
 	if (m_vRamAccess != VRamAccess::All)
