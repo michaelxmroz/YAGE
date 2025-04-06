@@ -43,10 +43,10 @@ Timer::Timer(GamestateSerializer* serializer)
 
 void Timer::Init(Memory& memory)
 {
-	m_divHigh = 0x18;
-	m_divLow = 0xCC;
+	m_divHigh = 0xAB;
+	m_divLow = 0xC8;
 
-	memory.Write(DIVIDER_REGISTER, 0x18);
+	memory.Write(DIVIDER_REGISTER, m_divHigh);
 	memory.Write(TIMA_REGISTER, 0x00);
 	memory.Write(TMA_REGISTER, 0x00);
 	memory.Write(TAC_REGISTER, 0xF8);

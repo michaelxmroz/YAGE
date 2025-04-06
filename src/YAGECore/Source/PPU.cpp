@@ -115,7 +115,7 @@ void PPU::Init(Memory& memory)
 	memory.RegisterCallback(LCDC_REGISTER, LCDCWrite, this);
 
 	memory.WriteIO(LCDC_REGISTER, 0x91);
-	memory.WriteIO(STAT_REGISTER, 0x00);
+	memory.WriteIO(STAT_REGISTER, 0x85);
 	memory.WriteIO(LYC_REGISTER, 0x00);
 	memory.WriteIO(SCY_REGISTER, 0x00);
 	memory.WriteIO(SCX_REGISTER, 0x00);
