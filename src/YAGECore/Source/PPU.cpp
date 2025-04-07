@@ -197,12 +197,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	uint32_t processedCycles = 0;
 	uint32_t totalCycles = data.m_totalCycles;
 
-	if (data.m_previousState != data.m_state)
-	{
-		data.m_previousState = data.m_state;
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
-	}
-
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
 		switch (data.m_state)

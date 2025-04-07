@@ -735,8 +735,14 @@ void CPU::ExecuteInstruction(Memory& memory)
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
 	{
+		bool executedEI = m_instructionTempData.m_opcode == EI_OPCODE;
 		DecodeAndFetchNext(memory);
 		ProcessInterrupts(memory);
+		//[Hardware] Enabling of interrupts with EI is delayed by one cycle
+		if (executedEI)
+		{
+			m_registers.IMEF = true;
+		}
 	}
 	else
 	{
@@ -796,8 +802,8 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	}
 #endif
 
-	//[Hardware] Interrupt handling is delayed by one cycle if EI was just executed
-	m_delayedInterruptHandling = (m_instructionTempData.m_opcode == EI_OPCODE) || (m_delayedInterruptHandling && m_instructionTempData.m_opcode == HALT_OPCODE);
+	
+	m_delayedInterruptHandling = (m_delayedInterruptHandling && m_instructionTempData.m_opcode == HALT_OPCODE);
 
 	//Fetch
 	uint16_t offset = m_isNextInstructionCB ? EXTENSION_OFFSET : 0;
