@@ -97,7 +97,8 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		"-dmg0", // DMG0 tests
 		"-mgb", // MGB tests
 		"-sgb", // SGB1 tests
-		"-sgb2" // SGB2 tests
+		"-sgb2", // SGB2 tests
+		"-C" // gbc tests
 	};
 
 	std::vector<std::string> files;
