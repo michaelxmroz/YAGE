@@ -197,6 +197,13 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	uint32_t processedCycles = 0;
 	uint32_t totalCycles = data.m_totalCycles;
 
+	if(data.m_firstFrame)
+	{
+		TransitionToDraw(memory);
+		data.m_firstFrame = false;
+		processedCycles = 80;
+	}
+
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
 		switch (data.m_state)
@@ -282,7 +289,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	data.m_totalCycles += processedCycles;
 }
 
-void PPU::SetVRamAccess(Memory& memory)
+void PPU::SetVRamAccess(Memory& memory) const
 {
 	if (data.m_state == PPUState::OAMScan)
 	{
@@ -323,6 +330,7 @@ void PPU::TransitionToHBlank(Memory& memory)
 	{
 		data.m_windowLineY++;
 	}
+	data.m_firstFrame = false;
 	LOG_CPU_STATE("OAM READABLE\n");
 }
 
@@ -351,7 +359,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 void PPU::DisableScreen(Memory& memory)
 {
 	memory.WriteIO(LY_REGISTER, 0);
-	data.m_totalCycles = 4; // PPU starts a bit delayed when turned on
+	data.m_totalCycles = 0; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
 	data.m_cyclesInLine = 0;
@@ -479,7 +487,7 @@ void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
 	}
 }
 
-bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
+bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const
 {
 	bool foundSprite = false;
 	int16_t minDifference = SCANLINE_DURATION;
@@ -509,7 +517,7 @@ void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValu
 
 void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
-	PPU* ppu = reinterpret_cast<PPU*>(userData);
+	PPU* ppu = static_cast<PPU*>(userData);
 	ppu->data.m_cachedBackgroundEnabled = (newValue & (1 << static_cast<uint8_t>(LCDControlFlags::BgEnable))) > 0;
 
 	bool PPUPowerPrev = (prevValue & (1 << static_cast<uint8_t>(LCDControlFlags::LCDEnable))) > 0;
@@ -520,7 +528,8 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	}
 	else if (!PPUPowerPrev && PPUPowerNew)
 	{
-		ppu->TransitionToOAMScan(*memory);
+		//ppu->TransitionToOAMScan(*memory);
+		ppu->data.m_firstFrame = true;
 	}
 }
 

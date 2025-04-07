@@ -52,7 +52,7 @@ private:
 		Draw = 2
 	};
 
-	void SetVRamAccess(Memory& memory);
+	void SetVRamAccess(Memory& memory) const;
 	void ScanOAM(const uint32_t& positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
@@ -65,7 +65,7 @@ private:
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void CheckForInterrupts(Memory& memory);
 
-	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
+	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const;
 
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -105,6 +105,7 @@ private:
 			, m_statLine()
 			, m_vblankLine()
 			, m_cachedBackgroundEnabled()
+			, m_firstFrame(true)
 		{}
 
 		uint32_t m_totalCycles;
@@ -136,6 +137,8 @@ private:
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
+
+		bool m_firstFrame;
 	} data;
 	RGBA* m_activeFrame;
 	RGBA* m_backBuffer;
