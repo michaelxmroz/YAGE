@@ -831,8 +831,6 @@ InstructionResult InstructionFunctions::RETI(const char* mnemonic, InstructionTe
 
 InstructionResult InstructionFunctions::EI(const char* mnemonic, InstructionTempData& data, Registers* registers, Memory& memory)
 {
-	registers->IMEF = true;
-	
 	return InstructionResult::Finished;
 }
 
@@ -5005,8 +5003,11 @@ InstructionResult InstructionFunctions::INTERRUPT_HANDLING(const char* mnemonic,
 	case 1:
 		return InstructionFunctions::Call(0x00, 0, registers, memory);
 	case 2:
+	{
+		InstructionResult retVal = InstructionFunctions::Call(0x00, 1, registers, memory);
 		data.m_tmp_16 = Interrupts::GetJumpAddrAndClear(memory);
-		return InstructionFunctions::Call(data.m_tmp_16, 1, registers, memory);
+		return retVal;
+	}
 	case 3:
 		return InstructionFunctions::Call(data.m_tmp_16, 2, registers, memory);
 	case 4:

@@ -95,7 +95,6 @@ private:
 			, m_lineX(0)
 			, m_windowState(WindowState::NoWindow)
 			, m_state(PPUState::OAMScan)
-			, m_previousState(PPUState::VBlank)
 			, m_spritePrefetchLine(0)
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
@@ -130,7 +129,6 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
-		PPUState m_previousState;
 
 		uint8_t m_fineScrollX;
 		TrackedBool m_statLine;

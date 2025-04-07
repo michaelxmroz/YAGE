@@ -65,6 +65,10 @@ namespace Interrupts
         uint8_t interrupts = memory[INTERRUPT_ENABLE_REGISTER] & memory[INTERRUPT_FLAG_REGISTER] & INTERRUPT_REGISTER_MASK;
 
         int index = Helpers::GetFirstSetBit(interrupts);
+        if( index < 0)
+        {
+            return 0x00;
+        }
         Types type = static_cast<Types>(index);
         ClearInterruptRequest(type, memory);
         return JUMP_ADDRESSES[index];
