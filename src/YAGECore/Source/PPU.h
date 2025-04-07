@@ -53,7 +53,7 @@ private:
 	};
 
 	void SetVRamAccess(Memory& memory) const;
-	void ScanOAM(const uint32_t& positionInLine, Memory& memory);
+	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
 	void TransitionToVBlank(Memory& memory);
@@ -100,7 +100,6 @@ private:
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
 			, m_fineScrollX(0)
-			, m_cyclesInLine(0)
 			, m_windowLineY(0)
 			, m_statLine()
 			, m_vblankLine()
@@ -116,7 +115,6 @@ private:
 		SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
 		uint16_t m_lineSpriteMask;
 		uint8_t m_spritePrefetchLine;
-		uint32_t m_cyclesInLine;
 
 		PixelFIFO m_spriteFIFO;
 		PixelFIFO m_backgroundFIFO;

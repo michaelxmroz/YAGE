@@ -148,11 +148,19 @@ void PPU::CheckForInterrupts(Memory& memory)
 		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
+	data.m_vblankLine.Reset();
+	data.m_vblankLine.Add(data.m_state == PPUState::VBlank);
+	bool shouldTriggerVblank = data.m_vblankLine.ShouldTrigger();
+	if (shouldTriggerVblank)
+	{
+		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
+	}
+
 	if (data.m_state != PPUState::Drawing)
 	{
 		bool statFlagForCurrentMode = PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory);
 		//Hardware quirk: Mode 2 interrupts happen even in Vblank
-		if (data.m_lineY == VBLANK_START_LINE_Y && data.m_cyclesInLine == 4)
+		if (shouldTriggerVblank)
 		{
 			statFlagForCurrentMode |= PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(PPUState::OAMScan)], memory);
 		}
@@ -162,14 +170,6 @@ void PPU::CheckForInterrupts(Memory& memory)
 	if (data.m_statLine.ShouldTrigger())
 	{
 		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
-	}
-
-	data.m_vblankLine.Reset();
-	data.m_vblankLine.Add(data.m_state == PPUState::VBlank);
-
-	if (data.m_vblankLine.ShouldTrigger())
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
 	}
 }
 
@@ -195,13 +195,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
 	targetCycles += data.m_cycleDebt;
 	uint32_t processedCycles = 0;
-	uint32_t totalCycles = data.m_totalCycles;
 
 	if(data.m_firstFrame)
 	{
 		TransitionToDraw(memory);
 		data.m_firstFrame = false;
-		processedCycles = 80;
+		processedCycles = 0;
 	}
 
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
@@ -210,7 +209,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		{
 			case PPUState::OAMScan:
 			{
-				uint32_t positionInLine = totalCycles % SCANLINE_DURATION;
+				uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
 				ScanOAM(positionInLine, memory);
 				processedCycles += 2;
 				positionInLine += 2;
@@ -236,7 +235,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
-					data.m_cyclesInLine = 0;
 					if (data.m_totalCycles % 2 != 0)
 					{
 						data.m_totalCycles--;
@@ -263,13 +261,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					if (processedCycles % 4 != 0)
 						LOG_ERROR("non-4 divisible cycle count");
 
-					data.m_cyclesInLine = 0;
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
 						data.m_windowLineY = 0;
-						totalCycles = 0;
-						data.m_totalCycles = totalCycles;
+						data.m_totalCycles = 0;
 						data.m_frameCount++;
 						TransitionToOAMScan(memory);
 						return;
@@ -278,12 +274,9 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			}
 			break;
 		}
-
-		totalCycles = data.m_totalCycles + processedCycles;
 	}
-	
-	data.m_cyclesInLine += processedCycles;
 
+	//TODO is this necessary?
 	data.m_cycleDebt =  targetCycles - processedCycles;
 
 	data.m_totalCycles += processedCycles;
@@ -362,7 +355,6 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_totalCycles = 0; // PPU starts a bit delayed when turned on
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
-	data.m_cyclesInLine = 0;
 	data.m_windowLineY = 0;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
@@ -470,7 +462,7 @@ void PPU::RenderNextPixel(Memory& memory)
 	data.m_lineX++;
 }
 
-void PPU::ScanOAM(const uint32_t& positionInLine, Memory& memory)
+void PPU::ScanOAM(uint32_t positionInLine, Memory& memory)
 {
 	uint8_t oamEntry = (positionInLine / 2);
 
