@@ -89,7 +89,6 @@ namespace PPUHelpers
 		if (currentLine != newLineY)
 		{
 			currentLine = newLineY % MAX_LINES_Y;
-			memory.WriteIO(LY_REGISTER, currentLine);
 			return true;
 		}
 		return false;
@@ -180,17 +179,30 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		return;
 	}
 
-	PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+	// Update externally visible registers begin
+	if(data.m_applyStateChange)
+	{
+		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+		data.m_applyStateChange = false;
+	}
+
+	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
+	if (data.m_lineY == MAX_LINES_Y - 1 && (data.m_totalCycles % SCANLINE_DURATION) > 8 )
+	{
+		memory.WriteIO(LY_REGISTER, 0);
+	}
+	else
+	{
+		memory.WriteIO(LY_REGISTER, data.m_lineY);
+	}
 
 	SetVRamAccess(memory);
 
 	CheckForInterrupts(memory);
 
-	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
-	if (data.m_lineY == MAX_LINES_Y - 1)
-	{
-		memory.WriteIO(LY_REGISTER, 0);
-	}
+
+
+	// Update externally visible registers end
 
 	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
 	targetCycles += data.m_cycleDebt;
@@ -198,9 +210,10 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	if(data.m_firstFrame)
 	{
-		TransitionToDraw(memory);
+		TransitionToOAMScan(memory);
+		data.m_applyStateChange = false;
 		data.m_firstFrame = false;
-		processedCycles = 0;
+		processedCycles = 8; // Hardware quirk: PPU starts a bit delayed when turned on
 	}
 
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
@@ -277,7 +290,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	}
 
 	//TODO is this necessary?
-	data.m_cycleDebt =  targetCycles - processedCycles;
+	//data.m_cycleDebt =  targetCycles - processedCycles;
 
 	data.m_totalCycles += processedCycles;
 }
@@ -313,12 +326,13 @@ const void* PPU::GetFrameBuffer() const
 void PPU::TransitionToVBlank(Memory& memory)
 {
 	data.m_state = PPUState::VBlank;
+	data.m_applyStateChange = true;
 }
 
 void PPU::TransitionToHBlank(Memory& memory)
 {
 	data.m_state = PPUState::HBlank;
-
+	data.m_applyStateChange = true;
 	if (data.m_windowState == WindowState::Draw)
 	{
 		data.m_windowLineY++;
@@ -336,6 +350,7 @@ void PPU::TransitionToDraw(Memory& memory)
 	data.m_spriteFetcher.Reset();
 
 	data.m_state = PPUState::Drawing;
+	data.m_applyStateChange = true;
 }
 
 void PPU::TransitionToOAMScan(Memory& memory)
@@ -346,16 +361,18 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_spritePrefetchLine = 0;
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 	data.m_state = PPUState::OAMScan;
+	data.m_applyStateChange = true;
 	LOG_CPU_STATE("OAM BLOCKED\n");
 }
 
 void PPU::DisableScreen(Memory& memory)
 {
 	memory.WriteIO(LY_REGISTER, 0);
-	data.m_totalCycles = 0; // PPU starts a bit delayed when turned on
+	data.m_totalCycles = 0; 
 	data.m_cycleDebt = 0;
 	data.m_lineY = 0x0;
 	data.m_windowLineY = 0;
+	data.m_state = PPUState::HBlank;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
 	memory.SetVRamAccess(Memory::VRamAccess::All);
@@ -499,7 +516,7 @@ bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const
 
 void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)
 {
-	PPU* ppu = reinterpret_cast<PPU*>(userData);
+	PPU* ppu = static_cast<PPU*>(userData);
 	for (uint32_t i = 0; i < 4; ++i)
 	{
 		uint32_t colorIndex = (newValue >> (i * 2)) & 0x3;

@@ -105,6 +105,7 @@ private:
 			, m_vblankLine()
 			, m_cachedBackgroundEnabled()
 			, m_firstFrame(true)
+			, m_applyStateChange(false)
 		{}
 
 		uint32_t m_totalCycles;
@@ -128,6 +129,7 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
+		bool m_applyStateChange;
 
 		uint8_t m_fineScrollX;
 		TrackedBool m_statLine;
