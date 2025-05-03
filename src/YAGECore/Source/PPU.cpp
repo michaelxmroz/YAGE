@@ -83,6 +83,11 @@ namespace PPUHelpers
 		memory.WriteIO(STAT_REGISTER, (memory.ReadIO(STAT_REGISTER) & 0xFC) | mode);
 	}
 
+	uint8_t GetModeFlag(Memory& memory)
+	{
+		return memory.ReadIO(STAT_REGISTER) & 0x03;
+	}
+
 	bool IsNewScanline(uint32_t totalCycles, uint8_t& currentLine, Memory& memory)
 	{
 		uint8_t newLineY = totalCycles / SCANLINE_DURATION;
@@ -200,7 +205,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	CheckForInterrupts(memory);
 
-
+	bool hblankend = false;
 
 	// Update externally visible registers end
 
@@ -252,7 +257,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					{
 						data.m_totalCycles--;
 					}
-
+					hblankend = true;
 					if (data.m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
 						SwapBackbuffer();
@@ -273,7 +278,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 				{
 					if (processedCycles % 4 != 0)
 						LOG_ERROR("non-4 divisible cycle count");
-
+					hblankend = true;
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
@@ -281,12 +286,24 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						data.m_totalCycles = 0;
 						data.m_frameCount++;
 						TransitionToOAMScan(memory);
+						LOG_PPU_STATE("\n");
+						LOG_PPU_STATE("\n");
+						LOG_PPU_STATE("\n");
 						return;
 					}
 				}
 			}
 			break;
 		}
+	}
+
+	char logStr[4] = "X,\0";
+	uint8_t modeFlag = PPUHelpers::GetModeFlag(memory);
+	logStr[0] = static_cast<char>(48 + modeFlag);
+	LOG_PPU_STATE(logStr);
+	if (hblankend)
+	{
+		LOG_PPU_STATE("\n");
 	}
 
 	//TODO is this necessary?
@@ -338,7 +355,6 @@ void PPU::TransitionToHBlank(Memory& memory)
 		data.m_windowLineY++;
 	}
 	data.m_firstFrame = false;
-	LOG_CPU_STATE("OAM READABLE\n");
 }
 
 void PPU::TransitionToDraw(Memory& memory)
@@ -362,11 +378,14 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 	data.m_state = PPUState::OAMScan;
 	data.m_applyStateChange = true;
-	LOG_CPU_STATE("OAM BLOCKED\n");
 }
 
 void PPU::DisableScreen(Memory& memory)
 {
+	LOG_PPU_STATE("\n");
+	LOG_PPU_STATE("\n");
+	LOG_PPU_STATE("\n");
+
 	memory.WriteIO(LY_REGISTER, 0);
 	data.m_totalCycles = 0; 
 	data.m_cycleDebt = 0;

@@ -70,7 +70,6 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
 		m_totalCycles += cyclesPassed;
 		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
 		m_stepDuration += cycleDurationS * 1000.0;
-		LOG_CPU_STATE("---------\n");
 	}
 	m_stepDuration -= deltaMs;
 }

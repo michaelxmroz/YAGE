@@ -32,6 +32,12 @@ if(Logger_Helpers::loggerCallback != nullptr) \
 Logger_Helpers::loggerCallback(message, 3); \
 }
 
+#define LOG_PPU_STATE(message) \
+{ \
+if(Logger_Helpers::loggerCallback != nullptr) \
+Logger_Helpers::loggerCallback(message, 3); \
+}
+
 #else
 #define LOG_INFO(message) \
 { \
