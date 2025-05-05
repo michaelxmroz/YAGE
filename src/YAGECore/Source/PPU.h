@@ -52,6 +52,14 @@ private:
 		Draw = 2
 	};
 
+	enum class StateTransition
+	{
+		None = 0,
+		Cycle0 = 1,
+		Cycle1 = 2,
+		Cycle2 = 3,
+	};
+
 	void SetVRamAccess(Memory& memory) const;
 	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
@@ -105,7 +113,7 @@ private:
 			, m_vblankLine()
 			, m_cachedBackgroundEnabled()
 			, m_firstFrame(true)
-			, m_applyStateChange(false)
+			, m_stateTransition(StateTransition::None)
 		{}
 
 		uint32_t m_totalCycles;
@@ -129,7 +137,7 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
-		bool m_applyStateChange;
+		StateTransition m_stateTransition;
 
 		uint8_t m_fineScrollX;
 		TrackedBool m_statLine;

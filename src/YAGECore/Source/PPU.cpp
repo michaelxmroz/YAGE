@@ -136,44 +136,43 @@ void PPU::Init(Memory& memory)
 	memory.ClearVRAM();
 
 	TransitionToOAMScan(memory);
+	data.m_stateTransition = StateTransition::Cycle1;
 }
 
 void PPU::CheckForInterrupts(Memory& memory)
 {
-	data.m_statLine.Reset();
+	if (data.m_stateTransition != StateTransition::Cycle1)
+	{
+		data.m_statLine.Reset();
+		data.m_vblankLine.Reset();
 
-	if (memory.ReadIO(LY_REGISTER) == memory.ReadIO(LYC_REGISTER))
-	{
-		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
-		data.m_statLine.Add(PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory));
-	}
-	else
-	{
-		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
-	}
-
-	data.m_vblankLine.Reset();
-	data.m_vblankLine.Add(data.m_state == PPUState::VBlank);
-	bool shouldTriggerVblank = data.m_vblankLine.ShouldTrigger();
-	if (shouldTriggerVblank)
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
-	}
-
-	if (data.m_state != PPUState::Drawing)
-	{
-		bool statFlagForCurrentMode = PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory);
-		//Hardware quirk: Mode 2 interrupts happen even in Vblank
+		data.m_vblankLine.Add(data.m_state == PPUState::VBlank);
+		bool shouldTriggerVblank = data.m_vblankLine.ShouldTrigger();
 		if (shouldTriggerVblank)
 		{
-			statFlagForCurrentMode |= PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(PPUState::OAMScan)], memory);
+			Interrupts::RequestInterrupt(Interrupts::Types::VBlank, memory);
 		}
-		data.m_statLine.Add(statFlagForCurrentMode);
-	}
 
-	if (data.m_statLine.ShouldTrigger())
-	{
-		Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+		if (memory.ReadIO(LY_REGISTER) == memory.ReadIO(LYC_REGISTER))
+		{
+			data.m_statLine.Add(PPUHelpers::IsStatFlagSet(StatFlags::LCYEqLCInterrupt, memory));
+		}
+
+		if (data.m_state != PPUState::Drawing)
+		{
+			bool statFlagForCurrentMode = PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(data.m_state)], memory);
+			//Hardware quirk: Mode 2 interrupts happen even in Vblank
+			if (shouldTriggerVblank)
+			{
+				statFlagForCurrentMode |= PPUHelpers::IsStatFlagSet(ModeIndexToStatFlags[static_cast<uint32_t>(PPUState::OAMScan)], memory);
+			}
+			data.m_statLine.Add(statFlagForCurrentMode);
+		}
+
+		if (data.m_statLine.ShouldTrigger())
+		{
+			Interrupts::RequestInterrupt(Interrupts::Types::LCD_STAT, memory);
+		}
 	}
 }
 
@@ -185,26 +184,37 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	}
 
 	// Update externally visible registers begin
-	if(data.m_applyStateChange)
-	{
-		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
-		data.m_applyStateChange = false;
-	}
 
-	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
-	if (data.m_lineY == MAX_LINES_Y - 1 && (data.m_totalCycles % SCANLINE_DURATION) > 8 )
-	{
-		memory.WriteIO(LY_REGISTER, 0);
-	}
-	else
+	if (data.m_stateTransition == StateTransition::Cycle1 && !(data.m_lineY == MAX_LINES_Y - 1 && memory.ReadIO(LY_REGISTER) == 0))
 	{
 		memory.WriteIO(LY_REGISTER, data.m_lineY);
 	}
 
-	SetVRamAccess(memory);
+	if(data.m_stateTransition == StateTransition::Cycle2)
+	{
+		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
+	}
+
+	if (memory.ReadIO(LY_REGISTER) == memory.ReadIO(LYC_REGISTER))
+	{
+		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
+	}
+	else
+	{
+		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
+	}
+
+	//SetVRamAccess(memory);
 
 	CheckForInterrupts(memory);
 
+	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
+	if(data.m_lineY == MAX_LINES_Y - 1 && data.m_stateTransition == StateTransition::Cycle2 && memory.ReadIO(LY_REGISTER) != 0)
+	{
+		memory.WriteIO(LY_REGISTER, 0);
+		// we need to repeat the interrupt processing in 2 cycles
+		data.m_stateTransition = StateTransition::Cycle0;
+	}
 	bool hblankend = false;
 
 	// Update externally visible registers end
@@ -216,7 +226,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	if(data.m_firstFrame)
 	{
 		TransitionToOAMScan(memory);
-		data.m_applyStateChange = false;
+		data.m_stateTransition = StateTransition::Cycle1;
 		data.m_firstFrame = false;
 		processedCycles = 8; // Hardware quirk: PPU starts a bit delayed when turned on
 	}
@@ -227,6 +237,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		{
 			case PPUState::OAMScan:
 			{
+				if (data.m_stateTransition == StateTransition::Cycle1)
+				{
+					memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
+				}
+
 				uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
 				ScanOAM(positionInLine, memory);
 				processedCycles += 2;
@@ -239,6 +254,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::Drawing:
 			{
+				if (data.m_stateTransition == StateTransition::Cycle1)
+				{
+					memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
+				}
+
 				DrawPixels(memory, processedCycles);
 
 				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
@@ -249,6 +269,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::HBlank:
 			{
+				//Hardware quirk: VRAM is unblocked one frame later than it gets blocked
+				if (data.m_stateTransition == StateTransition::Cycle2)
+				{
+					memory.SetVRamAccess(Memory::VRamAccess::All);
+				}
+
 				processedCycles += 2;
 
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
@@ -279,6 +305,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					if (processedCycles % 4 != 0)
 						LOG_ERROR("non-4 divisible cycle count");
 					hblankend = true;
+					data.m_stateTransition = StateTransition::Cycle0;
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
@@ -289,12 +316,26 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						LOG_PPU_STATE("\n");
 						LOG_PPU_STATE("\n");
 						LOG_PPU_STATE("\n");
+						data.m_stateTransition = StateTransition::Cycle0;
 						return;
 					}
 				}
 			}
 			break;
 		}
+	}
+
+	if (data.m_stateTransition == StateTransition::Cycle0)
+	{
+		data.m_stateTransition = StateTransition::Cycle1;
+	}
+	else if (data.m_stateTransition == StateTransition::Cycle1)
+	{
+		data.m_stateTransition = StateTransition::Cycle2;
+	}
+	else
+	{
+		data.m_stateTransition = StateTransition::None;
 	}
 
 	char logStr[4] = "X,\0";
@@ -343,18 +384,20 @@ const void* PPU::GetFrameBuffer() const
 void PPU::TransitionToVBlank(Memory& memory)
 {
 	data.m_state = PPUState::VBlank;
-	data.m_applyStateChange = true;
+	data.m_stateTransition = StateTransition::Cycle0;
 }
 
 void PPU::TransitionToHBlank(Memory& memory)
 {
-	data.m_state = PPUState::HBlank;
-	data.m_applyStateChange = true;
 	if (data.m_windowState == WindowState::Draw)
 	{
 		data.m_windowLineY++;
 	}
 	data.m_firstFrame = false;
+
+	data.m_state = PPUState::HBlank;
+	data.m_stateTransition = StateTransition::Cycle0;
+
 }
 
 void PPU::TransitionToDraw(Memory& memory)
@@ -366,7 +409,8 @@ void PPU::TransitionToDraw(Memory& memory)
 	data.m_spriteFetcher.Reset();
 
 	data.m_state = PPUState::Drawing;
-	data.m_applyStateChange = true;
+	data.m_stateTransition = StateTransition::Cycle0;
+
 }
 
 void PPU::TransitionToOAMScan(Memory& memory)
@@ -376,14 +420,16 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	data.m_lineSpriteMask = 0;
 	data.m_spritePrefetchLine = 0;
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
+	
 	data.m_state = PPUState::OAMScan;
-	data.m_applyStateChange = true;
+	data.m_stateTransition = StateTransition::Cycle0;
+	
 }
 
 void PPU::DisableScreen(Memory& memory)
 {
 	LOG_PPU_STATE("\n");
-	LOG_PPU_STATE("\n");
+	LOG_PPU_STATE("PPU OFF\n");
 	LOG_PPU_STATE("\n");
 
 	memory.WriteIO(LY_REGISTER, 0);
@@ -558,6 +604,7 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	{
 		//ppu->TransitionToOAMScan(*memory);
 		ppu->data.m_firstFrame = true;
+		ppu->data.m_stateTransition = StateTransition::Cycle1;
 	}
 }
 

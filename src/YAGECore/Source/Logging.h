@@ -6,6 +6,8 @@ namespace Logger_Helpers
 	extern Emulator::LoggerCallback loggerCallback;
 }
 
+constexpr bool LOG_PPU = false;
+
 #if _LOGGING
 
 #define LOG_INFO(message) \
@@ -34,7 +36,7 @@ Logger_Helpers::loggerCallback(message, 3); \
 
 #define LOG_PPU_STATE(message) \
 { \
-if(Logger_Helpers::loggerCallback != nullptr) \
+if(Logger_Helpers::loggerCallback != nullptr && LOG_PPU) \
 Logger_Helpers::loggerCallback(message, 3); \
 }
 
@@ -55,6 +57,11 @@ Logger_Helpers::loggerCallback(message, 3); \
 }
 
 #define LOG_CPU_STATE(message) \
+{ \
+ (void) (message); \
+}
+
+#define LOG_PPU_STATE(message) \
 { \
  (void) (message); \
 }
