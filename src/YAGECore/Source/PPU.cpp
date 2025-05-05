@@ -131,7 +131,7 @@ void PPU::Init(Memory& memory)
 
 
 	memory.AddIOUnusedBitsOverride(STAT_REGISTER, 0b10000000);
-	memory.AddIOReadOnlyRange(STAT_REGISTER, 0b00000111);
+	memory.AddIOReadOnlyBitsOverride(STAT_REGISTER, 0b00000111);
 
 	memory.ClearVRAM();
 
@@ -306,6 +306,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						LOG_ERROR("non-4 divisible cycle count");
 					hblankend = true;
 					data.m_stateTransition = StateTransition::Cycle0;
+
 					if (data.m_lineY == 0)
 					{
 						data.m_cycleDebt = 0;
@@ -313,10 +314,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						data.m_totalCycles = 0;
 						data.m_frameCount++;
 						TransitionToOAMScan(memory);
+
+						data.m_stateTransition = StateTransition::Cycle1;
+
 						LOG_PPU_STATE("\n");
 						LOG_PPU_STATE("\n");
 						LOG_PPU_STATE("\n");
-						data.m_stateTransition = StateTransition::Cycle0;
 						return;
 					}
 				}

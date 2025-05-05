@@ -855,7 +855,7 @@ bool CPU::ProcessInterrupts(Memory& memory)
 			m_currentInstruction = &(m_instructions[ITR_OPCODE]);
 			m_instructionTempData.Reset();
 			m_instructionTempData.m_opcode = ITR_OPCODE;
-
+			LOG_CPU_STATE("INTERRUPT\n");
 			return true;
 		}
 	}
