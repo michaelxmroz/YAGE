@@ -52,8 +52,16 @@ private:
 		Draw = 2
 	};
 
-	void SetVRamAccess(Memory& memory);
-	void ScanOAM(const uint32_t& positionInLine, Memory& memory);
+	enum class StateTransition
+	{
+		None = 0,
+		Cycle0 = 1,
+		Cycle1 = 2,
+		Cycle2 = 3,
+	};
+
+	void SetVRamReadAccess(Memory& memory) const;
+	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
 	void TransitionToVBlank(Memory& memory);
@@ -65,7 +73,7 @@ private:
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void CheckForInterrupts(Memory& memory);
 
-	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
+	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const;
 
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -100,11 +108,12 @@ private:
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
 			, m_fineScrollX(0)
-			, m_cyclesInLine(0)
 			, m_windowLineY(0)
 			, m_statLine()
 			, m_vblankLine()
 			, m_cachedBackgroundEnabled()
+			, m_firstFrame(true)
+			, m_stateTransition(StateTransition::None)
 		{}
 
 		uint32_t m_totalCycles;
@@ -115,7 +124,6 @@ private:
 		SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
 		uint16_t m_lineSpriteMask;
 		uint8_t m_spritePrefetchLine;
-		uint32_t m_cyclesInLine;
 
 		PixelFIFO m_spriteFIFO;
 		PixelFIFO m_backgroundFIFO;
@@ -129,6 +137,7 @@ private:
 		uint32_t m_frameCount;
 
 		PPUState m_state;
+		StateTransition m_stateTransition;
 
 		uint8_t m_fineScrollX;
 		TrackedBool m_statLine;
@@ -136,6 +145,8 @@ private:
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
+
+		bool m_firstFrame;
 	} data;
 	RGBA* m_activeFrame;
 	RGBA* m_backBuffer;

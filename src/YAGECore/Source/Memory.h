@@ -84,7 +84,8 @@ public:
 
 	void RegisterRamSaveCallback(Emulator::PersistentMemoryCallback callback);
 
-	void SetVRamAccess(VRamAccess access);
+	void SetVRamReadAccess(VRamAccess access);
+	void SetVRamWriteAccess(VRamAccess access);
 	uint8_t GetHeaderChecksum() const;
 
 	void AddIOUnusedBitsOverride(uint16_t addr, uint8_t mask);
@@ -142,7 +143,8 @@ private:
 	uint64_t* m_callbackUserData;
 	MemoryBankController* m_mbc;
 
-	VRamAccess m_vRamAccess;
+	VRamAccess m_vRamReadAccess;
+	VRamAccess m_vRamWriteAccess;
 	bool m_isBootromMapped;
 	bool m_externalMemory;
 
