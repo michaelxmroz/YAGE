@@ -19,19 +19,6 @@
 
 #define IO_REG_LOG 0xFF41
 
-void HexToString(uint8_t value, char* buffer)
-{
-	const char* LUT = "0123456789ABCDEF";
-	buffer[0] = LUT[value >> 4];
-	buffer[1] = LUT[value & 0xF];
-}
-
-void HexToString(uint16_t value, char* buffer)
-{
-	HexToString(static_cast<uint8_t>(value >> 8), buffer);
-	HexToString(static_cast<uint8_t>(value), buffer + 2);
-}
-
 void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const Memory& memory, const char* mnemonic, uint8_t duration)
 {
 	const char* hexTemplate = "%02X";
@@ -44,21 +31,21 @@ void LogCPUState(char* buffer, const Registers& registers, uint16_t atPC, const 
 
 	uint16_t adjustedPC = atPC;
 
-	HexToString(registers.A, strBuffer + offsets[0]);
-	HexToString(registers.FLAGS, strBuffer + offsets[1]);
-	HexToString(registers.B, strBuffer + offsets[2]);
-	HexToString(registers.C, strBuffer + offsets[3]);
-	HexToString(registers.D, strBuffer + offsets[4]);
-	HexToString(registers.E, strBuffer + offsets[5]);
-	HexToString(registers.H, strBuffer + offsets[6]);
-	HexToString(registers.L, strBuffer + offsets[7]);
-	HexToString(registers.SP, strBuffer + offsets[8]);
-	HexToString(adjustedPC, strBuffer + offsets[9]);
-	HexToString(memory[adjustedPC], strBuffer + offsets[10]);
-	HexToString(memory[adjustedPC + 1], strBuffer + offsets[11]);
-	HexToString(memory[adjustedPC + 2], strBuffer + offsets[12]);
-	HexToString(memory[adjustedPC + 3], strBuffer + offsets[13]);
-	HexToString(memory[IO_REG_LOG], strBuffer + offsets[14]);
+	Helpers::HexToString(registers.A, strBuffer + offsets[0]);
+	Helpers::HexToString(registers.FLAGS, strBuffer + offsets[1]);
+	Helpers::HexToString(registers.B, strBuffer + offsets[2]);
+	Helpers::HexToString(registers.C, strBuffer + offsets[3]);
+	Helpers::HexToString(registers.D, strBuffer + offsets[4]);
+	Helpers::HexToString(registers.E, strBuffer + offsets[5]);
+	Helpers::HexToString(registers.H, strBuffer + offsets[6]);
+	Helpers::HexToString(registers.L, strBuffer + offsets[7]);
+	Helpers::HexToString(registers.SP, strBuffer + offsets[8]);
+	Helpers::HexToString(adjustedPC, strBuffer + offsets[9]);
+	Helpers::HexToString(memory[adjustedPC], strBuffer + offsets[10]);
+	Helpers::HexToString(memory[adjustedPC + 1], strBuffer + offsets[11]);
+	Helpers::HexToString(memory[adjustedPC + 2], strBuffer + offsets[12]);
+	Helpers::HexToString(memory[adjustedPC + 3], strBuffer + offsets[13]);
+	Helpers::HexToString(memory[IO_REG_LOG], strBuffer + offsets[14]);
 
 	char* itrPos = strBuffer + offsets[15];
 	*itrPos = ('0' + duration);

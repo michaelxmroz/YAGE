@@ -7,11 +7,6 @@
 
 #define INSTRUCTION_SET_SIZE 513
 
-
-#if _DEBUG
-#define CPU_STATE_LOGGING 0
-#endif
-
 class CPU : ISerializable
 {
 public:

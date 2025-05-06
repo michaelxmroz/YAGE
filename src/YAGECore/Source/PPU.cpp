@@ -185,17 +185,26 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	// Update externally visible registers begin
 
-	if (data.m_stateTransition == StateTransition::Cycle1 && !(data.m_lineY == MAX_LINES_Y - 1 && memory.ReadIO(LY_REGISTER) == 0))
+	bool lyWritten = false;
+
+	uint8_t lyRegVal = memory.ReadIO(LY_REGISTER);
+
+	if (data.m_stateTransition == StateTransition::Cycle1 
+		&& data.m_lineY != lyRegVal 
+		&& !(data.m_lineY == MAX_LINES_Y - 1 && lyRegVal == 0))
 	{
 		memory.WriteIO(LY_REGISTER, data.m_lineY);
+		lyRegVal = data.m_lineY;
+		lyWritten = true;
 	}
 
-	if(data.m_stateTransition == StateTransition::Cycle2)
+	if (data.m_stateTransition == StateTransition::Cycle2)
 	{
 		PPUHelpers::SetModeFlag(static_cast<uint8_t>(data.m_state), memory);
 	}
 
-	if (memory.ReadIO(LY_REGISTER) == memory.ReadIO(LYC_REGISTER))
+	// Hardware quirk, during the cycle that ly is written, lyc always returns 0
+	if (lyRegVal == memory.ReadIO(LYC_REGISTER) && !lyWritten)
 	{
 		PPUHelpers::SetStatFlag(StatFlags::LCYEqLC, memory);
 	}
@@ -209,12 +218,13 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	CheckForInterrupts(memory);
 
 	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
-	if(data.m_lineY == MAX_LINES_Y - 1 && data.m_stateTransition == StateTransition::Cycle2 && memory.ReadIO(LY_REGISTER) != 0)
+	if (data.m_lineY == MAX_LINES_Y - 1 && data.m_stateTransition == StateTransition::Cycle2 && lyRegVal != 0)
 	{
 		memory.WriteIO(LY_REGISTER, 0);
 		// we need to repeat the interrupt processing in 2 cycles
 		data.m_stateTransition = StateTransition::Cycle0;
 	}
+
 	bool hblankend = false;
 
 	// Update externally visible registers end
@@ -223,27 +233,29 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	targetCycles += data.m_cycleDebt;
 	uint32_t processedCycles = 0;
 
-	if(data.m_firstFrame)
-	{
-		TransitionToOAMScan(memory);
-		data.m_stateTransition = StateTransition::Cycle1;
-		data.m_firstFrame = false;
-		processedCycles = 8; // Hardware quirk: PPU starts a bit delayed when turned on
-	}
-
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
 	{
 		switch (data.m_state)
 		{
 			case PPUState::OAMScan:
 			{
-				if (data.m_stateTransition == StateTransition::Cycle1)
+				uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
+
+				if (!data.m_firstFrame)
 				{
-					memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
+					if (data.m_stateTransition == StateTransition::Cycle1)
+					{
+						memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
+					}
+
+					ScanOAM(positionInLine, memory);					
+				}
+				else
+				{
+					data.m_stateTransition = StateTransition::None;
+					PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 				}
 
-				uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
-				ScanOAM(positionInLine, memory);
 				processedCycles += 2;
 				positionInLine += 2;
 				if (positionInLine == OAM_SCAN_DURATION)
@@ -254,7 +266,8 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::Drawing:
 			{
-				if (data.m_stateTransition == StateTransition::Cycle1)
+				if ((data.m_stateTransition == StateTransition::Cycle1 && !data.m_firstFrame) 
+					|| (data.m_stateTransition == StateTransition::Cycle2 && data.m_firstFrame))
 				{
 					memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
 				}
@@ -341,15 +354,18 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		data.m_stateTransition = StateTransition::None;
 	}
 
-	char logStr[4] = "X,\0";
+#if PPU_STATE_LOGGING
+	char logStr[6] = "X:XX,";
 	uint8_t modeFlag = PPUHelpers::GetModeFlag(memory);
 	logStr[0] = static_cast<char>(48 + modeFlag);
+	Helpers::HexToString(memory.ReadIO(LY_REGISTER), logStr + 2);
+
 	LOG_PPU_STATE(logStr);
 	if (hblankend)
 	{
 		LOG_PPU_STATE("\n");
 	}
-
+#endif
 	//TODO is this necessary?
 	//data.m_cycleDebt =  targetCycles - processedCycles;
 
@@ -605,9 +621,10 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	}
 	else if (!PPUPowerPrev && PPUPowerNew)
 	{
-		//ppu->TransitionToOAMScan(*memory);
+		ppu->TransitionToOAMScan(*memory);
 		ppu->data.m_firstFrame = true;
 		ppu->data.m_stateTransition = StateTransition::Cycle1;
+		ppu->data.m_totalCycles += 8;
 	}
 }
 
