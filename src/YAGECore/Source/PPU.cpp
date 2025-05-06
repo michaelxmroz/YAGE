@@ -213,8 +213,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		PPUHelpers::ResetStatFlag(StatFlags::LCYEqLC, memory);
 	}
 
-	//SetVRamAccess(memory);
-
 	CheckForInterrupts(memory);
 
 	// Hardware quirk: LY gets set to 0, 4 cycles after reaching line 153
@@ -245,7 +243,12 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 				{
 					if (data.m_stateTransition == StateTransition::Cycle1)
 					{
-						memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
+						memory.SetVRamReadAccess(Memory::VRamAccess::OAMBlocked);
+					}
+					// Hardware quirk: due to bus timings, the OAM is writable for one cycle longer than it is readable
+					else if (data.m_stateTransition == StateTransition::Cycle2)
+					{
+						memory.SetVRamWriteAccess(Memory::VRamAccess::OAMBlocked);
 					}
 
 					ScanOAM(positionInLine, memory);					
@@ -269,7 +272,13 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 				if ((data.m_stateTransition == StateTransition::Cycle1 && !data.m_firstFrame) 
 					|| (data.m_stateTransition == StateTransition::Cycle2 && data.m_firstFrame))
 				{
-					memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
+					memory.SetVRamReadAccess(Memory::VRamAccess::VRamOAMBlocked);
+					// Hardware quirk: due to bus timings, the OAM & VRAM are writable for one cycle during the switch to drawing
+					memory.SetVRamWriteAccess(Memory::VRamAccess::All);
+				}
+				if (data.m_stateTransition == StateTransition::Cycle2)
+				{
+					memory.SetVRamWriteAccess(Memory::VRamAccess::VRamOAMBlocked);
 				}
 
 				DrawPixels(memory, processedCycles);
@@ -282,10 +291,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			break;
 			case PPUState::HBlank:
 			{
-				//Hardware quirk: VRAM is unblocked one frame later than it gets blocked
+				//Hardware quirk: VRAM is unblocked one frame later than would be expected
 				if (data.m_stateTransition == StateTransition::Cycle2)
 				{
-					memory.SetVRamAccess(Memory::VRamAccess::All);
+					memory.SetVRamReadAccess(Memory::VRamAccess::All);
+					memory.SetVRamWriteAccess(Memory::VRamAccess::All);
 				}
 
 				processedCycles += 2;
@@ -372,22 +382,6 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	data.m_totalCycles += processedCycles;
 }
 
-void PPU::SetVRamAccess(Memory& memory) const
-{
-	if (data.m_state == PPUState::OAMScan)
-	{
-		memory.SetVRamAccess(Memory::VRamAccess::OAMBlocked);
-	}
-	else if (data.m_state == PPUState::Drawing)
-	{
-		memory.SetVRamAccess(Memory::VRamAccess::VRamOAMBlocked);
-	}
-	else
-	{
-		memory.SetVRamAccess(Memory::VRamAccess::All);
-	}
-}
-
 void PPU::SwapBackbuffer()
 {
 	RGBA* swap = m_backBuffer;
@@ -459,7 +453,8 @@ void PPU::DisableScreen(Memory& memory)
 	data.m_state = PPUState::HBlank;
 	PPUHelpers::SetModeFlag(static_cast<uint8_t>(PPUState::HBlank), memory);
 	memset_y(m_activeFrame, 1, sizeof(RGBA) * EmulatorConstants::SCREEN_SIZE);
-	memory.SetVRamAccess(Memory::VRamAccess::All);
+	memory.SetVRamReadAccess(Memory::VRamAccess::All);
+	memory.SetVRamWriteAccess(Memory::VRamAccess::All);
 }
 
 void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)

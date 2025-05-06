@@ -60,7 +60,7 @@ private:
 		Cycle2 = 3,
 	};
 
-	void SetVRamAccess(Memory& memory) const;
+	void SetVRamReadAccess(Memory& memory) const;
 	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 

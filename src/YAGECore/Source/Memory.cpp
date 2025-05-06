@@ -85,9 +85,9 @@ void Memory::Write(uint16_t addr, uint8_t value)
 
 	if (!m_externalMemory)
 	{
-		if (m_vRamAccess != VRamAccess::All)
+		if (m_vRamWriteAccess != VRamAccess::All)
 		{
-			if (addr >= VRAM_START && addr <= VRAM_END && m_vRamAccess == VRamAccess::VRamOAMBlocked)
+			if (addr >= VRAM_START && addr <= VRAM_END && m_vRamWriteAccess == VRamAccess::VRamOAMBlocked)
 			{
 				return;
 			}
@@ -201,9 +201,14 @@ void Memory::RegisterRamSaveCallback(Emulator::PersistentMemoryCallback callback
 	m_mbc->RegisterRamSaveCallback(callback);
 }
 
-void Memory::SetVRamAccess(VRamAccess access)
+void Memory::SetVRamReadAccess(VRamAccess access)
 {
-	m_vRamAccess = access;
+	m_vRamReadAccess = access;
+}
+
+void Memory::SetVRamWriteAccess(VRamAccess access)
+{
+	m_vRamWriteAccess = access;
 }
 
 uint8_t Memory::GetHeaderChecksum() const
@@ -234,7 +239,8 @@ void Memory::Init()
 	RegisterCallback(DMA_REGISTER, DoDMA, nullptr);
 	RegisterCallback(BOOTROM_BANK, UnmapBootrom, nullptr);
 
-	m_vRamAccess = VRamAccess::All;
+	m_vRamReadAccess = VRamAccess::All;
+	m_vRamWriteAccess = VRamAccess::All;
 
 	RegisterUnusedIORegisters();
 
@@ -309,9 +315,9 @@ uint8_t Memory::operator[](uint16_t addr) const
 		addr -= ECHO_RAM_OFFSET;
 	}
 
-	if (m_vRamAccess != VRamAccess::All)
+	if (m_vRamReadAccess != VRamAccess::All)
 	{
-		if (addr >= VRAM_START && addr <= VRAM_END && m_vRamAccess == VRamAccess::VRamOAMBlocked)
+		if (addr >= VRAM_START && addr <= VRAM_END && m_vRamReadAccess == VRamAccess::VRamOAMBlocked)
 		{
 			return 0xFF;
 		}
