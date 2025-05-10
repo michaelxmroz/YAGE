@@ -141,7 +141,7 @@ void PPU::Init(Memory& memory)
 
 void PPU::CheckForInterrupts(Memory& memory)
 {
-	if (data.m_stateTransition != StateTransition::Cycle1)
+	if (data.m_stateTransition != StateTransition::Cycle1 || (data.m_firstFrame && data.m_state == PPUState::OAMScan))
 	{
 		data.m_statLine.Reset();
 		data.m_vblankLine.Reset();
