@@ -114,10 +114,12 @@ private:
 			, m_cachedBackgroundEnabled()
 			, m_firstFrame(true)
 			, m_stateTransition(StateTransition::None)
+			, m_drawDelay(0)
 		{}
 
 		uint32_t m_totalCycles;
 		int32_t m_cycleDebt;
+		uint32_t m_drawDelay;
 		uint8_t m_lineY;
 		uint8_t m_lineX;
 		uint8_t m_lineSpriteCount;

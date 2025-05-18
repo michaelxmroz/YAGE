@@ -16,6 +16,8 @@
 #define TILE_BYTE_SIZE 16
 #define TILE_SIZE 8
 
+#define MAX_VISIBLE_POS_X 167
+
 enum class SpriteFlags
 {
 	PaletteNr = 4,
@@ -102,8 +104,6 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 
 			m_tileAddr = tileIndex * TILE_BYTE_SIZE + yOffset * 2;
 			m_tileAddr += block;
-
-			processedCycles += 2;
 		}
 		else
 		{

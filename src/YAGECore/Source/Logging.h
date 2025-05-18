@@ -7,7 +7,7 @@ namespace Logger_Helpers
 }
 
 #if _DEBUG
-#define CPU_STATE_LOGGING 0
+#define CPU_STATE_LOGGING 1
 constexpr bool LOG_CPU = CPU_STATE_LOGGING;
 
 #define PPU_STATE_LOGGING 0

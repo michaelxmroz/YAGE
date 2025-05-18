@@ -228,7 +228,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	// Update externally visible registers end
 
 	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
-	targetCycles += data.m_cycleDebt;
+
+	int32_t debt = data.m_cycleDebt;
+	data.m_cycleDebt = y::max(debt - targetCycles, 0);
+	targetCycles = y::max(targetCycles - debt, 0);
+	
 	uint32_t processedCycles = 0;
 
 	while (static_cast<int32_t>(processedCycles) < targetCycles)
@@ -281,12 +285,25 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					memory.SetVRamWriteAccess(Memory::VRamAccess::VRamOAMBlocked);
 				}
 
-				DrawPixels(memory, processedCycles);
-
+				if (data.m_lineX != EmulatorConstants::SCREEN_WIDTH)
+				{
+					DrawPixels(memory, processedCycles);
+				}	
+				
 				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
-					TransitionToHBlank(memory);
-				}
+					uint32_t delay = (data.m_totalCycles + processedCycles) % 4;
+					if (delay != 0)
+					{
+						processedCycles += 4 - delay;
+						targetCycles = processedCycles;
+					}
+					else
+					{
+						TransitionToHBlank(memory);
+						targetCycles = processedCycles;
+					}
+				}		
 			}
 			break;
 			case PPUState::HBlank:
@@ -298,14 +315,29 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					memory.SetVRamWriteAccess(Memory::VRamAccess::All);
 				}
 
+				if (data.m_totalCycles % 4 != 0)
+				{
+					LOG_ERROR("This should never happen");
+				}
+
+				/*
+				if (targetCycles != MCYCLES_TO_CYCLES)
+				{
+					processedCycles++;
+				}
+				else
+				{
+					processedCycles += 2;
+				}
+				*/
 				processedCycles += 2;
 
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
-					if (data.m_totalCycles % 2 != 0)
-					{
-						data.m_totalCycles--;
-					}
+					// Shorten mode 0 duration if mode 3 had a cylce count that was not divisible by 4
+					//processedCycles = data.m_lineY * SCANLINE_DURATION - data.m_totalCycles;
+					//targetCycles = processedCycles;
+
 					hblankend = true;
 					if (data.m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
@@ -323,10 +355,9 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 			case PPUState::VBlank:
 			{
 				processedCycles += 2;
+
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
-					if (processedCycles % 4 != 0)
-						LOG_ERROR("non-4 divisible cycle count");
 					hblankend = true;
 					data.m_stateTransition = StateTransition::Cycle0;
 
@@ -376,8 +407,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 		LOG_PPU_STATE("\n");
 	}
 #endif
-	//TODO is this necessary?
-	//data.m_cycleDebt =  targetCycles - processedCycles;
+
+	if (data.m_cycleDebt == 0)
+	{
+		data.m_cycleDebt = processedCycles - targetCycles;
+	}
 
 	data.m_totalCycles += processedCycles;
 }
@@ -416,6 +450,7 @@ void PPU::TransitionToHBlank(Memory& memory)
 void PPU::TransitionToDraw(Memory& memory)
 {
 	data.m_lineX = 0;
+	data.m_drawDelay = 0;
 	data.m_backgroundFIFO.Clear();
 	data.m_spriteFIFO.Clear();
 	data.m_backgroundFetcher.Reset();
@@ -459,7 +494,12 @@ void PPU::DisableScreen(Memory& memory)
 
 void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
-	processedCycles += 2;
+	if (data.m_drawDelay > 0)
+	{
+		processedCycles++;
+		data.m_drawDelay--;
+		return;
+	}
 
 	if (data.m_windowState == WindowState::InScanline && data.m_lineX + 7 >= memory.ReadIO(WX_REGISTER))
 	{
@@ -469,7 +509,26 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		data.m_windowState = WindowState::Draw;
 		data.m_fineScrollX = 0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
 	}
-	
+	/*
+	if (data.m_stateTransition == StateTransition::Cycle1)
+	{
+		// Hack: add 6 dots for each sprite that is off screen due to x=0
+		bool offscreenSprite = false;
+		for (uint8_t i = 0; i < data.m_lineSpriteCount; ++i)
+		{
+			auto& sprite = data.m_lineSprites[i];
+			if (sprite.m_posX == 0)
+			{
+				processedCycles += 6;
+				offscreenSprite = true;
+			}
+		}
+		if (offscreenSprite)
+		{
+			processedCycles += 2;
+		}
+	}
+	*/
 	uint8_t currentSpriteIndex;
 
 	if (data.m_lineX == 0)
@@ -484,6 +543,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 				{
 					data.m_lineSpriteMask |= (1 << currentSpriteIndex);
 				}
+				processedCycles += 2;
 				return;
 			}
 			data.m_spritePrefetchLine++;
@@ -498,6 +558,7 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		{
 			data.m_lineSpriteMask |= (1 << currentSpriteIndex);
 		}
+		processedCycles += 2;
 		return;
 	}
 	else
@@ -509,16 +570,16 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	{
 		if (data.m_fineScrollX > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
 		{	
-			for (uint8_t i = 0; i < 2; ++i)
+			uint8_t stepAmount = y::min(static_cast<uint8_t>(2), data.m_fineScrollX);
+			for (uint8_t i = 0; i < stepAmount; ++i)
 			{
 				data.m_backgroundFIFO.Pop();
-				data.m_fineScrollX--;
-				if (data.m_fineScrollX == 0)
-				{
-					break;
-				}
 			}
 
+			//processedCycles += data.m_fineScrollX;
+			processedCycles += stepAmount;
+			//data.m_drawDelay += data.m_fineScrollX;
+			data.m_fineScrollX -= stepAmount;
 			return;
 		}
 	}
@@ -528,6 +589,8 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		RenderNextPixel(memory);
 		RenderNextPixel(memory);
 	}
+
+	processedCycles += 2;
 }
 
 void PPU::RenderNextPixel(Memory& memory)
@@ -583,9 +646,12 @@ bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const
 	{
 		int16_t posDifference = data.m_lineSprites[i].m_posX - (data.m_lineX + offset);
 		bool isAvailable = (data.m_lineSpriteMask & (1 << i)) == 0;
-		if (isAvailable && (posDifference == 0 || posDifference == 1) && abs_y(posDifference) < minDifference)
+		if (isAvailable && (posDifference == 0 || posDifference == 1 || (data.m_lineX == 0 && posDifference == -8)) && abs_y(posDifference) < minDifference)
 		{
-			minDifference = abs_y(posDifference);
+			if (posDifference >= 0)
+			{
+				minDifference = abs_y(posDifference);
+			}
 			spriteIndex = i;
 			foundSprite = true;
 		}
