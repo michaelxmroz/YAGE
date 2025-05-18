@@ -88,11 +88,38 @@ public:
 	uint32_t GetMemoryUse() const;
 
 #if _DEBUG
+
+#define MAX_MNEMONIC_LENGTH 10
+
+	struct CPUState
+	{
+		uint8_t regA;                  // Accumulator
+		uint8_t regF;                  // Flags register
+		uint8_t regB;
+		uint8_t regC;
+		uint8_t regD;
+		uint8_t regE;
+		uint8_t regH;
+		uint8_t regL;
+		uint16_t regPC;                // Program Counter
+		uint16_t regSP;                // Stack Pointer
+		bool running = true;           // CPU running state
+		bool halted = false;           // Halt flag
+		char currentInstruction[MAX_MNEMONIC_LENGTH];     // Mnemonic of the current instruction
+		int instructionDurationCycles = 0;  // Total cycles this instruction lasts
+		int cyclesProcessed = 0;            // Cycles processed so far
+		bool handlingInterrupt = false;     // If in interrupt handling
+	};
+
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetInstructionCountCallback(uint64_t instr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void ClearCallbacks() = 0;
+	virtual CPUState GetCPUState() = 0;
+	virtual void* GetRawMemoryView() = 0;
+
+
 #endif
 	virtual ~Emulator();
 };

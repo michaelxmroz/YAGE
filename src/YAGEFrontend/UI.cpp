@@ -459,7 +459,7 @@ namespace
         }
     }
 
-    void DrawMainMenuBar(UIState& state, EngineData& data, double deltaMs)
+    void DrawMainMenuBar(UIState& state, EngineData& data, DebuggerUI& debugger, double deltaMs)
     {
         ImVec2 viewportPos = ImGui::GetMainViewport()->Pos;
         ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
@@ -585,6 +585,10 @@ namespace
                 }
                 if (ImGui::BeginMenu("Debug"))
                 {
+                    if (ImGui::MenuItem("Debugger"))
+                    {
+                        debugger.Toggle(data);
+                    }
                     if (ImGui::MenuItem("Log Window"))
                     {
                         state.m_showLogWindow = !state.m_showLogWindow;
@@ -662,10 +666,11 @@ void UI::Prepare(EngineData& data, double deltaMs)
     bool show = true;
     //ImGui::ShowDemoWindow(&show);
 
-    DrawMainMenuBar(m_state, data, deltaMs);
+    DrawMainMenuBar(m_state, data, m_debugger, deltaMs);
 
     DrawLogWindow(m_state);
     DrawStatsWindow(m_state, data);
+    m_debugger.Draw(data);
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);

@@ -1,4 +1,5 @@
 #pragma once
+#include "DebuggerUI.h"
 #include "RendererVulkan.h"
 #include "EngineState.h"
 #include "imgui.h"
@@ -75,4 +76,5 @@ private:
 	UI& operator= (const UI& other) = delete;
 
 	UIState m_state;
+	DebuggerUI m_debugger{};
 };

@@ -98,6 +98,7 @@ public:
 #if _DEBUG
 	void ClearCallbacks();
 	void SetMemoryCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData);
+	void* GetRawMemoryView();
 #endif
 
 private:

@@ -598,6 +598,11 @@ void Memory::SetMemoryCallback(uint16_t addr, Emulator::DebugCallback callback, 
 	DEBUG_MemoryCallbackUserData.emplace(addr, userData);
 }
 
+void* Memory::GetRawMemoryView()
+{
+	return m_mappedMemory;
+}
+
 void Memory::CheckForMemoryCallback(uint16_t addr)
 {
 	if (DEBUG_MemoryCallbackMap.size() > 0)

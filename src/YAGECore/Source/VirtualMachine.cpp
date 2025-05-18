@@ -141,6 +141,16 @@ void VirtualMachine::ClearCallbacks()
 	m_cpu.ClearCallbacks();
 	m_memory.ClearCallbacks();
 }
+
+Emulator::CPUState VirtualMachine::GetCPUState()
+{
+	return m_cpu.GetCPUState();
+}
+
+void* VirtualMachine::GetRawMemoryView()
+{
+	return m_memory.GetRawMemoryView();
+}
 #endif
 
 #ifdef _TESTING

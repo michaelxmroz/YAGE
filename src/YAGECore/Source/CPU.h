@@ -4,6 +4,7 @@
 #include "InstructionFunctions.h"
 #include "Interrupts.h"
 #include "CppIncludes.h"
+#include "../Include/Emulator.h"
 
 #define INSTRUCTION_SET_SIZE 513
 
@@ -21,6 +22,8 @@ public:
 	void SetInstructionCountCallback(uint64_t instrCount, Emulator::DebugCallback callback, void* userData);
 	void SetPCCallback(uint16_t pc, Emulator::DebugCallback callback, void* userData);
 	void ClearCallbacks();
+
+	Emulator::CPUState GetCPUState() const;
 #endif
 #if _TESTING
 	void StopOnInstruction(uint8_t instr);

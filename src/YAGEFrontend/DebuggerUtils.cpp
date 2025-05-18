@@ -1,4 +1,4 @@
-#include "Debugging.h"
+#include "DebuggerUtils.h"
 
 #define DEBUG_VS 1
 
@@ -8,14 +8,14 @@
 #endif
 #include "Logger.h"
 
-void Debugging::TriggerBreakpoint(void* userData)
+void DebuggerUtils::TriggerBreakpoint(void* /*userData*/)
 {
 #if DEBUG_VS
 	__debugbreak();
 #endif
 }
 
-void Debugging::TriggerLog(void* userData)
+void DebuggerUtils::TriggerLog(void* /*userData*/)
 {
 	LOG_INFO("Log triggered");
 }

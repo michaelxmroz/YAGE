@@ -143,7 +143,7 @@
     <ClCompile Include="$(BaseItemPath)\Audio.cpp" />
     <ClCompile Include="$(BaseItemPath)\AudioPortaudio.cpp" />
     <ClCompile Include="$(BaseItemPath)\BackendWin32.cpp" />
-    <ClCompile Include="$(BaseItemPath)\Debugging.cpp" />
+    <ClCompile Include="$(BaseItemPath)\DebuggerUtils.cpp" />
     <ClCompile Include="$(BaseItemPath)\EngineController.cpp" />
     <ClCompile Include="$(BaseItemPath)\EngineState.cpp" />
     <ClCompile Include="$(BaseItemPath)\Logger.cpp" />
@@ -156,6 +156,7 @@
     <ClCompile Include="$(BaseItemPath)\UI.cpp" />
     <ClCompile Include="$(BaseItemPath)\Tween.cpp" />
     <ClCompile Include="$(BaseItemPath)\UIStrings.cpp" />
+	<ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -176,7 +177,7 @@
     <ClInclude Include="$(BaseItemPath)\AudioPortaudio.h" />
     <ClInclude Include="$(BaseItemPath)\Backend.h" />
     <ClInclude Include="$(BaseItemPath)\BackendWin32.h" />
-    <ClInclude Include="$(BaseItemPath)\Debugging.h" />
+    <ClInclude Include="$(BaseItemPath)\DebuggerUtils.h" />
     <ClInclude Include="$(BaseItemPath)\EngineController.h" />
     <ClInclude Include="$(BaseItemPath)\EngineState.h" />
     <ClInclude Include="$(BaseItemPath)\Logger.h" />
@@ -188,8 +189,9 @@
     <ClInclude Include="$(BaseItemPath)\TimerWin32.h" />
     <ClInclude Include="$(BaseItemPath)\UI.h" />
     <ClInclude Include="$(BaseItemPath)\resource.h" />
-    <ClInclude Include="..\src\YAGEFrontend\Tween.h" />
-    <ClInclude Include="..\src\YAGEFrontend\UIStrings.h" />
+    <ClInclude Include="$(BaseItemPath)\Tween.h" />
+    <ClInclude Include="$(BaseItemPath)\UIStrings.h" />
+	<ClCompile Include="$(BaseItemPath)\DebuggerUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />

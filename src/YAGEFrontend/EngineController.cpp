@@ -1,5 +1,5 @@
 #include "EngineController.h"
-#include "Debugging.h"
+#include "DebuggerUtils.h"
 
 std::string EngineController::s_persistentMemoryPath;
 
@@ -20,13 +20,18 @@ void DumpMemory(void* userData)
 {
     EngineController* engine = static_cast<EngineController*>(userData);
     engine->Save(true);
-    Debugging::TriggerBreakpoint(userData);
+    DebuggerUtils::TriggerBreakpoint(userData);
 }
 #endif
 
-void GatherStats(const Emulator& emulator, EngineData& state)
+void GatherStats(Emulator& emulator, EngineData& state)
 {
     state.m_stats.m_allocatedMemory = emulator.GetMemoryUse();
+#if defined (_DEBUG)
+    state.m_cpuStatePrevious = state.m_cpuState;
+    state.m_cpuState = emulator.GetCPUState();
+    state.m_rawMemoryView = emulator.GetRawMemoryView();
+#endif
 }
 
 EngineController::EngineController(EngineData& state) :
@@ -90,7 +95,7 @@ void EngineController::Run()
         std::vector<char> ramBlob;
         FileParser::Read(s_persistentMemoryPath, ramBlob);
 
-        if (romBlob.size() > 0)
+        if (!romBlob.empty())
         {
             std::string windowTitle = string_format("YAGE - %s", fileWithoutEnding.c_str());
 #if _DEBUG
@@ -137,7 +142,7 @@ void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, cons
 
     std::string filename = FileParser::StripPath(m_data.m_gamePath.c_str());
 
-    if (bootromBlob.size() > 0)
+    if (!bootromBlob.empty())
     {
         m_emulator->Load(filename.c_str(), romBlob.data(), static_cast<uint32_t>(romBlob.size()), bootromBlob.data(), static_cast<uint32_t>(bootromBlob.size()));
     }
@@ -146,7 +151,7 @@ void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, cons
         m_emulator->Load(filename.c_str(), romBlob.data(), static_cast<uint32_t>(romBlob.size()));
     }
 
-    if (ramBlob.size() > 0)
+    if (!ramBlob.empty())
     {
         m_emulator->LoadPersistentMemory(ramBlob.data(), static_cast<uint32_t>(ramBlob.size()));
     }
@@ -211,15 +216,30 @@ void EngineController::RunEmulatorLoop()
 
         if (m_data.m_gameLoaded)
         {
-            if (m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED)
+            bool shouldStep = m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED;
+            double emulatorDeltaMs = deltaMs;
+            if(m_data.m_debuggerActive && m_data.m_debuggerSteps >= 0)
             {
+                emulatorDeltaMs = EMULATOR_TICK_DURATION_MS;
+                if(m_data.m_debuggerSteps == 0)
+                {
+                    shouldStep = false;
+                }
+                else if(m_data.m_debuggerSteps > 0)
+                {
+                    m_data.m_debuggerSteps--;
+                }
+            }
+
+			if(shouldStep)
+			{
                 m_emulator->SetTurboSpeed(m_data.m_turbo ? m_data.m_userSettings.m_systemTurboSpeed.GetValue() : 1.0f);
-                m_emulator->Step(inputState, deltaMs);
+                m_emulator->Step(inputState, emulatorDeltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
 
                 GatherStats(*m_emulator, m_data);
-            }
+			}
 
             HandleSaveLoad();
 

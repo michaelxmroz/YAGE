@@ -90,7 +90,7 @@
     <ClCompile Include="$(BaseItemPath)\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(BaseItemPath)\Debugging.cpp">
+    <ClCompile Include="$(BaseItemPath)\DebuggerUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\UI.cpp">
@@ -131,6 +131,12 @@
     </ClCompile>
     <ClCompile Include="$(BaseItemPath)\Tween.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(BaseItemPath)\DebuggerUI.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -179,7 +185,7 @@
     <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\Debugging.h">
+    <ClInclude Include="$(BaseItemPath)\DebuggerUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\UI.h">
@@ -224,10 +230,10 @@
     <ClInclude Include="$(BaseItemPath)\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\UIStrings.h">
+    <ClInclude Include="$(BaseItemPath)\UIStrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\YAGEFrontend\Tween.h">
+    <ClInclude Include="$(BaseItemPath)\Tween.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -239,6 +245,7 @@
       <Filter>Header Files\imgui</Filter>
     </None>
     <None Include="vcpkg.json" />
+    <None Include="$(ProjectRoot)\splash.gb" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natvis">

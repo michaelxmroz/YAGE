@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
+
+#include "Emulator.h"
 #include "FileParser.h"
 #include "logging.h"
 #include "logger.h"
@@ -289,6 +291,9 @@ struct EngineData
 		, m_baseWidth(0)
 		, m_baseHeight(0)
 		, m_turbo(false)
+		, m_debuggerActive(false)
+		, m_debuggerSteps(0)
+		, m_rawMemoryView(nullptr)
 	{}
 
 	StateMachine m_engineState;
@@ -305,6 +310,13 @@ struct EngineData
 	uint32_t m_baseHeight;
 
 	bool m_turbo;
+	bool m_debuggerActive;
+	int64_t m_debuggerSteps;
+#if defined( _DEBUG)
+	Emulator::CPUState m_cpuState;
+	Emulator::CPUState m_cpuStatePrevious;
+	void* m_rawMemoryView;
+#endif
 
 	Stats m_stats;
 private:

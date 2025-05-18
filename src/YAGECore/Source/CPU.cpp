@@ -681,6 +681,29 @@ void CPU::ClearCallbacks()
 	DEBUG_instrCallbackMap.clear();
 	DEBUG_instrCountCallbackMap.clear();
 }
+
+Emulator::CPUState CPU::GetCPUState() const
+{
+	Emulator::CPUState state;
+	state.regA = m_registers.A;
+	state.regB = m_registers.B;
+	state.regC = m_registers.C;
+	state.regD = m_registers.D;
+	state.regE = m_registers.E;
+	state.regF = m_registers.FLAGS;
+	state.regH = m_registers.H;
+	state.regL = m_registers.L;
+	state.regPC = m_registers.PC;
+	state.regSP = m_registers.SP;
+
+	state.halted = m_registers.CpuState != Registers::State::Running;
+	state.handlingInterrupt = m_instructionTempData.m_opcode == ITR_OPCODE;
+	state.instructionDurationCycles = m_currentInstruction->m_duration;
+	state.cyclesProcessed = m_instructionTempData.m_cycles;
+	memcpy_y(state.currentInstruction, m_currentInstruction->m_mnemonic, strlen(m_currentInstruction->m_mnemonic) + 1);
+
+	return state;
+}
 #endif
 
 uint32_t CPU::Step(Memory& memory)
