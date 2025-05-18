@@ -144,20 +144,22 @@ void DebuggerUI::Draw(EngineData& data)
         float tableWidth = avail - ImGui::GetStyle().ScrollbarSize;
         float cellWidth = ImGui::CalcTextSize("FF").x + ImGui::GetStyle().CellPadding.x * 2;
         int cols = static_cast<int>((tableWidth - 80) / cellWidth);
+        cols--;
         if (cols < 1) cols = 1;
         int totalCols = cols + 1;
-        ImGui::BeginChild("MemoryView", ImVec2(0, 200), true);
 
-        uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
-        
+        ImGui::BeginChild("MemoryView", ImVec2(0, 200), false);
+
+        uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);     
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
         if (ImGui::BeginTable("mem_table", totalCols, ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersInner |
-            ImGuiTableFlags_SizingStretchSame, ImVec2(tableWidth, 0)))
+            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_HighlightHoveredColumn, ImVec2(tableWidth, 0)))
         {
-            ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None, 80);
+            ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None, 55);
 
             for (int i = 0; i < cols; ++i)
             {
@@ -170,7 +172,10 @@ void DebuggerUI::Draw(EngineData& data)
             {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5);
                 ImGui::Text("0x%04X", rowBase);
+
                 for (int c = 0; c < cols; ++c) 
                 {
                     int addr = rowBase + c;
@@ -188,20 +193,10 @@ void DebuggerUI::Draw(EngineData& data)
 
                         ImGui::PushID(addr);
                         float cellSize = ImGui::GetColumnWidth();
-                        /*
-                        ImGui::InvisibleButton("cell_inv", ImVec2(cellSize, ImGui::GetTextLineHeightWithSpacing()));
-                        if (ImGui::IsItemClicked()) 
-                        {
-                            m_state.m_selectedMemoryCell = addr;
-                        }
-                        */
+
                         char buf[8];
                     	sprintf_s(buf, "%02X", mem[addr]);
-                        //ImGui::SetCursorPosX(ImGui::GetCursorPosX() - cellSize + (cellSize - ImGui::CalcTextSize(buf).x) * 0.5f);
-                       // ImGui::TextUnformatted(buf);
-                        // Remove padding and spacing
-                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
                         // Transparent button background
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
@@ -212,7 +207,6 @@ void DebuggerUI::Draw(EngineData& data)
                             m_state.m_selectedMemoryCell = addr;
                         }
                         ImGui::PopStyleColor(3);
-                        ImGui::PopStyleVar(2);
                         ImGui::PopID();
 
                     }
@@ -225,7 +219,7 @@ void DebuggerUI::Draw(EngineData& data)
 
             ImGui::EndTable();
         }
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         ImGui::EndChild();
         if (m_state.m_selectedMemoryCell >= 0 && mem)
         {
