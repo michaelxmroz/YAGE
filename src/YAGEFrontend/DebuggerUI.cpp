@@ -2,35 +2,59 @@
 #include "DebuggerUtils.h"
 #include "imgui.h"
 
-// Helper for memory region tinting
-static ImU32 GetMemRegionTint(int addr)
+namespace
 {
-    struct Region { int start, end; ImU32 color; };
-    static const Region regions[] = 
+    struct Region
     {
-        { 0x0000, 0x3FFF, IM_COL32(200,200,255,50) }, // ROM Bank 0
-        { 0x4000, 0x7FFF, IM_COL32(180,200,255,50) }, // ROM Bank switchable
-        { 0x8000, 0x9FFF, IM_COL32(200,255,200,50) }, // VRAM
-        { 0xA000, 0xBFFF, IM_COL32(200,255,200,80) }, // External RAM
-        { 0xC000, 0xCFFF, IM_COL32(255,200,200,50) }, // WRAM bank0
-        { 0xD000, 0xDFFF, IM_COL32(255,200,200,80) }, // WRAM bank1
-        { 0xE000, 0xFDFF, IM_COL32(200,200,200,50) }, // Echo RAM
-        { 0xFE00, 0xFE9F, IM_COL32(255,200,255,50) }, // OAM
-        { 0xFEA0, 0xFEFF, IM_COL32(100,100,100,80) }, // Not Usable
-        { 0xFF00, 0xFF7F, IM_COL32(255,255,200,50) }, // I/O
-        { 0xFF80, 0xFFFE, IM_COL32(255,200,255,80) }, // HRAM
-        { 0xFFFF, 0xFFFF, IM_COL32(255,200,255,80) }  // IE Register
+        int start;
+        int end;
+        ImU32 color;
+        const char* name;
     };
-    for (const auto& r : regions)
+    const Region regions[] =
     {
-        if (addr >= r.start && addr <= r.end)
+        { 0x0000, 0x3FFF, IM_COL32(200,200,255,50), "ROM Bank 0" }, // ROM Bank 0
+        { 0x4000, 0x7FFF, IM_COL32(180,200,255,50), "ROM Bank 1" }, // ROM Bank switchable
+        { 0x8000, 0x9FFF, IM_COL32(200,255,200,50), "VRAM" }, // VRAM
+        { 0xA000, 0xBFFF, IM_COL32(200,255,200,80), "External RAM" }, // External RAM
+        { 0xC000, 0xCFFF, IM_COL32(255,200,200,50), "WRAM Bank 0" }, // WRAM bank0
+        { 0xD000, 0xDFFF, IM_COL32(255,200,200,80), "WRAM Bank 1" }, // WRAM bank1
+        { 0xE000, 0xFDFF, IM_COL32(200,200,200,50), "Echo Ram" }, // Echo RAM
+        { 0xFE00, 0xFE9F, IM_COL32(255,200,255,50), "OAM" }, // OAM
+        { 0xFEA0, 0xFEFF, IM_COL32(100,100,100,80), "UNUSABLE" }, // Not Usable
+        { 0xFF00, 0xFF7F, IM_COL32(255,255,200,50), "IO Registers" }, // I/O
+        { 0xFF80, 0xFFFE, IM_COL32(255,200,255,80), "HRAM" }, // HRAM
+        { 0xFFFF, 0xFFFF, IM_COL32(255,200,255,80), "IE Register" }  // IE Register
+    };
+
+    // Helper for memory region tinting
+    ImU32 GetMemRegionTint(int addr)
+    {
+        for (const auto& r : regions)
         {
-            return r.color;
+            if (addr >= r.start && addr <= r.end)
+            {
+                return r.color;
+            }
         }
+
+        return IM_COL32(0, 0, 0, 0);
     }
 
-    return IM_COL32(0, 0, 0, 0);
+    const char* GetMemRegionName(int addr)
+    {
+        for (const auto& r : regions)
+        {
+            if (addr >= r.start && addr <= r.end)
+            {
+                return r.name;
+            }
+        }
+        return "";
+    }
 }
+
+
 
 void DebuggerUI::Draw(EngineData& data)
 {
@@ -148,9 +172,55 @@ void DebuggerUI::Draw(EngineData& data)
         if (cols < 1) cols = 1;
         int totalCols = cols + 1;
 
-        ImGui::BeginChild("MemoryView", ImVec2(0, 200), false);
+        constexpr float MemoryViewHeight = 200.0f;
 
-        uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);     
+
+        uint16_t regionAddr = m_state.m_hoveredAddr >= 0 ? m_state.m_hoveredAddr : m_state.m_memoryFirstVisibleAddr;
+        regionAddr = m_state.m_selectedMemoryCell >= 0 ? m_state.m_selectedMemoryCell : regionAddr;
+
+        ImU32 regionColor = GetMemRegionTint(regionAddr);
+        const char* regionLabel = GetMemRegionName(regionAddr);
+
+
+        ImVec2 labelSize = ImGui::CalcTextSize(regionLabel);
+        ImVec2 cursor = ImGui::GetCursorScreenPos();
+        ImVec2 padding = ImGui::GetStyle().FramePadding;
+        ImVec2 labelRectMin = cursor;
+        ImVec2 labelRectMax = ImVec2(cursor.x + labelSize.x + padding.x * 2, cursor.y + labelSize.y + padding.y * 2);
+
+        // Draw background rectangle with region color
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRectFilled(labelRectMin, labelRectMax, regionColor, 4.0f);
+
+        // Draw the label text centered inside the rectangle
+        ImGui::SetCursorScreenPos(ImVec2(cursor.x + padding.x, cursor.y + padding.y));
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
+        ImGui::TextUnformatted(regionLabel);
+        ImGui::PopStyleColor();
+
+        uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
+
+        if ( (m_state.m_selectedMemoryCell >= 0 || m_state.m_hoveredAddr >= 0) && mem)
+        {
+            ImGui::SameLine();
+
+            int selectedMemory = m_state.m_selectedMemoryCell >= 0 ? m_state.m_selectedMemoryCell : m_state.m_hoveredAddr;
+            ImGui::Text("Addr: 0x%04X", selectedMemory);
+            ImGui::SameLine(); ImGui::Text("Value: 0x%02X", mem[selectedMemory]);
+            ImGui::SameLine();
+            if (ImGui::Button("Add Data BP", ImVec2(50, 10)))
+            {
+                /* TODO: Add data breakpoint for m_data.selectedMemAddr */
+            }
+        }
+
+        ImGui::BeginChild("MemoryView", ImVec2(0, MemoryViewHeight), false);
+
+        float scroll = ImGui::GetScrollY();
+        float rowHeight = ImGui::GetTextLineHeightWithSpacing();
+        int firstVisibleRow = static_cast<int>(scroll / rowHeight);
+        m_state.m_memoryFirstVisibleAddr = firstVisibleRow * cols;
+
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
@@ -160,6 +230,8 @@ void DebuggerUI::Draw(EngineData& data)
             ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_HighlightHoveredColumn, ImVec2(tableWidth, 0)))
         {
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None, 55);
+
+            bool foundHover = false;
 
             for (int i = 0; i < cols; ++i)
             {
@@ -192,7 +264,6 @@ void DebuggerUI::Draw(EngineData& data)
                         }
 
                         ImGui::PushID(addr);
-                        float cellSize = ImGui::GetColumnWidth();
 
                         char buf[8];
                     	sprintf_s(buf, "%02X", mem[addr]);
@@ -204,8 +275,22 @@ void DebuggerUI::Draw(EngineData& data)
 
                         if (ImGui::Button(buf, ImVec2(ImGui::GetColumnWidth(), ImGui::GetTextLineHeightWithSpacing()))) 
                         {
-                            m_state.m_selectedMemoryCell = addr;
+                            if(m_state.m_selectedMemoryCell == addr)
+                            {
+                                m_state.m_selectedMemoryCell = -1;
+                            }
+                            else
+                            {
+                                m_state.m_selectedMemoryCell = addr;
+                            }
                         }
+
+                        if (ImGui::IsItemHovered()) 
+                        {
+                            m_state.m_hoveredAddr = addr;
+                            foundHover = true;
+                        }
+
                         ImGui::PopStyleColor(3);
                         ImGui::PopID();
 
@@ -217,21 +302,15 @@ void DebuggerUI::Draw(EngineData& data)
                 }
             }
 
+            if(!foundHover)
+            {
+                m_state.m_hoveredAddr = -1;
+            }
+
             ImGui::EndTable();
         }
         ImGui::PopStyleVar(2);
         ImGui::EndChild();
-        if (m_state.m_selectedMemoryCell >= 0 && mem)
-        {
-            ImGui::Separator();
-            ImGui::Text("Selected Addr: 0x%04X", m_state.m_selectedMemoryCell);
-            ImGui::SameLine(); ImGui::Text("Value: 0x%02X", mem[m_state.m_selectedMemoryCell]);
-            ImGui::SameLine();
-            if (ImGui::Button("Add Data BP to Selected", ImVec2(180, 30))) 
-            {
-                /* TODO: Add data breakpoint for m_data.selectedMemAddr */
-            }
-        }
     }
 
     // --- Breakpoints ---

@@ -191,7 +191,7 @@
     <ClInclude Include="$(BaseItemPath)\resource.h" />
     <ClInclude Include="$(BaseItemPath)\Tween.h" />
     <ClInclude Include="$(BaseItemPath)\UIStrings.h" />
-	<ClCompile Include="$(BaseItemPath)\DebuggerUI.h" />
+	<ClInclude Include="$(BaseItemPath)\DebuggerUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />

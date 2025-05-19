@@ -12,9 +12,11 @@ private:
     {
         bool m_showWindow{false};
         int m_stepCount{1};
-        int m_selectedMemoryCell{0};
+        int m_selectedMemoryCell{-1};
+        int m_memoryFirstVisibleAddr{-1};
+        int m_hoveredAddr{-1};
     };
 
-    DebuggerUIState m_state;
+    DebuggerUIState m_state{};
 };
 
