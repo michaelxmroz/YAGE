@@ -135,7 +135,7 @@ void PPU::Init(Memory& memory)
 
 	memory.ClearVRAM();
 
-	TransitionToOAMScan(memory);
+	TransitionToOAMScan(memory, 0);
 	data.m_stateTransition = StateTransition::Cycle1;
 }
 
@@ -263,7 +263,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 				positionInLine += 2;
 				if (positionInLine == OAM_SCAN_DURATION)
 				{
-					TransitionToDraw(memory);
+					TransitionToDraw(memory, processedCycles);
 				}
 			}
 			break;
@@ -285,7 +285,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
-					TransitionToHBlank(memory);
+					TransitionToHBlank(memory, processedCycles);
 				}
 			}
 			break;
@@ -311,11 +311,11 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 					{
 						SwapBackbuffer();
 
-						TransitionToVBlank(memory);
+						TransitionToVBlank(memory, processedCycles);
 					}
 					else
 					{
-						TransitionToOAMScan(memory);
+						TransitionToOAMScan(memory, processedCycles);
 					}
 				}
 			}
@@ -336,7 +336,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 						data.m_windowLineY = 0;
 						data.m_totalCycles = 0;
 						data.m_frameCount++;
-						TransitionToOAMScan(memory);
+						TransitionToOAMScan(memory, processedCycles);
 
 						data.m_stateTransition = StateTransition::Cycle1;
 
@@ -378,7 +378,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 #endif
 	//TODO is this necessary?
 	//data.m_cycleDebt =  targetCycles - processedCycles;
-
+	data.m_cyclesInMode += processedCycles;
 	data.m_totalCycles += processedCycles;
 }
 
@@ -394,13 +394,14 @@ const void* PPU::GetFrameBuffer() const
 	return m_backBuffer;
 }
 
-void PPU::TransitionToVBlank(Memory& memory)
+void PPU::TransitionToVBlank(Memory& memory, uint32_t processedCycles)
 {
 	data.m_state = PPUState::VBlank;
 	data.m_stateTransition = StateTransition::Cycle0;
+	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
 }
 
-void PPU::TransitionToHBlank(Memory& memory)
+void PPU::TransitionToHBlank(Memory& memory, uint32_t processedCycles)
 {
 	if (data.m_windowState == WindowState::Draw)
 	{
@@ -410,10 +411,10 @@ void PPU::TransitionToHBlank(Memory& memory)
 
 	data.m_state = PPUState::HBlank;
 	data.m_stateTransition = StateTransition::Cycle0;
-
+	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
 }
 
-void PPU::TransitionToDraw(Memory& memory)
+void PPU::TransitionToDraw(Memory& memory, uint32_t processedCycles)
 {
 	data.m_lineX = 0;
 	data.m_backgroundFIFO.Clear();
@@ -423,10 +424,10 @@ void PPU::TransitionToDraw(Memory& memory)
 
 	data.m_state = PPUState::Drawing;
 	data.m_stateTransition = StateTransition::Cycle0;
-
+	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
 }
 
-void PPU::TransitionToOAMScan(Memory& memory)
+void PPU::TransitionToOAMScan(Memory& memory, uint32_t processedCycles)
 {
 	data.m_fineScrollX = memory.ReadIO(SCX_REGISTER) & 0x7;
 	data.m_lineSpriteCount = 0;
@@ -436,7 +437,7 @@ void PPU::TransitionToOAMScan(Memory& memory)
 	
 	data.m_state = PPUState::OAMScan;
 	data.m_stateTransition = StateTransition::Cycle0;
-	
+	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
 }
 
 void PPU::DisableScreen(Memory& memory)
@@ -616,10 +617,11 @@ void PPU::LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t ne
 	}
 	else if (!PPUPowerPrev && PPUPowerNew)
 	{
-		ppu->TransitionToOAMScan(*memory);
+		ppu->TransitionToOAMScan(*memory, 0);
 		ppu->data.m_firstFrame = true;
 		ppu->data.m_stateTransition = StateTransition::Cycle1;
 		ppu->data.m_totalCycles += 8;
+		ppu->data.m_cyclesInMode = 8;
 	}
 }
 
@@ -671,7 +673,9 @@ Emulator::PPUState PPU::GetPPUState()
 		data.m_cycleDebt,
 		data.m_lineY,
 		data.m_lineX,
-		data.m_lineSpriteCount
+		data.m_lineSpriteCount,
+		data.m_totalCycles % SCANLINE_DURATION,
+		data.m_cyclesInMode
 	};
 }
 #endif

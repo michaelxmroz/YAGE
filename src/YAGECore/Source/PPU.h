@@ -67,10 +67,10 @@ private:
 	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 
-	void TransitionToVBlank(Memory& memory);
-	void TransitionToHBlank(Memory& memory);
-	void TransitionToDraw(Memory& memory);
-	void TransitionToOAMScan(Memory& memory);
+	void TransitionToVBlank(Memory& memory, uint32_t processedCycles);
+	void TransitionToHBlank(Memory& memory, uint32_t processedCycles);
+	void TransitionToDraw(Memory& memory, uint32_t processedCycles);
+	void TransitionToOAMScan(Memory& memory, uint32_t processedCycles);
 
 	void DisableScreen(Memory& memory);
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
@@ -117,9 +117,11 @@ private:
 			, m_cachedBackgroundEnabled()
 			, m_firstFrame(true)
 			, m_stateTransition(StateTransition::None)
+			, m_cyclesInMode(0)
 		{}
 
 		uint32_t m_totalCycles;
+		int32_t m_cyclesInMode;
 		int32_t m_cycleDebt;
 		uint8_t m_lineY;
 		uint8_t m_lineX;

@@ -67,6 +67,28 @@ namespace
         { 0xFF4B, "WX", "Window Position X" },
     };
 
+    struct PPUModeInfo 
+    {
+        const char* name;
+        ImVec4 color;
+    };
+
+    enum class PPUMode
+    {
+        HBlank = 0,
+        VBlank,
+        OAMScan,
+        Drawing
+    };
+
+    const PPUModeInfo ppuModes[] = 
+    {
+        { "HBlank", ImVec4(0.0f, 0.4f, 0.0f, 1.0f) },   // Dark Green
+        { "VBlank", ImVec4(0.0f, 0.6f, 0.6f, 1.0f) },   // Teal
+        { "OAM Scan", ImVec4(0.5f, 0.5f, 0.0f, 1.0f) }, // Dark Yellow
+        { "Drawing", ImVec4(1.0f, 0.55f, 0.0f, 1.0f) }, // Orange
+    };
+
     PPURegisterInfo GetPPURegInfo(PPURegister reg)
     {
         return PPURegisters[static_cast<int>(reg)];
@@ -110,7 +132,82 @@ namespace
 
 }
 
+void DrawPPUBar(const Emulator::PPUState& ppuState)
+{
+    constexpr int totalCyclesPerLine = 456;
+    constexpr int OAMDuration = 80;
+    int mode = ppuState.m_mode;
+    int cyclesInLine = ppuState.m_cyclesInLine;
+    int cyclesInMode = ppuState.m_cyclesInMode;
 
+    // Calculate phase durations so far
+    int oamCycles = std::min(cyclesInLine, OAMDuration);
+    int drawCycles = 0;
+    int hblankCycles = 0;
+
+    if (mode == static_cast<int>(PPUMode::Drawing))
+    {
+        drawCycles = cyclesInLine - OAMDuration;
+    }
+    else if (mode == static_cast<int>(PPUMode::HBlank))
+    {
+        hblankCycles = cyclesInMode;
+        drawCycles = cyclesInLine - OAMDuration - cyclesInMode;
+    }
+
+    ImGui::Text("Line: %d | Total Cycles: %d |  OAM: %d  | Drawing: %d  | HBlank: %d", ppuState.m_lineY, cyclesInLine, oamCycles, drawCycles, hblankCycles);
+
+    // Draw segmented progress bar
+    float fullWidth = ImGui::GetContentRegionAvail().x;
+    float barHeight = ImGui::GetTextLineHeight() * 1.2f;
+
+    ImVec2 barStart = ImGui::GetCursorScreenPos();
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    auto drawSegment = [&](float startX, float width, ImVec4 color) 
+        {
+        drawList->AddRectFilled(
+            ImVec2(startX, barStart.y),
+            ImVec2(startX + width, barStart.y + barHeight),
+            ImColor(color)
+        );
+        };
+
+    if (mode == static_cast<int>(PPUMode::VBlank)) 
+    {
+        // Entire bar is VBlank
+        drawSegment(barStart.x, fullWidth * (static_cast<float>(cyclesInLine) / totalCyclesPerLine), ppuModes[static_cast<int>(PPUMode::VBlank)].color);
+    }
+    else {
+        float scale = fullWidth / static_cast<float>(totalCyclesPerLine);
+        float pos = barStart.x;
+
+        if (oamCycles > 0) {
+            float w = oamCycles * scale;
+            drawSegment(pos, w, ppuModes[static_cast<int>(PPUMode::OAMScan)].color); pos += w;
+        }
+
+        if (drawCycles > 0) {
+            float w = drawCycles * scale;
+            drawSegment(pos, w, ppuModes[static_cast<int>(PPUMode::Drawing)].color); pos += w;
+        }
+
+        if (hblankCycles > 0) {
+            float w = hblankCycles * scale;
+            drawSegment(pos, w, ppuModes[static_cast<int>(PPUMode::HBlank)].color); pos += w;
+        }
+    }
+
+    // Draw border
+    drawList->AddRect(
+        barStart,
+        ImVec2(barStart.x + fullWidth, barStart.y + barHeight),
+        IM_COL32(255, 255, 255, 255)
+    );
+
+    ImGui::Dummy(ImVec2(fullWidth, barHeight + ImGui::GetStyle().ItemSpacing.y));
+
+}
 
 void DebuggerUI::Draw(EngineData& data)
 {
@@ -205,22 +302,16 @@ void DebuggerUI::Draw(EngineData& data)
         uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
 
         int mode = data.m_ppuState.m_mode;
-        const char* modeNames[] =
-        {
-            "Mode 0 - HBlank",
-            "Mode 1 - VBlank",
-            "Mode 2 - OAM",
-            "Mode 3 - Drawing"
-        };
+        bool lcdEnabled = GetMem(mem, PPURegisters[0].addr) & 0x80;
 
-        const char* modeLabel = GetMem(mem, PPURegisters[0].addr) & 0x80
-            ? modeNames[mode] : "PPU Off";
-        ImVec4 modeColor = (mode >= 0 && mode < 4)
-            ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f)
-            : ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+        const char* modeLabel = lcdEnabled ? ppuModes[mode].name : "Off";
+        ImVec4 modeColor = lcdEnabled ? ppuModes[mode].color : ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White for Off
+
         ImGui::PushStyleColor(ImGuiCol_Text, modeColor);
         ImGui::Text("PPU: %s", modeLabel);
         ImGui::PopStyleColor();
+
+        DrawPPUBar(data.m_ppuState);
 
         // PPU Registers: Show in 3 columns
         if (ImGui::BeginTable("ppu_regs", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
@@ -296,7 +387,7 @@ void DebuggerUI::Draw(EngineData& data)
             ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x04) ? "Yes" : "No");
 
             // PPU Mode value or disabled fallback
-            const char* statModeLabel = (lcdc & 0x80) ? modeNames[stat & 0x03] : "Disabled";
+            const char* statModeLabel = (lcdc & 0x80) ? ppuModes[stat & 0x03].name : "Disabled";
             ImGui::TableNextColumn(); ImGui::Text("%s", statModeLabel);
 
             ImGui::EndTable();

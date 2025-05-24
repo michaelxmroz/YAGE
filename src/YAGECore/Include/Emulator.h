@@ -119,6 +119,8 @@ public:
 		uint8_t m_lineY{ 0 };
 		uint8_t m_lineX{ 0 };
 		uint8_t m_lineSpriteCount{ 0 };
+		uint32_t m_cyclesInLine{ 0 };
+		int32_t m_cyclesInMode{ 0 };
 	};
 
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
