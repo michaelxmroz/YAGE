@@ -31,6 +31,7 @@ void GatherStats(Emulator& emulator, EngineData& state)
     state.m_cpuStatePrevious = state.m_cpuState;
     state.m_cpuState = emulator.GetCPUState();
     state.m_rawMemoryView = emulator.GetRawMemoryView();
+    state.m_ppuState = emulator.GetPPUState();
 #endif
 }
 
@@ -234,6 +235,13 @@ void EngineController::RunEmulatorLoop()
 			if(shouldStep)
 			{
                 m_emulator->SetTurboSpeed(m_data.m_turbo ? m_data.m_userSettings.m_systemTurboSpeed.GetValue() : 1.0f);
+
+                if (m_data.m_triggerDebugBreak)
+                {
+                    m_data.m_triggerDebugBreak = false;
+                    DebuggerUtils::TriggerBreakpoint(nullptr);
+                }
+
                 m_emulator->Step(inputState, emulatorDeltaMs);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();

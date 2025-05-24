@@ -93,22 +93,32 @@ public:
 
 	struct CPUState
 	{
-		uint8_t regA;                  // Accumulator
-		uint8_t regF;                  // Flags register
-		uint8_t regB;
-		uint8_t regC;
-		uint8_t regD;
-		uint8_t regE;
-		uint8_t regH;
-		uint8_t regL;
-		uint16_t regPC;                // Program Counter
-		uint16_t regSP;                // Stack Pointer
-		bool running = true;           // CPU running state
-		bool halted = false;           // Halt flag
-		char currentInstruction[MAX_MNEMONIC_LENGTH];     // Mnemonic of the current instruction
-		int instructionDurationCycles = 0;  // Total cycles this instruction lasts
-		int cyclesProcessed = 0;            // Cycles processed so far
-		bool handlingInterrupt = false;     // If in interrupt handling
+		uint8_t m_regA{ 0 };
+		uint8_t m_regF{ 0 };
+		uint8_t m_regB{ 0 };
+		uint8_t m_regC{ 0 };
+		uint8_t m_regD{ 0 };
+		uint8_t m_regE{ 0 };
+		uint8_t m_regH{ 0 };
+		uint8_t m_regL{ 0 };
+		uint16_t m_regPC{ 0 };
+		uint16_t m_regSP{ 0 };
+		bool m_running{ true };
+		bool m_halted{ false };
+		char m_currentInstruction[MAX_MNEMONIC_LENGTH]{};
+		int m_instructionDurationCycles{ 0 };
+		int m_cyclesProcessed{ 0 };
+		bool m_handlingInterrupt{ false };
+	};
+
+	struct PPUState
+	{
+		uint8_t m_mode{ 0 };
+		uint32_t m_totalCycles{ 0 };
+		int32_t m_cycleDebt{ 0 };
+		uint8_t m_lineY{ 0 };
+		uint8_t m_lineX{ 0 };
+		uint8_t m_lineSpriteCount{ 0 };
 	};
 
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;
@@ -117,6 +127,7 @@ public:
 	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) = 0;
 	virtual void ClearCallbacks() = 0;
 	virtual CPUState GetCPUState() = 0;
+	virtual PPUState GetPPUState() = 0;
 	virtual void* GetRawMemoryView() = 0;
 
 

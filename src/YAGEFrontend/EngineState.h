@@ -294,6 +294,7 @@ struct EngineData
 		, m_debuggerActive(false)
 		, m_debuggerSteps(0)
 		, m_rawMemoryView(nullptr)
+		, m_triggerDebugBreak(false)
 	{}
 
 	StateMachine m_engineState;
@@ -312,9 +313,13 @@ struct EngineData
 	bool m_turbo;
 	bool m_debuggerActive;
 	int64_t m_debuggerSteps;
+	bool m_triggerDebugBreak;
 #if defined( _DEBUG)
 	Emulator::CPUState m_cpuState;
 	Emulator::CPUState m_cpuStatePrevious;
+
+	Emulator::PPUState m_ppuState;
+	Emulator::PPUState m_ppuStatePrevious;
 	void* m_rawMemoryView;
 #endif
 

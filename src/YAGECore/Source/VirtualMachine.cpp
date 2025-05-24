@@ -147,6 +147,11 @@ Emulator::CPUState VirtualMachine::GetCPUState()
 	return m_cpu.GetCPUState();
 }
 
+Emulator::PPUState VirtualMachine::GetPPUState()
+{
+	return m_ppu.GetPPUState();
+}
+
 void* VirtualMachine::GetRawMemoryView()
 {
 	return m_memory.GetRawMemoryView();

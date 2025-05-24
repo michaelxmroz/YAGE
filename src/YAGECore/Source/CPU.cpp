@@ -685,22 +685,22 @@ void CPU::ClearCallbacks()
 Emulator::CPUState CPU::GetCPUState() const
 {
 	Emulator::CPUState state;
-	state.regA = m_registers.A;
-	state.regB = m_registers.B;
-	state.regC = m_registers.C;
-	state.regD = m_registers.D;
-	state.regE = m_registers.E;
-	state.regF = m_registers.FLAGS;
-	state.regH = m_registers.H;
-	state.regL = m_registers.L;
-	state.regPC = m_registers.PC;
-	state.regSP = m_registers.SP;
+	state.m_regA = m_registers.A;
+	state.m_regB = m_registers.B;
+	state.m_regC = m_registers.C;
+	state.m_regD = m_registers.D;
+	state.m_regE = m_registers.E;
+	state.m_regF = m_registers.FLAGS;
+	state.m_regH = m_registers.H;
+	state.m_regL = m_registers.L;
+	state.m_regPC = m_registers.PC;
+	state.m_regSP = m_registers.SP;
 
-	state.halted = m_registers.CpuState != Registers::State::Running;
-	state.handlingInterrupt = m_instructionTempData.m_opcode == ITR_OPCODE;
-	state.instructionDurationCycles = m_currentInstruction->m_duration;
-	state.cyclesProcessed = m_instructionTempData.m_cycles;
-	memcpy_y(state.currentInstruction, m_currentInstruction->m_mnemonic, strlen(m_currentInstruction->m_mnemonic) + 1);
+	state.m_halted = m_registers.CpuState != Registers::State::Running;
+	state.m_handlingInterrupt = m_instructionTempData.m_opcode == ITR_OPCODE;
+	state.m_instructionDurationCycles = m_currentInstruction->m_duration;
+	state.m_cyclesProcessed = m_instructionTempData.m_cycles;
+	memcpy_y(state.m_currentInstruction, m_currentInstruction->m_mnemonic, strlen(m_currentInstruction->m_mnemonic) + 1);
 
 	return state;
 }

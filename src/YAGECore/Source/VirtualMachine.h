@@ -42,6 +42,7 @@ public:
 	virtual void SetDataCallback(uint16_t addr, Emulator::DebugCallback callback, void* userData) override;
 	virtual void ClearCallbacks() override;
 	virtual CPUState GetCPUState() override;
+	virtual PPUState GetPPUState() override;
 	virtual void* GetRawMemoryView() override;
 #endif
 

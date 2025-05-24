@@ -35,6 +35,10 @@ public:
 	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
 
+#if defined(_DEBUG)
+	Emulator::PPUState GetPPUState();
+#endif
+
 private:
 
 	enum class PPUState
@@ -60,7 +64,6 @@ private:
 		Cycle2 = 3,
 	};
 
-	void SetVRamReadAccess(Memory& memory) const;
 	void ScanOAM(uint32_t positionInLine, Memory& memory);
 	void RenderNextPixel(Memory& memory);
 

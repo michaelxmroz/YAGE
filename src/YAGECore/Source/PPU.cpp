@@ -660,3 +660,18 @@ bool PPU::TrackedBool::ShouldTrigger()
 
 	return shouldTrigger;
 }
+
+#if defined(_DEBUG)
+Emulator::PPUState PPU::GetPPUState()
+{
+	return Emulator::PPUState
+	{
+		static_cast<uint8_t>(data.m_state),
+		data.m_totalCycles,
+		data.m_cycleDebt,
+		data.m_lineY,
+		data.m_lineX,
+		data.m_lineSpriteCount
+	};
+}
+#endif

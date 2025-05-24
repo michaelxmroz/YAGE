@@ -13,19 +13,64 @@ namespace
     };
     const Region regions[] =
     {
-        { 0x0000, 0x3FFF, IM_COL32(200,200,255,50), "ROM Bank 0" }, // ROM Bank 0
-        { 0x4000, 0x7FFF, IM_COL32(180,200,255,50), "ROM Bank 1" }, // ROM Bank switchable
-        { 0x8000, 0x9FFF, IM_COL32(200,255,200,50), "VRAM" }, // VRAM
-        { 0xA000, 0xBFFF, IM_COL32(200,255,200,80), "External RAM" }, // External RAM
-        { 0xC000, 0xCFFF, IM_COL32(255,200,200,50), "WRAM Bank 0" }, // WRAM bank0
-        { 0xD000, 0xDFFF, IM_COL32(255,200,200,80), "WRAM Bank 1" }, // WRAM bank1
-        { 0xE000, 0xFDFF, IM_COL32(200,200,200,50), "Echo Ram" }, // Echo RAM
-        { 0xFE00, 0xFE9F, IM_COL32(255,200,255,50), "OAM" }, // OAM
-        { 0xFEA0, 0xFEFF, IM_COL32(100,100,100,80), "UNUSABLE" }, // Not Usable
-        { 0xFF00, 0xFF7F, IM_COL32(255,255,200,50), "IO Registers" }, // I/O
-        { 0xFF80, 0xFFFE, IM_COL32(255,200,255,80), "HRAM" }, // HRAM
-        { 0xFFFF, 0xFFFF, IM_COL32(255,200,255,80), "IE Register" }  // IE Register
+        { 0x0000, 0x3FFF, IM_COL32(200,200,255,50), "ROM Bank 0" },
+        { 0x4000, 0x7FFF, IM_COL32(180,200,255,50), "ROM Bank 1" },
+        { 0x8000, 0x9FFF, IM_COL32(200,255,200,50), "VRAM" },
+        { 0xA000, 0xBFFF, IM_COL32(200,255,200,80), "External RAM" },
+        { 0xC000, 0xCFFF, IM_COL32(255,200,200,50), "WRAM Bank 0" },
+        { 0xD000, 0xDFFF, IM_COL32(255,200,200,80), "WRAM Bank 1" },
+        { 0xE000, 0xFDFF, IM_COL32(200,200,200,50), "Echo Ram" },
+        { 0xFE00, 0xFE9F, IM_COL32(255,200,255,50), "OAM" },
+        { 0xFEA0, 0xFEFF, IM_COL32(100,100,100,80), "UNUSABLE" },
+        { 0xFF00, 0xFF7F, IM_COL32(255,255,200,50), "IO Registers" },
+        { 0xFF80, 0xFFFE, IM_COL32(255,200,255,80), "HRAM" },
+        { 0xFFFF, 0xFFFF, IM_COL32(255,200,255,80), "IE Register" }
     };
+
+    struct PPURegisterInfo
+    {
+        uint32_t addr;
+        const char* name;
+        const char* description;
+    };
+
+    enum class PPURegister
+    {
+        LCDC = 0,
+        STAT,
+        SCY,
+        SCX,
+        LY,
+        LYC,
+        DMA,
+        BGP,
+        OBP0,
+        OBP1,
+        WY,
+        WX,
+        COUNT
+    };
+
+    const PPURegisterInfo PPURegisters[] =
+    {
+        { 0xFF40, "LCDC", "LCD Control" },
+        { 0xFF41, "STAT", "LCD Status" },
+        { 0xFF42, "SCY", "Background Scroll Y" },
+        { 0xFF43, "SCX", "Background Scroll X" },
+        { 0xFF44, "LY", "LCD Y line coordinate" },
+        { 0xFF45, "LYC", "LCD Y Compare" },
+        { 0xFF46, "DMA", "OAM DMA source address & start" },
+        { 0xFF47, "BGP", "Background Palette Data" },
+        { 0xFF48, "OBP0", "OBJ palette 0 data" },
+        { 0xFF49, "OBP1", "OBJ palette 1 data" },
+        { 0xFF4A, "WY", "Window position Y" },
+        { 0xFF4B, "WX", "Window Position X" },
+    };
+
+    PPURegisterInfo GetPPURegInfo(PPURegister reg)
+    {
+        return PPURegisters[static_cast<int>(reg)];
+    }
 
     // Helper for memory region tinting
     ImU32 GetMemRegionTint(int addr)
@@ -52,6 +97,17 @@ namespace
         }
         return "";
     }
+
+    uint8_t GetMem(uint8_t* mem, uint16_t addr)
+    {
+        if (!mem)
+        {
+            return 0;
+        }
+
+        return mem[addr];
+    }
+
 }
 
 
@@ -85,7 +141,7 @@ void DebuggerUI::Draw(EngineData& data)
     ImGui::SameLine();
     if (ImGui::Button("Step Back", ImVec2(100, 40))) { /* TODO */ }
     ImGui::SameLine();
-    if (ImGui::Button("Break into VS", ImVec2(120, 40))) DebuggerUtils::TriggerBreakpoint(nullptr);
+    if (ImGui::Button("Break into VS", ImVec2(120, 40))) data.m_triggerDebugBreak = true;
 
     ImGui::Spacing();
     ImGui::SetNextItemWidth(150);
@@ -122,44 +178,144 @@ void DebuggerUI::Draw(EngineData& data)
                 ImGui::Text("0x%0*llX", (p2 <= 0xFF) ? 2 : 4, v2);
         	};
 
-            addRowPair("A", cpu.regA, prev.regA, "F", cpu.regF, prev.regF);
-            addRowPair("B", cpu.regB, prev.regB, "C", cpu.regC, prev.regC);
-            addRowPair("D", cpu.regD, prev.regD, "E", cpu.regE, prev.regE);
-            addRowPair("H", cpu.regH, prev.regH, "L", cpu.regL, prev.regL);
-            addRowPair("PC", cpu.regPC, prev.regPC, "SP", cpu.regSP, prev.regSP);
+            addRowPair("A", cpu.m_regA, prev.m_regA, "F", cpu.m_regF, prev.m_regF);
+            addRowPair("B", cpu.m_regB, prev.m_regB, "C", cpu.m_regC, prev.m_regC);
+            addRowPair("D", cpu.m_regD, prev.m_regD, "E", cpu.m_regE, prev.m_regE);
+            addRowPair("H", cpu.m_regH, prev.m_regH, "L", cpu.m_regL, prev.m_regL);
+            addRowPair("PC", cpu.m_regPC, prev.m_regPC, "SP", cpu.m_regSP, prev.m_regSP);
             ImGui::EndTable();
         }
 
         // Highlight halted flag change
-        if (cpu.halted != prev.halted) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
-        ImGui::Text("Halted: %s", cpu.halted ? "Yes" : "No");
-        if (cpu.halted != prev.halted) ImGui::PopStyleColor();
+        if (cpu.m_halted != prev.m_halted) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        ImGui::Text("Halted: %s", cpu.m_halted ? "Yes" : "No");
+        if (cpu.m_halted != prev.m_halted) ImGui::PopStyleColor();
         // Highlight interrupt handling change
-        if (cpu.handlingInterrupt != prev.handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
-        ImGui::Text("Handling Interrupt: %s", cpu.handlingInterrupt ? "Yes" : "No");
-        if (cpu.handlingInterrupt != prev.handlingInterrupt) ImGui::PopStyleColor();
-        ImGui::Text("Running: %s", cpu.running ? "Yes" : "No");
-        ImGui::Text("Instr: %s", cpu.currentInstruction);
-        ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.instructionDurationCycles, cpu.cyclesProcessed);
+        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        ImGui::Text("Handling Interrupt: %s", cpu.m_handlingInterrupt ? "Yes" : "No");
+        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
+        ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
+        ImGui::Text("Instr: %s", cpu.m_currentInstruction);
+        ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.m_instructionDurationCycles, cpu.m_cyclesProcessed);
     }
 
-    // --- GPU State View ---
-    if (ImGui::CollapsingHeader("GPU State", ImGuiTreeNodeFlags_DefaultOpen)) 
+    // --- PPU State View ---
+    if (ImGui::CollapsingHeader("PPU State", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        /*
-        auto& gpu = data.gpu;
-        if (ImGui::BeginTable("gpu_table", 2, ImGuiTableFlags_Borders)) 
+        uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
+
+        int mode = data.m_ppuState.m_mode;
+        const char* modeNames[] =
         {
-            ImGui::TableSetupColumn("MMIO"); ImGui::TableSetupColumn("Value");
-            for (const auto& kv : gpu.mmio) {
-                ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::Text("%s", kv.first.c_str());
-                ImGui::TableNextColumn(); ImGui::Text("0x%02X", kv.second);
+            "Mode 0 - HBlank",
+            "Mode 1 - VBlank",
+            "Mode 2 - OAM",
+            "Mode 3 - Drawing"
+        };
+
+        const char* modeLabel = GetMem(mem, PPURegisters[0].addr) & 0x80
+            ? modeNames[mode] : "PPU Off";
+        ImVec4 modeColor = (mode >= 0 && mode < 4)
+            ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f)
+            : ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, modeColor);
+        ImGui::Text("PPU: %s", modeLabel);
+        ImGui::PopStyleColor();
+
+        // PPU Registers: Show in 3 columns
+        if (ImGui::BeginTable("ppu_regs", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("Reg"); ImGui::TableSetupColumn("Val");
+            ImGui::TableSetupColumn("Reg"); ImGui::TableSetupColumn("Val");
+            ImGui::TableSetupColumn("Reg"); ImGui::TableSetupColumn("Val");
+            ImGui::TableHeadersRow();
+
+            for (int i = 0; i < static_cast<int>(PPURegister::COUNT); i += 3)
+            {
+                ImGui::TableNextRow();
+                for (int j = 0; j < 3; ++j)
+                {
+                    int index = i + j;
+                    if (index >= static_cast<int>(PPURegister::COUNT)) break;
+                    const auto& reg = PPURegisters[index];
+                    ImGui::TableNextColumn(); ImGui::Text("%s", reg.name);
+                    ImGui::TableNextColumn(); ImGui::Text("0x%02X", GetMem(mem, reg.addr));
+                }
             }
             ImGui::EndTable();
         }
-        ImGui::Text("Scanline: %d   Mode: %d", gpu.currentScanline, gpu.mode);
-        */
+
+        // LCDC table
+        ImGui::Separator();
+        uint8_t lcdc = GetMem(mem, GetPPURegInfo(PPURegister::LCDC).addr);
+        ImGui::Text("LCDC: 0x%02X", lcdc);
+        if (ImGui::BeginTable("lcdc_table", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("LCD/PPU");
+            ImGui::TableSetupColumn("Window Map");
+            ImGui::TableSetupColumn("Window");
+            ImGui::TableSetupColumn("Tile Data");
+            ImGui::TableSetupColumn("BG Map");
+            ImGui::TableSetupColumn("OBJ Size");
+            ImGui::TableSetupColumn("OBJ");
+            ImGui::TableSetupColumn("BG/Win");
+            ImGui::TableHeadersRow();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x80) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x40) ? "9C00" : "9800");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x20) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x10) ? "8000" : "8800");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x08) ? "9C00" : "9800");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x04) ? "8x16" : "8x8");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x02) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (lcdc & 0x01) ? "On" : "Off");
+
+            ImGui::EndTable();
+        }
+
+        // STAT table
+        ImGui::Separator();
+        uint8_t stat = GetMem(mem, GetPPURegInfo(PPURegister::STAT).addr);
+        ImGui::Text("STAT: 0x%02X", stat);
+        if (ImGui::BeginTable("stat_table", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("LYC Int");
+            ImGui::TableSetupColumn("Mode 2 Int");
+            ImGui::TableSetupColumn("Mode 1 Int");
+            ImGui::TableSetupColumn("Mode 0 Int");
+            ImGui::TableSetupColumn("LYC==LY");
+            ImGui::TableSetupColumn("Mode");
+
+            ImGui::TableHeadersRow();
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x40) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x20) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x10) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x08) ? "On" : "Off");
+            ImGui::TableNextColumn(); ImGui::Text("%s", (stat & 0x04) ? "Yes" : "No");
+
+            // PPU Mode value or disabled fallback
+            const char* statModeLabel = (lcdc & 0x80) ? modeNames[stat & 0x03] : "Disabled";
+            ImGui::TableNextColumn(); ImGui::Text("%s", statModeLabel);
+
+            ImGui::EndTable();
+        }
+
+        // 4) Internal PPU metrics
+        /*
+        ImGui::Separator();
+        ImGui::Text("Line: %d    Pos X: %d", data.m_ppuState., data.gpu.dotPosition);
+        ImGui::Text("Sprites Found: %d", data.gpu.spritesFound);
+        ImGui::Text("FIFO Lengths: %d / %d", data.gpu.fifo0Size, data.gpu.fifo1Size);
+        ImGui::Text("Fetcher State: %d", data.gpu.fetcherState);
+        ImGui::Text("Cycles: Frame=%d  Line=%d  SinceMode=%d",
+            data.gpu.cyclesThisFrame,
+            data.gpu.cyclesThisLine,
+            data.gpu.cyclesSinceMode);
+            */
     }
+
 
     // --- Memory View ---
     if (ImGui::CollapsingHeader("Memory", ImGuiTreeNodeFlags_DefaultOpen)) 
@@ -200,13 +356,13 @@ void DebuggerUI::Draw(EngineData& data)
 
         uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
 
-        if ( (m_state.m_selectedMemoryCell >= 0 || m_state.m_hoveredAddr >= 0) && mem)
+        if ( (m_state.m_selectedMemoryCell >= 0 || m_state.m_hoveredAddr >= 0))
         {
             ImGui::SameLine();
 
             int selectedMemory = m_state.m_selectedMemoryCell >= 0 ? m_state.m_selectedMemoryCell : m_state.m_hoveredAddr;
             ImGui::Text("Addr: 0x%04X", selectedMemory);
-            ImGui::SameLine(); ImGui::Text("Value: 0x%02X", mem[selectedMemory]);
+            ImGui::SameLine(); ImGui::Text("Value: 0x%02X", GetMem(mem, selectedMemory));
             ImGui::SameLine();
             if (ImGui::Button("Add Data BP", ImVec2(50, 10)))
             {
@@ -252,7 +408,7 @@ void DebuggerUI::Draw(EngineData& data)
                 {
                     int addr = rowBase + c;
                     ImGui::TableNextColumn();
-                    if (addr < EMULATOR_GB_MEMORY_SIZE && mem)
+                    if (addr < EMULATOR_GB_MEMORY_SIZE)
                     {
                         // Region-based tint
                         ImU32 tint = GetMemRegionTint(addr);
@@ -266,7 +422,7 @@ void DebuggerUI::Draw(EngineData& data)
                         ImGui::PushID(addr);
 
                         char buf[8];
-                    	sprintf_s(buf, "%02X", mem[addr]);
+                    	sprintf_s(buf, "%02X", GetMem(mem, addr));
 
                         // Transparent button background
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
