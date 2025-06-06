@@ -4,9 +4,9 @@
 class DebuggerUI
 {
 public:
-    void Draw(EngineData& data);
+    void Draw(DebuggerState& data);
 
-    void Toggle(EngineData& data);
+    void Toggle(DebuggerState& data);
 private:
     struct DebuggerUIState
     {

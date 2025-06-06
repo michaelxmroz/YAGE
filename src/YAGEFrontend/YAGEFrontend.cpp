@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
         data.m_gamePath = SPLASH_PATH;
     }
 
-    data.m_debuggerActive = !commandLine.GetArgument("-debugger").empty();
+    data.m_debuggerState.m_debuggerActive = !commandLine.GetArgument("-debugger").empty();
 
     EngineController controller(data);
 

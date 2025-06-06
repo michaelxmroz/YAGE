@@ -76,7 +76,7 @@ public:
 
 	virtual void SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset) = 0;
 
-	virtual void Step(EmulatorInputs::InputState, double deltaMs) = 0;
+	virtual void Step(EmulatorInputs::InputState, double deltaMs, bool microStepping) = 0;
 	virtual const void* GetFrameBuffer() = 0;
 	virtual uint32_t GetNumberOfGeneratedSamples() = 0;
 
@@ -109,6 +109,7 @@ public:
 		int m_instructionDurationCycles{ 0 };
 		int m_cyclesProcessed{ 0 };
 		bool m_handlingInterrupt{ false };
+		uint32_t m_tCyclesStepped{ 0 };
 	};
 
 	struct PPUState

@@ -28,10 +28,10 @@ void GatherStats(Emulator& emulator, EngineData& state)
 {
     state.m_stats.m_allocatedMemory = emulator.GetMemoryUse();
 #if defined (_DEBUG)
-    state.m_cpuStatePrevious = state.m_cpuState;
-    state.m_cpuState = emulator.GetCPUState();
-    state.m_rawMemoryView = emulator.GetRawMemoryView();
-    state.m_ppuState = emulator.GetPPUState();
+    state.m_debuggerState.m_cpuStatePrevious = state.m_debuggerState.m_cpuState;
+    state.m_debuggerState.m_cpuState = emulator.GetCPUState();
+    state.m_debuggerState.m_rawMemoryView = emulator.GetRawMemoryView();
+    state.m_debuggerState.m_ppuState = emulator.GetPPUState();
 #endif
 }
 
@@ -219,16 +219,24 @@ void EngineController::RunEmulatorLoop()
         {
             bool shouldStep = m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED;
             double emulatorDeltaMs = deltaMs;
-            if(m_data.m_debuggerActive && m_data.m_debuggerSteps >= 0)
+            bool microstep = m_data.m_debuggerState.m_microstepping;
+            if(m_data.m_debuggerState.m_debuggerActive && m_data.m_debuggerState.m_debuggerSteps >= 0)
             {
-                emulatorDeltaMs = EMULATOR_TICK_DURATION_MS;
-                if(m_data.m_debuggerSteps == 0)
+                emulatorDeltaMs = microstep ? EMULATOR_CLOCK_MS : EMULATOR_CLOCK_MS * 4;
+
+                if (!microstep && m_data.m_debuggerState.m_tCyclesStepped != 0)
+                {
+                    emulatorDeltaMs = EMULATOR_CLOCK_MS * (4 - m_data.m_debuggerState.m_tCyclesStepped);
+                    microstep = true;
+                }
+
+                if(m_data.m_debuggerState.m_debuggerSteps == 0)
                 {
                     shouldStep = false;
                 }
-                else if(m_data.m_debuggerSteps > 0)
+                else if(m_data.m_debuggerState.m_debuggerSteps > 0)
                 {
-                    m_data.m_debuggerSteps--;
+                    m_data.m_debuggerState.m_debuggerSteps--;
                 }
             }
 
@@ -236,13 +244,13 @@ void EngineController::RunEmulatorLoop()
 			{
                 m_emulator->SetTurboSpeed(m_data.m_turbo ? m_data.m_userSettings.m_systemTurboSpeed.GetValue() : 1.0f);
 
-                if (m_data.m_triggerDebugBreak)
+                if (m_data.m_debuggerState.m_triggerDebugBreak)
                 {
-                    m_data.m_triggerDebugBreak = false;
+                    m_data.m_debuggerState.m_triggerDebugBreak = false;
                     DebuggerUtils::TriggerBreakpoint(nullptr);
                 }
 
-                m_emulator->Step(inputState, emulatorDeltaMs);
+                m_emulator->Step(inputState, emulatorDeltaMs, microstep);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
 

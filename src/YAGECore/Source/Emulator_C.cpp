@@ -77,7 +77,7 @@ extern "C" void Step(EmulatorCHandle emulator, EmulatorInputState inputState, do
 {
 	Emulator* emu = FromHandle(emulator);
 	EmulatorInputs::InputState state{ inputState.m_dPad, inputState.m_buttons };
-	emu->Step(state, deltaMs);
+	emu->Step(state, deltaMs, false);
 }
 
 extern "C" const void* GetFrameBuffer(EmulatorCHandle emulator)

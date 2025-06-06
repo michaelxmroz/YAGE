@@ -587,7 +587,7 @@ namespace
                 {
                     if (ImGui::MenuItem("Debugger"))
                     {
-                        debugger.Toggle(data);
+                        debugger.Toggle(data.m_debuggerState);
                     }
                     if (ImGui::MenuItem("Log Window"))
                     {
@@ -670,7 +670,7 @@ void UI::Prepare(EngineData& data, double deltaMs)
 
     DrawLogWindow(m_state);
     DrawStatsWindow(m_state, data);
-    m_debugger.Draw(data);
+    m_debugger.Draw(data.m_debuggerState);
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);

@@ -59,9 +59,9 @@ void Timer::Init(Memory& memory)
 	memory.AddIOUnusedBitsOverride(TAC_REGISTER, 0b11111000);
 }
 
-void Timer::Increment(uint32_t mCycles, Memory& memory)
+void Timer::Increment(uint32_t tCycle, Memory& memory)
 {
-	uint32_t cyclesToStep = mCycles * MCYCLES_TO_CYCLES;
+	uint32_t cyclesToStep = tCycle;
 
 	bool isTimerEnabled = IsTimerEnabled(memory);
 	uint16_t timerBits = GetTimerFrequency(memory);

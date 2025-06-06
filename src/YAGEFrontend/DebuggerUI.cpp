@@ -209,7 +209,7 @@ void DrawPPUBar(const Emulator::PPUState& ppuState)
 
 }
 
-void DebuggerUI::Draw(EngineData& data)
+void DebuggerUI::Draw(DebuggerState& data)
 {
     // Sync visibility
     m_state.m_showWindow = data.m_debuggerActive;
@@ -245,6 +245,15 @@ void DebuggerUI::Draw(EngineData& data)
     ImGui::InputInt("Cycles/Frames", &m_state.m_stepCount);
     ImGui::SameLine();
     if (ImGui::Button("Step N", ImVec2(80, 30))) data.m_debuggerSteps += m_state.m_stepCount;
+    ImGui::SameLine();
+    if (ImGui::Button(data.m_microstepping ? "tCycles" : "mCycles", ImVec2(80, 30))) data.m_microstepping = !data.m_microstepping;
+
+    if (data.m_microstepping)
+    {
+        ImGui::SameLine();
+        ImGui::Text("%d/4", data.m_tCyclesStepped + 1);
+    }
+
     ImGui::Separator();
 
     // --- CPU State View ---
@@ -582,7 +591,7 @@ void DebuggerUI::Draw(EngineData& data)
     ImGui::End();
 }
 
-void DebuggerUI::Toggle(EngineData& data)
+void DebuggerUI::Toggle(DebuggerState& data)
 {
     m_state.m_showWindow = !m_state.m_showWindow;
     data.m_debuggerActive = m_state.m_showWindow;

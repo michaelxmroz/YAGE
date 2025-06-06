@@ -176,7 +176,7 @@ void PPU::CheckForInterrupts(Memory& memory)
 	}
 }
 
-void PPU::Render(uint32_t mCycles, Memory& memory)
+void PPU::Render(uint32_t tCycles, Memory& memory)
 {
 	if (!PPUHelpers::IsControlFlagSet(LCDControlFlags::LCDEnable, memory))
 	{
@@ -227,7 +227,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 
 	// Update externally visible registers end
 
-	int32_t targetCycles = mCycles * MCYCLES_TO_CYCLES;
+	int32_t targetCycles = tCycles;
 	targetCycles += data.m_cycleDebt;
 	uint32_t processedCycles = 0;
 
@@ -377,7 +377,7 @@ void PPU::Render(uint32_t mCycles, Memory& memory)
 	}
 #endif
 	//TODO is this necessary?
-	//data.m_cycleDebt =  targetCycles - processedCycles;
+	data.m_cycleDebt =  targetCycles - processedCycles;
 	data.m_cyclesInMode += processedCycles;
 	data.m_totalCycles += processedCycles;
 }
@@ -674,8 +674,8 @@ Emulator::PPUState PPU::GetPPUState()
 		data.m_lineY,
 		data.m_lineX,
 		data.m_lineSpriteCount,
-		data.m_totalCycles % SCANLINE_DURATION,
-		data.m_cyclesInMode
+		(data.m_totalCycles % SCANLINE_DURATION) + data.m_cycleDebt,
+		data.m_cyclesInMode + data.m_cycleDebt
 	};
 }
 #endif

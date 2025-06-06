@@ -267,7 +267,7 @@ void APU::SetExternalAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRa
 
 uint32_t APU::Update(Memory& memory, uint32_t cyclesPassed, float turboSpeed)
 {
-	uint32_t cyclesToStep = cyclesPassed * MCYCLES_TO_CYCLES;
+	uint32_t cyclesToStep = cyclesPassed;
 
 	m_externalAudioBuffer.samplesToGenerate += (static_cast<double>(cyclesToStep) * m_externalAudioBuffer.resampleRate) * (1.0 / static_cast<double>(turboSpeed));
 	

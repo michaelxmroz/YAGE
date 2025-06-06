@@ -16,6 +16,7 @@ VirtualMachine::VirtualMachine()
 	, m_samplesGenerated(0)
 	, m_turbospeed(1)
 	, m_serial(&m_serializer)
+	, m_tCyclesStepped(0)
 {
 }
 
@@ -51,24 +52,39 @@ void VirtualMachine::SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampl
 	m_apu.SetExternalAudioBuffer(buffer, size, sampleRate, startOffset);
 }
 
-void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs)
+void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs, bool microStepping)
 {
 	m_totalCycles = 0;
 	m_samplesGenerated = 0;
 	while (m_stepDuration < deltaMs)
 	{
-		uint32_t cyclesPassed = 1; // always step 1 cycle
-		m_memory.Update();
-		m_joypad.Update(inputState, m_memory);
-		m_clock.Increment(cyclesPassed, m_memory);
-		m_ppu.Render(cyclesPassed, m_memory);
-		m_samplesGenerated += m_apu.Update(m_memory, cyclesPassed, m_turbospeed);
-		m_serial.Update(m_memory, cyclesPassed);
+		bool tCycleStep = false;
+		uint32_t cyclesPassed = microStepping ? 1 : MCYCLES_TO_CYCLES; // step either 1 or 4 tcycles. 
+		m_tCyclesStepped += cyclesPassed;
+		if (m_tCyclesStepped >= MCYCLES_TO_CYCLES)
+		{
+			m_tCyclesStepped = 0;
+			tCycleStep = true;
+		}
 
-		m_cpu.Step(m_memory);
+		if (tCycleStep)
+		{
+			m_memory.Update();
+			m_joypad.Update(inputState, m_memory);
+			m_clock.Increment(MCYCLES_TO_CYCLES, m_memory);
+		}
+
+		m_ppu.Render(cyclesPassed, m_memory);
+
+		if (tCycleStep)
+		{
+			m_samplesGenerated += m_apu.Update(m_memory, MCYCLES_TO_CYCLES, m_turbospeed);
+			m_serial.Update(m_memory, 1);
+			m_cpu.Step(m_memory);
+		}
 
 		m_totalCycles += cyclesPassed;
-		double cycleDurationS = static_cast<double>((cyclesPassed * MCYCLES_TO_CYCLES)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
+		double cycleDurationS = static_cast<double>((cyclesPassed)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
 		m_stepDuration += cycleDurationS * 1000.0;
 	}
 	m_stepDuration -= deltaMs;
@@ -113,7 +129,6 @@ void VirtualMachine::SetTurboSpeed(float speed)
 	m_turbospeed = speed;
 }
 
-
 #if _DEBUG
 
 void VirtualMachine::SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData)
@@ -144,7 +159,9 @@ void VirtualMachine::ClearCallbacks()
 
 Emulator::CPUState VirtualMachine::GetCPUState()
 {
-	return m_cpu.GetCPUState();
+	auto cpuState = m_cpu.GetCPUState();
+	cpuState.m_tCyclesStepped = m_tCyclesStepped;
+	return cpuState;
 }
 
 Emulator::PPUState VirtualMachine::GetPPUState()

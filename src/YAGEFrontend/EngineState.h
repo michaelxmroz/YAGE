@@ -271,6 +271,23 @@ struct Stats
 	uint32_t m_allocatedMemory = 0;
 };
 
+struct DebuggerState
+{
+	bool m_debuggerActive{ false };
+	int64_t m_debuggerSteps{ 0 };
+	bool m_triggerDebugBreak{ false };
+	bool m_microstepping{ false };
+	uint32_t m_tCyclesStepped{ 0 };
+#if defined( _DEBUG)
+	Emulator::CPUState m_cpuState;
+	Emulator::CPUState m_cpuStatePrevious;
+
+	Emulator::PPUState m_ppuState;
+	Emulator::PPUState m_ppuStatePrevious;
+	void* m_rawMemoryView{ nullptr };
+#endif
+};
+
 struct EngineData
 {
 	enum class SaveLoadState : uint8_t
@@ -291,10 +308,6 @@ struct EngineData
 		, m_baseWidth(0)
 		, m_baseHeight(0)
 		, m_turbo(false)
-		, m_debuggerActive(false)
-		, m_debuggerSteps(0)
-		, m_rawMemoryView(nullptr)
-		, m_triggerDebugBreak(false)
 	{}
 
 	StateMachine m_engineState;
@@ -311,17 +324,7 @@ struct EngineData
 	uint32_t m_baseHeight;
 
 	bool m_turbo;
-	bool m_debuggerActive;
-	int64_t m_debuggerSteps;
-	bool m_triggerDebugBreak;
-#if defined( _DEBUG)
-	Emulator::CPUState m_cpuState;
-	Emulator::CPUState m_cpuStatePrevious;
-
-	Emulator::PPUState m_ppuState;
-	Emulator::PPUState m_ppuStatePrevious;
-	void* m_rawMemoryView;
-#endif
+	DebuggerState m_debuggerState;
 
 	Stats m_stats;
 private:
