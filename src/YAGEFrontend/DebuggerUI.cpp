@@ -1,7 +1,7 @@
 #include "DebuggerUI.h"
 #include "DebuggerUtils.h"
 #include "imgui.h"
-#include "Emulator.h" // For Emulator::FIFOSizes
+#include "Emulator.h"
 
 namespace
 {
@@ -210,23 +210,31 @@ void DrawPPUBar(const Emulator::PPUState& ppuState)
 
 }
 
-// Function to draw FIFO progress bars
 void DrawFIFOBars(const Emulator::FIFOSizes& fifoSizes)
 {
-    char overlayText[32];
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    float barHeight = ImGui::GetTextLineHeight() * 0.8f;
+    float fullWidth = ImGui::GetContentRegionAvail().x;
+    ImU32 borderColor = IM_COL32(255, 255, 255, 255);
+    float spacingAfterBar = ImGui::GetStyle().ItemSpacing.y;
 
-    // Background FIFO
-    ImGui::Text("Background FIFO:");
-    float bgFraction = static_cast<float>(fifoSizes.m_backgroundFIFOCount) / 16.0f;
-    snprintf(overlayText, sizeof(overlayText), "%d/16", fifoSizes.m_backgroundFIFOCount);
-    ImGui::ProgressBar(bgFraction, ImVec2(-1.0f, 0.0f), overlayText);
+    ImGui::Text("Background FIFO: %u/16", fifoSizes.m_backgroundFIFOCount);
+    ImVec2 bgBarStart = ImGui::GetCursorScreenPos();
+    bgBarStart.y -= ImGui::GetStyle().ItemSpacing.y;
 
-    // Sprite FIFO
-    ImGui::Text("Sprite FIFO:");
-    float spriteFraction = static_cast<float>(fifoSizes.m_spriteFIFOCount) / 16.0f;
-    snprintf(overlayText, sizeof(overlayText), "%d/16", fifoSizes.m_spriteFIFOCount);
-    ImGui::ProgressBar(spriteFraction, ImVec2(-1.0f, 0.0f), overlayText);
-    ImGui::Spacing();
+    float bgFilledWidth = (static_cast<float>(fifoSizes.m_backgroundFIFOCount) / 16.0f) * fullWidth;
+    drawList->AddRectFilled(bgBarStart, ImVec2(bgBarStart.x + bgFilledWidth, bgBarStart.y + barHeight), IM_COL32(50, 150, 50, 255));
+    drawList->AddRect(bgBarStart, ImVec2(bgBarStart.x + fullWidth, bgBarStart.y + barHeight), borderColor);
+    ImGui::Dummy(ImVec2(fullWidth, barHeight + spacingAfterBar));
+
+    ImGui::Text("Sprite FIFO: %u/16", fifoSizes.m_spriteFIFOCount);
+    ImVec2 spriteBarStart = ImGui::GetCursorScreenPos();
+    spriteBarStart.y -= ImGui::GetStyle().ItemSpacing.y;
+
+    float spriteFilledWidth = (static_cast<float>(fifoSizes.m_spriteFIFOCount) / 16.0f) * fullWidth;
+    drawList->AddRectFilled(spriteBarStart, ImVec2(spriteBarStart.x + spriteFilledWidth, spriteBarStart.y + barHeight), IM_COL32(50, 50, 150, 255));
+    drawList->AddRect(spriteBarStart, ImVec2(spriteBarStart.x + fullWidth, spriteBarStart.y + barHeight), borderColor);
+    ImGui::Dummy(ImVec2(fullWidth, barHeight + spacingAfterBar));
 }
 
 void DebuggerUI::Draw(EngineData& data)
@@ -385,7 +393,6 @@ void DebuggerUI::Draw(EngineData& data)
             ImGui::EndTable();
         }
 
-        // Draw FIFO Bars
         DrawFIFOBars(data.m_fifoSizes);
 
         // STAT table

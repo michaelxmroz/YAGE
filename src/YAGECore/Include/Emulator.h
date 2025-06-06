@@ -55,7 +55,6 @@ namespace EmulatorConstants
 	const double PREFERRED_REFRESH_RATE = EMULATOR_PREFERRED_REFRESH_RATE;
 }
 
-// New struct for FIFO sizes
 struct FIFOSizes
 {
 	uint8_t m_backgroundFIFOCount{ 0 };
@@ -128,7 +127,7 @@ public:
 		uint8_t m_lineSpriteCount{ 0 };
 		uint32_t m_cyclesInLine{ 0 };
 		int32_t m_cyclesInMode{ 0 };
-		FIFOSizes m_fifoSizes; // Added FIFOSizes member
+		FIFOSizes m_fifoSizes;
 	};
 
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;

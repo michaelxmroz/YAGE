@@ -32,7 +32,7 @@ void GatherStats(Emulator& emulator, EngineData& state)
     state.m_cpuState = emulator.GetCPUState();
     state.m_rawMemoryView = emulator.GetRawMemoryView();
     state.m_ppuState = emulator.GetPPUState();
-    state.m_fifoSizes = state.m_ppuState.m_fifoSizes; // Copy FIFO sizes
+    state.m_fifoSizes = state.m_ppuState.m_fifoSizes;
 #endif
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include "PixelFIFO.h"
-#include "Emulator.h" // Added for FIFOSizes struct
+#include "Emulator.h"
 #include "PixelFetcher.h"
 
 #define MAX_SPRITES_PER_LINE 10
@@ -35,7 +35,7 @@ public:
 	void Render(uint32_t mCycles, Memory& memory);
 	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
-	FIFOSizes GetFIFOSizes(); // Moved GetFIFOSizes declaration
+	FIFOSizes GetFIFOSizes();
 
 #if defined(_DEBUG)
 	Emulator::PPUState GetPPUState();

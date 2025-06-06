@@ -684,7 +684,7 @@ Emulator::PPUState PPU::GetPPUState()
 		data.m_lineSpriteCount,
 		data.m_totalCycles % SCANLINE_DURATION,
 		data.m_cyclesInMode,
-		GetFIFOSizes() // Populate m_fifoSizes
+		GetFIFOSizes()
 	};
 }
 #endif
