@@ -663,6 +663,14 @@ bool PPU::TrackedBool::ShouldTrigger()
 	return shouldTrigger;
 }
 
+FIFOSizes PPU::GetFIFOSizes()
+{
+	FIFOSizes fifoSizes;
+	fifoSizes.m_backgroundFIFOCount = static_cast<uint8_t>(data.m_backgroundFIFO.Size());
+	fifoSizes.m_spriteFIFOCount = static_cast<uint8_t>(data.m_spriteFIFO.Size());
+	return fifoSizes;
+}
+
 #if defined(_DEBUG)
 Emulator::PPUState PPU::GetPPUState()
 {
@@ -675,7 +683,8 @@ Emulator::PPUState PPU::GetPPUState()
 		data.m_lineX,
 		data.m_lineSpriteCount,
 		data.m_totalCycles % SCANLINE_DURATION,
-		data.m_cyclesInMode
+		data.m_cyclesInMode,
+		GetFIFOSizes() // Populate m_fifoSizes
 	};
 }
 #endif

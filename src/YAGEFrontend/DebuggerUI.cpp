@@ -1,6 +1,7 @@
 #include "DebuggerUI.h"
 #include "DebuggerUtils.h"
 #include "imgui.h"
+#include "Emulator.h" // For Emulator::FIFOSizes
 
 namespace
 {
@@ -209,6 +210,25 @@ void DrawPPUBar(const Emulator::PPUState& ppuState)
 
 }
 
+// Function to draw FIFO progress bars
+void DrawFIFOBars(const Emulator::FIFOSizes& fifoSizes)
+{
+    char overlayText[32];
+
+    // Background FIFO
+    ImGui::Text("Background FIFO:");
+    float bgFraction = static_cast<float>(fifoSizes.m_backgroundFIFOCount) / 16.0f;
+    snprintf(overlayText, sizeof(overlayText), "%d/16", fifoSizes.m_backgroundFIFOCount);
+    ImGui::ProgressBar(bgFraction, ImVec2(-1.0f, 0.0f), overlayText);
+
+    // Sprite FIFO
+    ImGui::Text("Sprite FIFO:");
+    float spriteFraction = static_cast<float>(fifoSizes.m_spriteFIFOCount) / 16.0f;
+    snprintf(overlayText, sizeof(overlayText), "%d/16", fifoSizes.m_spriteFIFOCount);
+    ImGui::ProgressBar(spriteFraction, ImVec2(-1.0f, 0.0f), overlayText);
+    ImGui::Spacing();
+}
+
 void DebuggerUI::Draw(EngineData& data)
 {
     // Sync visibility
@@ -364,6 +384,9 @@ void DebuggerUI::Draw(EngineData& data)
 
             ImGui::EndTable();
         }
+
+        // Draw FIFO Bars
+        DrawFIFOBars(data.m_fifoSizes);
 
         // STAT table
         ImGui::Separator();

@@ -320,6 +320,7 @@ struct EngineData
 
 	Emulator::PPUState m_ppuState;
 	Emulator::PPUState m_ppuStatePrevious;
+	FIFOSizes m_fifoSizes; // Added FIFOSizes member
 	void* m_rawMemoryView;
 #endif
 
