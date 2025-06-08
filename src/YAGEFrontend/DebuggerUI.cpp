@@ -402,7 +402,7 @@ void DebuggerUI::Draw(DebuggerState& data)
             ImGui::EndTable();
         }
 
-        DrawFIFOBars(data.m_fifoSizes);
+        DrawFIFOBars(data.m_ppuState.m_fifoSizes);
 
         // STAT table
         ImGui::Separator();

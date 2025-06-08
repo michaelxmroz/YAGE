@@ -12,7 +12,7 @@ void* AllocFunc(uint32_t size)
 void FreeFunc(void* ptr)
 {
     LOG_INFO("Emulator is freeing memory");
-    delete[] reinterpret_cast<uint8_t*>(ptr);
+    delete[] static_cast<uint8_t*>(ptr);
 }
 
 #if _DEBUG
