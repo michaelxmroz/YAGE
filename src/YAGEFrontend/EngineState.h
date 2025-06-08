@@ -285,6 +285,7 @@ struct DebuggerState
 	Emulator::PPUState m_ppuState;
 	Emulator::PPUState m_ppuStatePrevious;
 	void* m_rawMemoryView{ nullptr };
+	Emulator::FIFOSizes m_fifoSizes;
 #endif
 };
 
@@ -324,6 +325,7 @@ struct EngineData
 	uint32_t m_baseHeight;
 
 	bool m_turbo;
+
 	DebuggerState m_debuggerState;
 
 	Stats m_stats;

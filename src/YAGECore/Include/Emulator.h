@@ -112,6 +112,12 @@ public:
 		uint32_t m_tCyclesStepped{ 0 };
 	};
 
+	struct FIFOSizes
+	{
+		uint8_t m_backgroundFIFOCount{ 0 };
+		uint8_t m_spriteFIFOCount{ 0 };
+	};
+
 	struct PPUState
 	{
 		uint8_t m_mode{ 0 };
@@ -122,6 +128,7 @@ public:
 		uint8_t m_lineSpriteCount{ 0 };
 		uint32_t m_cyclesInLine{ 0 };
 		int32_t m_cyclesInMode{ 0 };
+		FIFOSizes m_fifoSizes;
 	};
 
 	virtual void SetInstructionCallback(uint8_t instr, Emulator::DebugCallback callback, void* userData) = 0;

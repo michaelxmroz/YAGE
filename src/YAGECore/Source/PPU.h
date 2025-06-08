@@ -1,6 +1,7 @@
 #pragma once
 #include "Memory.h"
 #include "PixelFIFO.h"
+#include "../Include/Emulator.h"
 #include "PixelFetcher.h"
 
 #define MAX_SPRITES_PER_LINE 10
@@ -25,7 +26,7 @@ class PPU : ISerializable
 public:
 	PPU(GamestateSerializer* serializer);
 
-	~PPU();
+	~PPU() override;
 
 	PPU(const PPU& other) = delete;
 	PPU operator= (const PPU& other) = delete;
@@ -34,6 +35,7 @@ public:
 	void Render(uint32_t mCycles, Memory& memory);
 	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
+	Emulator::FIFOSizes GetFIFOSizes() const;
 
 #if defined(_DEBUG)
 	Emulator::PPUState GetPPUState();

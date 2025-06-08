@@ -1,6 +1,7 @@
 #include "DebuggerUI.h"
 #include "DebuggerUtils.h"
 #include "imgui.h"
+#include "Emulator.h"
 
 namespace
 {
@@ -209,6 +210,33 @@ void DrawPPUBar(const Emulator::PPUState& ppuState)
 
 }
 
+void DrawFIFOBars(const Emulator::FIFOSizes& fifoSizes)
+{
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    float barHeight = ImGui::GetTextLineHeight() * 0.8f;
+    float fullWidth = ImGui::GetContentRegionAvail().x;
+    ImU32 borderColor = IM_COL32(255, 255, 255, 255);
+    float spacingAfterBar = ImGui::GetStyle().ItemSpacing.y;
+
+    ImGui::Text("Background FIFO: %u/16", fifoSizes.m_backgroundFIFOCount);
+    ImVec2 bgBarStart = ImGui::GetCursorScreenPos();
+    bgBarStart.y -= ImGui::GetStyle().ItemSpacing.y;
+
+    float bgFilledWidth = (static_cast<float>(fifoSizes.m_backgroundFIFOCount) / 16.0f) * fullWidth;
+    drawList->AddRectFilled(bgBarStart, ImVec2(bgBarStart.x + bgFilledWidth, bgBarStart.y + barHeight), IM_COL32(50, 150, 50, 255));
+    drawList->AddRect(bgBarStart, ImVec2(bgBarStart.x + fullWidth, bgBarStart.y + barHeight), borderColor);
+    ImGui::Dummy(ImVec2(fullWidth, barHeight + spacingAfterBar));
+
+    ImGui::Text("Sprite FIFO: %u/16", fifoSizes.m_spriteFIFOCount);
+    ImVec2 spriteBarStart = ImGui::GetCursorScreenPos();
+    spriteBarStart.y -= ImGui::GetStyle().ItemSpacing.y;
+
+    float spriteFilledWidth = (static_cast<float>(fifoSizes.m_spriteFIFOCount) / 16.0f) * fullWidth;
+    drawList->AddRectFilled(spriteBarStart, ImVec2(spriteBarStart.x + spriteFilledWidth, spriteBarStart.y + barHeight), IM_COL32(50, 50, 150, 255));
+    drawList->AddRect(spriteBarStart, ImVec2(spriteBarStart.x + fullWidth, spriteBarStart.y + barHeight), borderColor);
+    ImGui::Dummy(ImVec2(fullWidth, barHeight + spacingAfterBar));
+}
+
 void DebuggerUI::Draw(DebuggerState& data)
 {
     // Sync visibility
@@ -373,6 +401,8 @@ void DebuggerUI::Draw(DebuggerState& data)
 
             ImGui::EndTable();
         }
+
+        DrawFIFOBars(data.m_fifoSizes);
 
         // STAT table
         ImGui::Separator();
