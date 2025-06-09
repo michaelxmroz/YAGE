@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+After fininishing a task that changed files from src\YAGECore or src\YAGEFrontend, verify that your changes compile by running [build_emulator.bat](mdc:build/visualstudio/build_emulator.bat). This has to be done from the build\visualstudio\ folder.
+
+After fininishing a task that changed files from src\YAGECore or src\YAGEFrontend, run the emulator accuracy tests by first running [build_tests.bat](mdc:build/visualstudio/build_tests.bat) and then [run_tests.bat](mdc:build/visualstudio/run_tests.bat). This has to be done from the build\visualstudio\ folder. Currently the test intr_2_mode0_timing_sprites.gb is broken and a fail there is expected.
+
+After fininishing a task that changed files from src\YAGEOS, verify that your changes compile by running [build_zig.bat](mdc:build/zig/build_zig.bat). This has to be done from the build\zig\ folder.
+

@@ -1,0 +1,13 @@
+---
+description: 
+globs: **/*.c,**/*.cpp,**/*.h,**/*.hpp,**/*.cxx,CMakeLists.txt,*.cmake,conanfile.txt,Makefil,**/*.cc
+alwaysApply: false
+---
+
+# C++ Programming Guidelines
+
+
+- Please adhere to the already present coding style whenever possible.
+- Please do not leave overly wordy comments. Only leave comments if the code itself is not self-explanatory, has to perform some unusual or unexpected function, or for marking TODOs.
+- Unless asked to, do not touch code unrelated to your current task.
+- Avoid magic numbers and define constants.

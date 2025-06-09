@@ -1,0 +1,11 @@
+---
+description: 
+globs: src/YAGECore/*
+alwaysApply: false
+---
+
+# Rules for the Emulator Core
+
+- Do not use any STD/STL functions. THe emulator core has to be able to run in a freestanding environment
+- Do not use any STD error handling
+- If you have to use a simple std function consider adding it to [CppIncludes.h](mdc:src/YAGECore/Source/CppIncludes.h) for both the freestanding case by using an intrinsic, and the non-freestandign case by using the std version
