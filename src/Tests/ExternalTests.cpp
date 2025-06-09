@@ -58,7 +58,7 @@ TEST_P(ExternalTestFixture, Main) {
     while (!stopReached && currentFrames < MAX_FRAMES)
     {
         EmulatorInputs::InputState inputState;
-        emu->Step(inputState, 16.67);
+        emu->Step(inputState, 16.67, false);
         stopReached = emu->HasReachedInstruction(MOONEYE_STOP_INSTR);
         currentFrames++;
     }
