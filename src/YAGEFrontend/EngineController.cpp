@@ -30,6 +30,7 @@ void GatherStats(Emulator& emulator, EngineData& state)
 #if defined (_DEBUG)
     state.m_debuggerState.m_cpuStatePrevious = state.m_debuggerState.m_cpuState;
     state.m_debuggerState.m_cpuState = emulator.GetCPUState();
+    state.m_debuggerState.m_tCyclesStepped = state.m_debuggerState.m_cpuState.m_tCyclesStepped;
     state.m_debuggerState.m_rawMemoryView = emulator.GetRawMemoryView();
     state.m_debuggerState.m_ppuState = emulator.GetPPUState();
 #endif
