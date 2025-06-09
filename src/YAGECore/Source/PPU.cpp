@@ -663,6 +663,7 @@ bool PPU::TrackedBool::ShouldTrigger()
 	return shouldTrigger;
 }
 
+#if defined(_DEBUG)
 Emulator::FIFOSizes PPU::GetFIFOSizes() const
 {
 	Emulator::FIFOSizes fifoSizes;
@@ -671,7 +672,6 @@ Emulator::FIFOSizes PPU::GetFIFOSizes() const
 	return fifoSizes;
 }
 
-#if defined(_DEBUG)
 Emulator::PPUState PPU::GetPPUState()
 {
 	return Emulator::PPUState

@@ -35,9 +35,9 @@ public:
 	void Render(uint32_t mCycles, Memory& memory);
 	void SwapBackbuffer();
 	const void* GetFrameBuffer() const;
-	Emulator::FIFOSizes GetFIFOSizes() const;
 
 #if defined(_DEBUG)
+	Emulator::FIFOSizes GetFIFOSizes() const;
 	Emulator::PPUState GetPPUState();
 #endif
 
