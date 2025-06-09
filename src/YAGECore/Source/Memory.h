@@ -6,6 +6,14 @@
 
 #define MEMORY_SIZE 0x10000
 #define IOPORTS_COUNT 0x80
+#define BOOTROM_SIZE 0x100
+#define EXTERNAL_RAM_SIZE 0x2000
+
+// ROM bank constants
+#define ROM_BANK_SIZE 0x4000
+#define FIXED_ROM_BEGIN 0x0000
+#define SWITCHABLE_ROM_BEGIN 0x4000
+#define EXTERNAL_RAM_BEGIN 0xA000
 
 #ifdef _DEBUG
 #define TRACK_UNINITIALIZED_MEMORY_READS 1
@@ -176,6 +184,7 @@ private:
 
 	std::map<uint16_t, Emulator::DebugCallback> DEBUG_MemoryCallbackMap;
 	std::map<uint16_t, void*> DEBUG_MemoryCallbackUserData;
+	uint8_t* m_debugMemoryView;  // Buffer for complete memory view in debug builds
 #endif
 };
 

@@ -38,6 +38,9 @@ Memory::Memory(GamestateSerializer* serializer) : ISerializable(serializer, Chun
 {
 	m_mappedMemory = Y_NEW_A(uint8_t, MEMORY_SIZE);
 	m_externalMemory = false;
+#if _DEBUG
+	m_debugMemoryView = Y_NEW_A(uint8_t, MEMORY_SIZE);
+#endif
 	Init();
 }
 
@@ -45,6 +48,9 @@ Memory::Memory(uint8_t* rawMemory) : ISerializable(nullptr, ChunkId::Memory)
 {
 	m_mappedMemory = rawMemory;
 	m_externalMemory = true;
+#if _DEBUG
+	m_debugMemoryView = Y_NEW_A(uint8_t, MEMORY_SIZE);
+#endif
 	Init();
 }
 
@@ -65,6 +71,10 @@ Memory::~Memory()
 
 #ifdef TRACK_UNINITIALIZED_MEMORY_READS
 	Y_DELETE_A(m_initializationTracker);
+#endif
+
+#if _DEBUG
+	Y_DELETE_A(m_debugMemoryView);
 #endif
 }
 
@@ -600,7 +610,30 @@ void Memory::SetMemoryCallback(uint16_t addr, Emulator::DebugCallback callback, 
 
 void* Memory::GetRawMemoryView()
 {
-	return m_mappedMemory;
+	// Copy the mapped memory
+	memcpy(m_debugMemoryView, m_mappedMemory, MEMORY_SIZE);
+
+	// Overlay boot ROM if present
+	if (m_bootrom)
+	{
+		memcpy(m_debugMemoryView, m_bootrom, BOOTROM_SIZE);
+	}
+
+	// Overlay ROM banks if present
+	if (m_mbc)
+	{
+		// Copy fixed ROM bank (0x0000-0x3FFF)
+		memcpy(m_debugMemoryView + FIXED_ROM_BEGIN, m_mbc->GetCurrentROMBank(FIXED_ROM_BEGIN), ROM_BANK_SIZE);
+		// Copy switchable ROM bank (0x4000-0x7FFF)
+		memcpy(m_debugMemoryView + SWITCHABLE_ROM_BEGIN, m_mbc->GetCurrentROMBank(SWITCHABLE_ROM_BEGIN), ROM_BANK_SIZE);
+		// Copy RAM bank if present
+		if (m_mbc->GetCurrentRAMBank())
+		{
+			memcpy(m_debugMemoryView + EXTERNAL_RAM_BEGIN, m_mbc->GetCurrentRAMBank(), EXTERNAL_RAM_SIZE);
+		}
+	}
+
+	return m_debugMemoryView;
 }
 
 void Memory::CheckForMemoryCallback(uint16_t addr)

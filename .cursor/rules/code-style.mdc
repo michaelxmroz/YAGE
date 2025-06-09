@@ -6,7 +6,7 @@ alwaysApply: false
 
 # C++ Programming Guidelines
 
-
+- Whenever you add a new file, make sure to add it to the correct *.vcxproj and *.vcxproj.filters file. Always use the $(BaseItemPath) variable in the project files instead of using the full path.
 - Please adhere to the already present coding style whenever possible.
 - Please do not leave overly wordy comments. Only leave comments if the code itself is not self-explanatory, has to perform some unusual or unexpected function, or for marking TODOs.
 - Unless asked to, do not touch code unrelated to your current task.

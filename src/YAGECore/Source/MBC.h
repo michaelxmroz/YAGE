@@ -32,6 +32,10 @@ public:
 
 	void RegisterRamSaveCallback(Emulator::PersistentMemoryCallback callback);
 
+	// New functions for debugger memory view
+	uint8_t* GetCurrentROMBank(uint16_t baseAddr) const { return m_rom + GetROMAddr(baseAddr); }
+	uint8_t* GetCurrentRAMBank() const { return m_ram + GetRAMAddr(EXTERNAL_RAM_BEGIN); }
+
 	struct RTC
 	{
 		long long m_lastUpdate;
