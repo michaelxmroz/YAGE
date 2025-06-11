@@ -25,6 +25,7 @@ namespace
 #define ITR_OPCODE 0x200
 #define HALT_OPCODE 0x76
 #define PSEUDO_NOP_OPCODE 0x201
+#define UNUSED_OPCODE 0xFD
 
 
 #if CPU_STATE_LOGGING
@@ -738,7 +739,7 @@ void CPU::DisassembleROM(Memory& memory)
 	}
 
 	// Clear the ROM region
-	memset(m_disasmMap, 0xFF, ROM_SIZE);
+	memset_y(m_disasmMap, UNUSED_OPCODE, ROM_SIZE);
 
 	// Get direct memory access
 	uint8_t* rawMem = static_cast<uint8_t*>(memory.GetRawMemoryView());
@@ -754,12 +755,6 @@ void CPU::DisassembleROM(Memory& memory)
 		
 		// Mark instruction start
 		m_disasmMap[addr - ROM_START] = opcode;
-		
-		// Mark remaining bytes as part of instruction
-		for (uint8_t i = 1; i < instr->m_length; i++)
-		{
-			m_disasmMap[addr + i - ROM_START] = 0xFF;
-		}
 
 		addr += instr->m_length;
 	}
@@ -775,7 +770,8 @@ Emulator::DisassemblyInfo CPU::GetDisassemblyInfo(uint16_t addr, Memory& memory)
 		return Emulator::DisassemblyInfo{
 			"No Disassembly",
 			1,
-			0
+			0,
+			addr
 		};
 	}
 
@@ -783,7 +779,7 @@ Emulator::DisassemblyInfo CPU::GetDisassemblyInfo(uint16_t addr, Memory& memory)
 	uint8_t opcode = m_disasmMap[addr - ROM_START];
 	
 	// If this byte is part of a previous instruction, find the start
-	while (opcode == 0xFF && addr > ROM_START)
+	while (opcode == UNUSED_OPCODE && addr > ROM_START)
 	{
 		addr--;
 		opcode = m_disasmMap[addr - ROM_START];
@@ -803,7 +799,8 @@ Emulator::DisassemblyInfo CPU::GetDisassemblyInfo(uint16_t addr, Memory& memory)
 	return Emulator::DisassemblyInfo{
 		instr->m_mnemonic,
 		instr->m_length,
-		instr->m_duration
+		instr->m_duration,
+		addr
 	};
 }
 #endif

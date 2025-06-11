@@ -4,6 +4,12 @@ globs: **/*.c,**/*.cpp,**/*.h,**/*.hpp,**/*.cxx,CMakeLists.txt,*.cmake,conanfile
 alwaysApply: false
 ---
 
+# Project Build and Test rules
+
+- ALWAYS after writing code in src\YAGECore or src\YAGEFrontend, ALWAYS verify that your changes compile by running @build_emulator.bat. This has to be done from the build\visualstudio\ folder. Do not forget this! It is very very important!
+-  Whenever you change files from src\YAGECore or src\YAGEFrontend, ALWAYS run the emulator accuracy tests by first running @build_tests.bat and then @run_tests.bat. This has to be done from the build\visualstudio\ folder. Currently the test intr_2_mode0_timing_sprites.gb is broken and a fail there is expected.
+-  Whenever you change files from src\YAGEOS, ALWAYS verify that your changes compile by running @build_zig.bat. This has to be done from the build\zig\ folder.
+
 # C++ Programming Guidelines
 
 - Whenever you add a new file, make sure to add it to the correct *.vcxproj and *.vcxproj.filters file. Always use the $(BaseItemPath) variable in the project files instead of using the full path.

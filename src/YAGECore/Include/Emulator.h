@@ -95,6 +95,7 @@ public:
 		const char* mnemonic;
 		uint8_t size;
 		uint8_t duration;
+		uint16_t baseAddr;
 	};
 
 	struct CPUState

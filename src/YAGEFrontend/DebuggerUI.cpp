@@ -159,6 +159,155 @@ namespace
 
 }
 
+void DrawCPUState(const DebuggerState& data, Emulator* emulator)
+{
+    auto& cpu = data.m_cpuState;
+    auto& prev = data.m_cpuStatePrevious;
+
+    // Parent table to contain both tables
+    if (ImGui::BeginTable("cpu_state_layout", 2, ImGuiTableFlags_None))
+    {
+        ImGui::TableSetupColumn("Registers", ImGuiTableColumnFlags_WidthFixed, 200);
+        ImGui::TableSetupColumn("PC Memory", ImGuiTableColumnFlags_WidthFixed, 300);
+        ImGui::TableNextRow();
+
+        // Register pairs table
+        ImGui::TableNextColumn();
+        if (ImGui::BeginTable("cpu_table", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) 
+        {
+            ImGui::TableSetupColumn("Reg", ImGuiTableColumnFlags_WidthFixed, 30);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+            ImGui::TableSetupColumn("Reg", ImGuiTableColumnFlags_WidthFixed, 30);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+            ImGui::TableHeadersRow();
+
+            auto addRowPair = [&](const char* n1, uint64_t v1, uint64_t p1, const char* n2, uint64_t v2, uint64_t p2)
+            {
+                ImGui::TableNextRow();
+                // First reg
+                ImGui::TableNextColumn(); ImGui::Text("%s", n1);
+                ImGui::TableNextColumn();
+                if (v1 != p1) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 0, 0, 100));
+                ImGui::Text("0x%0*llX", (p1 <= 0xFF) ? 2 : 4, v1);
+                // Second reg
+                ImGui::TableNextColumn(); ImGui::Text("%s", n2);
+                ImGui::TableNextColumn();
+                if (v2 != p2) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 0, 0, 100));
+                ImGui::Text("0x%0*llX", (p2 <= 0xFF) ? 2 : 4, v2);
+            };
+
+            addRowPair("A", cpu.m_regA, prev.m_regA, "F", cpu.m_regF, prev.m_regF);
+            addRowPair("B", cpu.m_regB, prev.m_regB, "C", cpu.m_regC, prev.m_regC);
+            addRowPair("D", cpu.m_regD, prev.m_regD, "E", cpu.m_regE, prev.m_regE);
+            addRowPair("H", cpu.m_regH, prev.m_regH, "L", cpu.m_regL, prev.m_regL);
+            addRowPair("PC", cpu.m_regPC, prev.m_regPC, "SP", cpu.m_regSP, prev.m_regSP);
+            ImGui::EndTable();
+        }
+
+        // Memory view around PC
+        ImGui::TableNextColumn();
+        if (ImGui::BeginTable("pc_mem", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
+            uint16_t pc = cpu.m_regPC;
+            
+            ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+            ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableHeadersRow();
+            
+            // Find the base address of the current instruction
+            auto currentDisasm = emulator->GetDisassemblyInfo(pc);
+            uint16_t currentBaseAddr = currentDisasm.baseAddr;
+            
+            // Create a single vector for all disassembly entries, pre-populated with empty entries
+            std::vector<Emulator::DisassemblyInfo> disasmEntries(PC_MEMORY_VIEW_RANGE * 2 + 1, {"", 0, 0, 0xFFFF});
+            
+            // Set the current instruction in the middle
+            disasmEntries[PC_MEMORY_VIEW_RANGE] = currentDisasm;
+            
+            // Find previous instructions
+            uint16_t addr = currentBaseAddr;
+            for (int i = PC_MEMORY_VIEW_RANGE - 1; i >= 0; --i)
+            {
+                if (addr == 0) 
+                {
+                    break;
+                }
+                addr--;
+                auto disasm = emulator->GetDisassemblyInfo(addr);
+                addr = disasm.baseAddr;
+                disasmEntries[i] = disasm;
+            }
+
+            // Find next instructions
+            addr = currentBaseAddr + currentDisasm.size;
+            for (int i = PC_MEMORY_VIEW_RANGE + 1; i < disasmEntries.size(); ++i)
+            {
+                if (addr >= 0xFFFF) 
+                {       
+                    break;
+                }
+                auto disasm = emulator->GetDisassemblyInfo(addr);
+                addr = disasm.baseAddr;
+                disasmEntries[i] = disasm;
+                addr += disasm.size;
+            }
+            
+            // Display all instructions
+            for (const auto& disasm : disasmEntries)
+            {
+                ImGui::TableNextRow();
+                
+                // Address column
+                ImGui::TableNextColumn();
+                if (disasm.baseAddr != 0xFFFF)
+                {
+                    ImGui::Text("0x%04X", disasm.baseAddr);
+                    
+                    // Value column
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%02X", GetMem(mem, disasm.baseAddr));
+
+                    // Disassembly column
+                    ImGui::TableNextColumn();
+                    if (disasm.baseAddr == currentBaseAddr)
+                    {
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 255, 0, 100));
+                    }
+                    ImGui::Text("%s", disasm.mnemonic);
+                }
+                else
+                {
+                    ImGui::Text("--");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("--");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("--");
+                }
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::Spacing();
+
+    // CPU Status
+    if (cpu.m_halted != prev.m_halted) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
+    ImGui::Text("Halted: %s", cpu.m_halted ? "Yes" : "No");
+    if (cpu.m_halted != prev.m_halted) ImGui::PopStyleColor();
+
+    if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
+    ImGui::Text("Handling Interrupt: %s", cpu.m_handlingInterrupt ? "Yes" : "No");
+    if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
+
+    ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
+    ImGui::Text("Instr: %s", cpu.m_currentInstruction);
+    ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.m_instructionDurationCycles, cpu.m_cyclesProcessed);
+}
+
 void DrawPPUBar(const Emulator::PPUState& ppuState)
 {
     constexpr int totalCyclesPerLine = 456;
@@ -370,108 +519,7 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
     // --- CPU State View ---
     if (ImGui::CollapsingHeader("CPU State", ImGuiTreeNodeFlags_DefaultOpen)) 
     {
-        auto& cpu = data.m_cpuState;
-        auto& prev = data.m_cpuStatePrevious;
-
-        // Parent table to contain both tables
-        if (ImGui::BeginTable("cpu_state_layout", 2, ImGuiTableFlags_None))
-        {
-            ImGui::TableSetupColumn("Registers", ImGuiTableColumnFlags_WidthFixed, 200);
-            ImGui::TableSetupColumn("PC Memory", ImGuiTableColumnFlags_WidthFixed, 200);
-            ImGui::TableNextRow();
-
-            // Register pairs table
-            ImGui::TableNextColumn();
-            if (ImGui::BeginTable("cpu_table", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) 
-            {
-                ImGui::TableSetupColumn("Reg", ImGuiTableColumnFlags_WidthFixed, 30);
-                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-                ImGui::TableSetupColumn("Reg", ImGuiTableColumnFlags_WidthFixed, 30);
-                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-                ImGui::TableHeadersRow();
-
-                auto addRowPair = [&](const char* n1, uint64_t v1, uint64_t p1, const char* n2, uint64_t v2, uint64_t p2)
-                {
-                    ImGui::TableNextRow();
-                    // First reg
-                    ImGui::TableNextColumn(); ImGui::Text("%s", n1);
-                    ImGui::TableNextColumn();
-                    if (v1 != p1) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 0, 0, 100));
-                    ImGui::Text("0x%0*llX", (p1 <= 0xFF) ? 2 : 4, v1);
-                    // Second reg
-                    ImGui::TableNextColumn(); ImGui::Text("%s", n2);
-                    ImGui::TableNextColumn();
-                    if (v2 != p2) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 0, 0, 100));
-                    ImGui::Text("0x%0*llX", (p2 <= 0xFF) ? 2 : 4, v2);
-                };
-
-                addRowPair("A", cpu.m_regA, prev.m_regA, "F", cpu.m_regF, prev.m_regF);
-                addRowPair("B", cpu.m_regB, prev.m_regB, "C", cpu.m_regC, prev.m_regC);
-                addRowPair("D", cpu.m_regD, prev.m_regD, "E", cpu.m_regE, prev.m_regE);
-                addRowPair("H", cpu.m_regH, prev.m_regH, "L", cpu.m_regL, prev.m_regL);
-                addRowPair("PC", cpu.m_regPC, prev.m_regPC, "SP", cpu.m_regSP, prev.m_regSP);
-                ImGui::EndTable();
-            }
-
-            // Memory view around PC
-            ImGui::TableNextColumn();
-            if (ImGui::BeginTable("pc_mem", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-            {
-                uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
-                uint16_t pc = cpu.m_regPC;
-                
-                ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_WidthFixed, 80);
-                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-                ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableHeadersRow();
-                
-                // Add rows for each address
-                for (int i = -PC_MEMORY_VIEW_RANGE; i <= PC_MEMORY_VIEW_RANGE; ++i)
-                {
-                    ImGui::TableNextRow();
-                    uint16_t addr = (pc + i) & 0xFFFF;
-                    
-                    // Address column
-                    ImGui::TableNextColumn();
-                    ImGui::Text("0x%04X", addr);
-                    
-                    // Value column
-                    ImGui::TableNextColumn();
-                    if (i == 0)
-                    {
-                        // Highlight current PC position
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 255, 0, 100));
-                    }
-                    ImGui::Text("%02X", GetMem(mem, addr));
-
-                    // Disassembly column
-                    ImGui::TableNextColumn();
-                    if (emulator)
-                    {
-                        auto disasm = emulator->GetDisassemblyInfo(addr);
-                        ImGui::Text("%s", disasm.mnemonic);
-                    }
-                }
-                ImGui::EndTable();
-            }
-
-            ImGui::EndTable();
-        }
-
-        ImGui::Spacing();
-
-        // CPU Status
-        if (cpu.m_halted != prev.m_halted) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
-        ImGui::Text("Halted: %s", cpu.m_halted ? "Yes" : "No");
-        if (cpu.m_halted != prev.m_halted) ImGui::PopStyleColor();
-
-        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
-        ImGui::Text("Handling Interrupt: %s", cpu.m_handlingInterrupt ? "Yes" : "No");
-        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
-
-        ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
-        ImGui::Text("Instr: %s", cpu.m_currentInstruction);
-        ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.m_instructionDurationCycles, cpu.m_cyclesProcessed);
+        DrawCPUState(data, emulator);
     }
 
     ImGui::Spacing();

@@ -3,7 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
-- Whenever you change files from src\YAGECore or src\YAGEFrontend, ALWAYS verify that your changes compile by running [build_emulator.bat](mdc:build/visualstudio/build_emulator.bat). This has to be done from the build\visualstudio\ folder.
+# Project Build and Test rules
+
+- ALWAYS after writing code in src\YAGECore or src\YAGEFrontend, ALWAYS verify that your changes compile by running [build_emulator.bat](mdc:build/visualstudio/build_emulator.bat). This has to be done from the build\visualstudio\ folder. Do not forget this! It is very very important!
 
 -  Whenever you change files from src\YAGECore or src\YAGEFrontend, ALWAYS run the emulator accuracy tests by first running [build_tests.bat](mdc:build/visualstudio/build_tests.bat) and then [run_tests.bat](mdc:build/visualstudio/run_tests.bat). This has to be done from the build\visualstudio\ folder. Currently the test intr_2_mode0_timing_sprites.gb is broken and a fail there is expected.
 
