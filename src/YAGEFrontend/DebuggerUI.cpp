@@ -278,7 +278,7 @@ void DrawFIFOBars(const Emulator::FIFOSizes& fifoSizes)
     ImGui::SetCursorScreenPos(ImVec2(bgBarStart.x, bgBarStart.y + barHeight + ImGui::GetStyle().ItemSpacing.y));
 }
 
-void DebuggerUI::Draw(DebuggerState& data)
+void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
 {
     // Sync visibility
     m_state.m_showWindow = data.m_debuggerActive;
@@ -415,13 +415,14 @@ void DebuggerUI::Draw(DebuggerState& data)
 
             // Memory view around PC
             ImGui::TableNextColumn();
-            if (ImGui::BeginTable("pc_mem", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+            if (ImGui::BeginTable("pc_mem", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
             {
                 uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
                 uint16_t pc = cpu.m_regPC;
                 
                 ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_WidthFixed, 80);
                 ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
+                ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableHeadersRow();
                 
                 // Add rows for each address
@@ -442,6 +443,14 @@ void DebuggerUI::Draw(DebuggerState& data)
                         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 255, 0, 100));
                     }
                     ImGui::Text("%02X", GetMem(mem, addr));
+
+                    // Disassembly column
+                    ImGui::TableNextColumn();
+                    if (emulator)
+                    {
+                        auto disasm = emulator->GetDisassemblyInfo(addr);
+                        ImGui::Text("%s", disasm.mnemonic);
+                    }
                 }
                 ImGui::EndTable();
             }

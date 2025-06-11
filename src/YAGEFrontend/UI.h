@@ -68,7 +68,7 @@ class UI
 {
 public:
 	explicit UI(RendererVulkan& renderer);
-	void Prepare(EngineData& data, double deltaMs);
+	void Prepare(EngineData& data, double deltaMs, Emulator* emulator);
 	void Draw(RendererVulkan& renderer);
 	~UI();
 private:

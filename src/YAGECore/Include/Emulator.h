@@ -91,6 +91,12 @@ public:
 
 #define MAX_MNEMONIC_LENGTH 10
 
+	struct DisassemblyInfo {
+		const char* mnemonic;
+		uint8_t size;
+		uint8_t duration;
+	};
+
 	struct CPUState
 	{
 		uint8_t m_regA{ 0 };
@@ -140,6 +146,8 @@ public:
 	virtual PPUState GetPPUState() = 0;
 	virtual void* GetRawMemoryView() = 0;
 
+	// Get disassembly info for an instruction at the given address
+	virtual DisassemblyInfo GetDisassemblyInfo(uint16_t addr) = 0;
 
 #endif
 	virtual ~Emulator();

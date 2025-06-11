@@ -657,7 +657,7 @@ UI::UI(RendererVulkan& renderer)
 #endif
 }
 
-void UI::Prepare(EngineData& data, double deltaMs)
+void UI::Prepare(EngineData& data, double deltaMs, Emulator* emulator)
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -670,7 +670,7 @@ void UI::Prepare(EngineData& data, double deltaMs)
 
     DrawLogWindow(m_state);
     DrawStatsWindow(m_state, data);
-    m_debugger.Draw(data.m_debuggerState);
+    m_debugger.Draw(data.m_debuggerState, emulator);
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);

@@ -36,6 +36,10 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 	m_apu.Init(m_memory);
 	m_joypad.Init(m_memory);
 	m_serial.Init(m_memory);
+
+#if _DEBUG
+	m_cpu.DisassembleROM(m_memory);
+#endif
 }
 
 void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, const char* bootrom, uint32_t bootromSize)
@@ -45,6 +49,10 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size, c
 	m_memory.MapBootrom(bootrom, bootromSize);
 	m_cpu.SetProgramCounter(0x00);
 	m_memory.Write(0xFF40, 0x00);
+
+#if _DEBUG
+	m_cpu.DisassembleROM(m_memory);
+#endif
 }
 
 void VirtualMachine::SetAudioBuffer(float* buffer, uint32_t size, uint32_t sampleRate, uint32_t* startOffset)
@@ -122,6 +130,9 @@ SerializationView VirtualMachine::Serialize(bool rawData)
 void VirtualMachine::Deserialize(const SerializationView& data)
 {
 	m_serializer.Deserialize(data, m_memory.GetHeaderChecksum());
+#if _DEBUG
+	m_cpu.DisassembleROM(m_memory);
+#endif
 }
 
 void VirtualMachine::SetTurboSpeed(float speed)
@@ -173,6 +184,12 @@ void* VirtualMachine::GetRawMemoryView()
 {
 	return m_memory.GetRawMemoryView();
 }
+
+Emulator::DisassemblyInfo VirtualMachine::GetDisassemblyInfo(uint16_t addr)
+{
+	return m_cpu.GetDisassemblyInfo(addr, m_memory);
+}
+
 #endif
 
 #ifdef _TESTING

@@ -44,6 +44,8 @@ public:
 	virtual CPUState GetCPUState() override;
 	virtual PPUState GetPPUState() override;
 	virtual void* GetRawMemoryView() override;
+	virtual DisassemblyInfo GetDisassemblyInfo(uint16_t addr) override;
+
 #endif
 
 #if _TESTING

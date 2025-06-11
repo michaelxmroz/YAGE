@@ -1,10 +1,22 @@
 #include "CPU.h"
 #include "Memory.h"
 #include "Allocator.h"
+#include <cstring>
+#include <cstdio>
+
+#if CPU_STATE_LOGGING
+#include "DebuggerUtils.h"
+#endif
+
+namespace
+{
+	constexpr uint16_t EXTENSION_OFFSET = 256;
+	constexpr uint16_t ROM_START = 0x0000;
+	constexpr size_t ROM_SIZE = ROM_END - ROM_START + 1;
+}
 
 #define DEFAULT_STACK_POINTER 0xFFFE
 #define EXTENSION_OPCODE 0xCB
-#define EXTENSION_OFFSET 256
 #define INTERRUPT_DURATION 5
 
 #define EI_OPCODE 0xFB
@@ -79,6 +91,10 @@ CPU::CPU(GamestateSerializer* serializer, bool enableInterruptHandling)
 	, m_delayedInterruptHandling(false)
 	, m_instructionTempData()
 	, m_isNextInstructionCB(false)
+#if _DEBUG
+	, m_disasmMap(nullptr)
+	, m_disasmMapValid(false)
+#endif
 	, m_instructions{
 	  { "NOP", 1, 1, &InstructionFunctions::NOP }
 	, { "LD BC nn", 3, 3, &InstructionFunctions::LD_BC_nn }
@@ -639,7 +655,15 @@ CPU::~CPU()
 #if CPU_STATE_LOGGING
 	Y_DELETE_A(DEBUG_CPUInstructionLog);
 #endif
+#if _DEBUG
+	if (m_disasmMap)
+	{
+		Y_DELETE_A(m_disasmMap);
+		m_disasmMap = nullptr;
+	}
+#endif
 }
+
 #if _TESTING
 void CPU::StopOnInstruction(uint8_t instr)
 {
@@ -703,6 +727,84 @@ Emulator::CPUState CPU::GetCPUState() const
 	memcpy_y(state.m_currentInstruction, m_currentInstruction->m_mnemonic, strlen(m_currentInstruction->m_mnemonic) + 1);
 
 	return state;
+}
+
+void CPU::DisassembleROM(Memory& memory)
+{
+	// Allocate map if not already allocated
+	if (!m_disasmMap)
+	{
+		m_disasmMap = Y_NEW_A(uint8_t, ROM_SIZE);
+	}
+
+	// Clear the ROM region
+	memset(m_disasmMap, 0xFF, ROM_SIZE);
+
+	// Get direct memory access
+	uint8_t* rawMem = static_cast<uint8_t*>(memory.GetRawMemoryView());
+
+	// Start from ROM beginning
+	uint16_t addr = ROM_START;
+	while (addr <= ROM_END)
+	{
+		uint8_t opcode = rawMem[addr];
+		
+		// Get instruction info
+		const Instruction* instr = &m_instructions[opcode];
+		
+		// Mark instruction start
+		m_disasmMap[addr - ROM_START] = opcode;
+		
+		// Mark remaining bytes as part of instruction
+		for (uint8_t i = 1; i < instr->m_length; i++)
+		{
+			m_disasmMap[addr + i - ROM_START] = 0xFF;
+		}
+
+		addr += instr->m_length;
+	}
+
+	m_disasmMapValid = true;
+}
+
+Emulator::DisassemblyInfo CPU::GetDisassemblyInfo(uint16_t addr, Memory& memory) const
+{
+	// Check if address is in ROM region
+	if (addr < ROM_START || addr > ROM_END || !m_disasmMapValid)
+	{
+		return Emulator::DisassemblyInfo{
+			"No Disassembly",
+			1,
+			0
+		};
+	}
+
+	// Get instruction info from cache
+	uint8_t opcode = m_disasmMap[addr - ROM_START];
+	
+	// If this byte is part of a previous instruction, find the start
+	while (opcode == 0xFF && addr > ROM_START)
+	{
+		addr--;
+		opcode = m_disasmMap[addr - ROM_START];
+	}
+
+	// Get instruction info
+	const Instruction* instr = &m_instructions[opcode];
+	
+	// Handle CB prefixed instructions
+	if (opcode == 0xCB)
+	{
+		uint8_t* rawMem = static_cast<uint8_t*>(memory.GetRawMemoryView());
+		uint8_t cbOpcode = rawMem[addr + 1];
+		instr = &m_instructions[EXTENSION_OFFSET + cbOpcode];
+	}
+
+	return Emulator::DisassemblyInfo{
+		instr->m_mnemonic,
+		instr->m_length,
+		instr->m_duration
+	};
 }
 #endif
 

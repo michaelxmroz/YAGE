@@ -24,6 +24,13 @@ public:
 	void ClearCallbacks();
 
 	Emulator::CPUState GetCPUState() const;
+
+	// Returns disassembly info for an instruction at the given address
+	Emulator::DisassemblyInfo GetDisassemblyInfo(uint16_t addr, Memory& memory) const;
+
+	// Disassembles the ROM banks (0x0000-0x7FFF)
+	void DisassembleROM(Memory& memory);
+
 #endif
 #if _TESTING
 	void StopOnInstruction(uint8_t instr);
@@ -93,6 +100,12 @@ private:
 #endif
 #if _TESTING
 	std::map<uint8_t, bool> DEBUG_stopInstructions;
+#endif
+
+#if _DEBUG
+	// Disassembly cache
+	uint8_t* m_disasmMap;
+	bool m_disasmMapValid;
 #endif
 };
 

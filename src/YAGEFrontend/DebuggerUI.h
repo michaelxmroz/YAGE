@@ -4,7 +4,7 @@
 class DebuggerUI
 {
 public:
-    void Draw(DebuggerState& data);
+    void Draw(DebuggerState& data, Emulator* emulator);
 
     void Toggle(DebuggerState& data);
 private:
