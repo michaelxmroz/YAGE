@@ -168,7 +168,7 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
     if (ImGui::BeginTable("cpu_state_layout", 2, ImGuiTableFlags_None))
     {
         ImGui::TableSetupColumn("Registers", ImGuiTableColumnFlags_WidthFixed, 200);
-        ImGui::TableSetupColumn("PC Memory", ImGuiTableColumnFlags_WidthFixed, 300);
+        ImGui::TableSetupColumn("PC Memory", ImGuiTableColumnFlags_WidthFixed, 400);
         ImGui::TableNextRow();
 
         // Register pairs table
@@ -206,14 +206,15 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
 
         // Memory view around PC
         ImGui::TableNextColumn();
-        if (ImGui::BeginTable("pc_mem", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        if (ImGui::BeginTable("pc_mem", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
             uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
             uint16_t pc = cpu.m_regPC;
             
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_WidthFixed, 80);
             ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed, 60);
-            ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Operand", ImGuiTableColumnFlags_WidthFixed, 60);
             ImGui::TableHeadersRow();
             
             // Find the base address of the current instruction
@@ -276,9 +277,34 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
                         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 255, 0, 100));
                     }
                     ImGui::Text("%s", disasm.mnemonic);
+                    
+                    // Operand column
+                    ImGui::TableNextColumn();
+                    if (disasm.baseAddr != 0xFFFF)
+                    {
+                        if (disasm.size == 1 || GetMem(mem,disasm.baseAddr) == 0xCB)
+                        {
+                            ImGui::Text("-");
+                        }
+                        else if (disasm.size == 2)
+                        {
+                            ImGui::Text("0x%02X", GetMem(mem, disasm.baseAddr + 1));
+                        }
+                        else if (disasm.size == 3)
+                        {
+                            uint16_t operand = GetMem(mem, disasm.baseAddr + 1) | (GetMem(mem, disasm.baseAddr + 2) << 8);
+                            ImGui::Text("0x%04X", operand);
+                        }
+                    }
+                    else
+                    {
+                        ImGui::Text("--");
+                    }
                 }
                 else
                 {
+                    ImGui::Text("--");
+                    ImGui::TableNextColumn();
                     ImGui::Text("--");
                     ImGui::TableNextColumn();
                     ImGui::Text("--");
