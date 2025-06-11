@@ -112,7 +112,7 @@ public:
 		uint16_t m_regSP{ 0 };
 		bool m_running{ true };
 		bool m_halted{ false };
-		char m_currentInstruction[MAX_MNEMONIC_LENGTH]{};
+		uint16_t m_currentInstructionAddr{ 0 };
 		int m_instructionDurationCycles{ 0 };
 		int m_cyclesProcessed{ 0 };
 		bool m_handlingInterrupt{ false };

@@ -163,6 +163,9 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
 {
     auto& cpu = data.m_cpuState;
     auto& prev = data.m_cpuStatePrevious;
+    uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
+
+    auto currentDisasm = emulator->GetDisassemblyInfo(cpu.m_currentInstructionAddr);
 
     // Parent table to contain both tables
     if (ImGui::BeginTable("cpu_state_layout", 2, ImGuiTableFlags_None))
@@ -208,7 +211,6 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
         ImGui::TableNextColumn();
         if (ImGui::BeginTable("pc_mem", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         {
-            uint8_t* mem = static_cast<uint8_t*>(data.m_rawMemoryView);
             uint16_t pc = cpu.m_regPC;
             
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_WidthFixed, 80);
@@ -218,7 +220,7 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
             ImGui::TableHeadersRow();
             
             // Find the base address of the current instruction
-            auto currentDisasm = emulator->GetDisassemblyInfo(pc);
+            
             uint16_t currentBaseAddr = currentDisasm.baseAddr;
             
             // Create a single vector for all disassembly entries, pre-populated with empty entries
@@ -330,7 +332,7 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
     if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
 
     ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
-    ImGui::Text("Instr: %s", cpu.m_currentInstruction);
+    ImGui::Text("Instr: %s", currentDisasm.mnemonic);
     ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.m_instructionDurationCycles, cpu.m_cyclesProcessed);
 }
 

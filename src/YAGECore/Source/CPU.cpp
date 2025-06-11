@@ -725,7 +725,7 @@ Emulator::CPUState CPU::GetCPUState() const
 	state.m_handlingInterrupt = m_instructionTempData.m_opcode == ITR_OPCODE;
 	state.m_instructionDurationCycles = m_currentInstruction->m_duration;
 	state.m_cyclesProcessed = m_instructionTempData.m_cycles;
-	memcpy_y(state.m_currentInstruction, m_currentInstruction->m_mnemonic, strlen(m_currentInstruction->m_mnemonic) + 1);
+	state.m_currentInstructionAddr = m_instructionTempData.m_atPC;
 
 	return state;
 }
