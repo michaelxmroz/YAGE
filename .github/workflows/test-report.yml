@@ -75,7 +75,7 @@ jobs:
           $outputFile = "test_results.txt"
           
           # Run tests with external test directory
-          & $testExe -externalTestDir $testDir > $outputFile 2>&1
+          & $testExe -externalTestDir=$testDir > $outputFile 2>&1
           $testExitCode = $LASTEXITCODE
           
           # Simplify parsing: copy recap portion after the last occurrence of "[==========]"

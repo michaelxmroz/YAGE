@@ -9,6 +9,8 @@ public:
 	CommandLineParser(int argc, char** argv);
 
 	std::string GetArgument(const std::string& arg);
+	bool HasArgument(const std::string& arg);
+
 private:
 	void Parse(int argc, char** argv);
 

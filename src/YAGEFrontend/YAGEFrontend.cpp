@@ -11,8 +11,8 @@ int main(int argc, char* argv[])
 
     CommandLineParser commandLine(argc, argv);
 
-    std::string filePath = commandLine.GetArgument("-file");
-    std::string bootromPath = commandLine.GetArgument("-bootrom");
+    std::string filePath = commandLine.GetArgument("file");
+    std::string bootromPath = commandLine.GetArgument("bootrom");
 
     EngineData data;
     data.m_gamePath = filePath;
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
         data.m_gamePath = SPLASH_PATH;
     }
 
-    data.m_debuggerState.m_debuggerActive = !commandLine.GetArgument("-debugger").empty();
+    data.m_debuggerState.m_debuggerActive = commandLine.HasArgument("debugger");
 
     EngineController controller(data);
 
