@@ -84,16 +84,22 @@ void VirtualMachine::Step(EmulatorInputs::InputState inputState, double deltaMs,
 
 		m_ppu.Render(cyclesPassed, m_memory);
 
+		bool shouldBreak = false;
 		if (tCycleStep)
 		{
 			m_samplesGenerated += m_apu.Update(m_memory, MCYCLES_TO_CYCLES, m_turbospeed);
 			m_serial.Update(m_memory, 1);
-			m_cpu.Step(m_memory);
+			shouldBreak = m_cpu.Step(m_memory);
 		}
 
 		m_totalCycles += cyclesPassed;
 		double cycleDurationS = static_cast<double>((cyclesPassed)) / (static_cast<double>(CPU_FREQUENCY) * static_cast<double>(m_turbospeed));
 		m_stepDuration += cycleDurationS * 1000.0;
+
+		if (shouldBreak)
+		{
+			break;
+		}
 	}
 	m_stepDuration -= deltaMs;
 }

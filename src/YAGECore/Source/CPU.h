@@ -40,7 +40,7 @@ public:
 		return m_registers;
 	}
 #endif
-	uint32_t Step(Memory& memory);
+	bool Step(Memory& memory);
 
 	void SetProgramCounter(unsigned short addr);
 
@@ -59,8 +59,8 @@ private:
 	};
 
 	void ClearRegisters();
-	void ExecuteInstruction(Memory& memory);
-	void DecodeAndFetchNext(Memory& memory);
+	bool ExecuteInstruction(Memory& memory);
+	bool DecodeAndFetchNext(Memory& memory);
 	bool ProcessInterrupts(Memory& memory);
 	bool CheckForWakeup(Memory& memory, bool postFetch);
 

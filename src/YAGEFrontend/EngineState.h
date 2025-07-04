@@ -273,11 +273,46 @@ struct Stats
 
 struct DebuggerState
 {
+	void ResetEmulatorData()
+	{
+		m_cpuState = {};
+		m_cpuStatePrevious = {};
+		m_ppuState = {};
+		m_ppuStatePrevious = {};
+		m_rawMemoryView = nullptr;
+	}
+
 	bool m_debuggerActive{ false };
 	int64_t m_debuggerSteps{ 0 };
 	bool m_triggerDebugBreak{ false };
 	bool m_microstepping{ false };
 	uint32_t m_tCyclesStepped{ 0 };
+	bool m_forceGatherStats{ false };
+
+	// Breakpoint management
+	enum class BreakpointType
+	{
+		PC = 0,
+		Instruction,
+		InstructionCount,
+		MemoryWrite,
+		COUNT
+	};
+
+	struct Breakpoint
+	{
+		BreakpointType m_type;
+		uint32_t m_value;  // PC address, instruction opcode, instruction count, or memory address
+		bool m_enabled;
+		int m_id;  // Unique identifier for this breakpoint
+		
+		Breakpoint() : m_type(BreakpointType::PC), m_value(0), m_enabled(true), m_id(-1) {}
+		Breakpoint(BreakpointType t, uint32_t v, int i) : m_type(t), m_value(v), m_enabled(true), m_id(i) {}
+	};
+
+	std::vector<Breakpoint> m_breakpoints;
+	int m_nextBreakpointId{ 0 };
+
 #if defined( _DEBUG)
 	Emulator::CPUState m_cpuState;
 	Emulator::CPUState m_cpuStatePrevious;

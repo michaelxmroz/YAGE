@@ -2,6 +2,9 @@
 #include "DebuggerUtils.h"
 #include "imgui.h"
 #include "Emulator.h"
+#include <cstdlib>
+#include <algorithm>
+#include <string>
 
 namespace
 {
@@ -116,6 +119,8 @@ namespace
         { "Drawing", ImVec4(1.0f, 0.55f, 0.0f, 1.0f) }, // Orange
     };
 
+    const char* breakpointTypes[] = { "PC", "Instruction", "Count", "Memory" };
+
     PPURegisterInfo GetPPURegInfo(PPURegister reg)
     {
         return PPURegisters[static_cast<int>(reg)];
@@ -156,6 +161,164 @@ namespace
 
         return mem[addr];
     }
+
+
+    void AddBreakpoint(DebuggerState& data, Emulator* emulator, DebuggerState::BreakpointType type, uint32_t value)
+    {
+        // Check if breakpoint already exists
+        for (const auto& bp : data.m_breakpoints)
+        {
+            if (bp.m_type == type && bp.m_value == value)
+            {
+                return; // Breakpoint already exists
+            }
+        }
+
+        // Add new breakpoint
+        DebuggerState::Breakpoint newBp(type, value, data.m_nextBreakpointId++);
+        data.m_breakpoints.push_back(newBp);
+
+        // Register with emulator
+        switch (type)
+        {
+        case DebuggerState::BreakpointType::PC:
+            emulator->SetPCCallback(static_cast<uint16_t>(value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+            break;
+        case DebuggerState::BreakpointType::Instruction:
+            emulator->SetInstructionCallback(static_cast<uint8_t>(value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+            break;
+        case DebuggerState::BreakpointType::InstructionCount:
+            emulator->SetInstructionCountCallback(value, &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+            break;
+        case DebuggerState::BreakpointType::MemoryWrite:
+            emulator->SetDataCallback(static_cast<uint16_t>(value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+            break;
+        }
+    }
+
+    void RemoveBreakpoint(DebuggerState& data, Emulator* emulator, int breakpointId)
+    {
+        // Find and remove the breakpoint
+        auto it = std::find_if(data.m_breakpoints.begin(), data.m_breakpoints.end(),
+            [breakpointId](const DebuggerState::Breakpoint& bp) { return bp.m_id == breakpointId; });
+
+        if (it != data.m_breakpoints.end())
+        {
+            // Clear the callback from emulator
+            switch (it->m_type)
+            {
+            case DebuggerState::BreakpointType::PC:
+                emulator->SetPCCallback(static_cast<uint16_t>(it->m_value), nullptr, nullptr);
+                break;
+            case DebuggerState::BreakpointType::Instruction:
+                emulator->SetInstructionCallback(static_cast<uint8_t>(it->m_value), nullptr, nullptr);
+                break;
+            case DebuggerState::BreakpointType::InstructionCount:
+                emulator->SetInstructionCountCallback(it->m_value, nullptr, nullptr);
+                break;
+            case DebuggerState::BreakpointType::MemoryWrite:
+                emulator->SetDataCallback(static_cast<uint16_t>(it->m_value), nullptr, nullptr);
+                break;
+            }
+
+            data.m_breakpoints.erase(it);
+        }
+    }
+
+    void UpdateBreakpoints(DebuggerState& data, Emulator* emulator)
+    {
+        // Clear all existing callbacks
+        emulator->ClearCallbacks();
+
+        // Re-register all enabled breakpoints
+        for (const auto& bp : data.m_breakpoints)
+        {
+            if (bp.m_enabled)
+            {
+                switch (bp.m_type)
+                {
+                case DebuggerState::BreakpointType::PC:
+                    emulator->SetPCCallback(static_cast<uint16_t>(bp.m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::Instruction:
+                    emulator->SetInstructionCallback(static_cast<uint8_t>(bp.m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::InstructionCount:
+                    emulator->SetInstructionCountCallback(bp.m_value, &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::MemoryWrite:
+                    emulator->SetDataCallback(static_cast<uint16_t>(bp.m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                }
+            }
+        }
+    }
+
+    void ToggleBreakpoint(DebuggerState& data, Emulator* emulator, int breakpointId)
+    {
+        // Find the breakpoint
+        auto it = std::find_if(data.m_breakpoints.begin(), data.m_breakpoints.end(),
+            [breakpointId](const DebuggerState::Breakpoint& bp) { return bp.m_id == breakpointId; });
+
+        if (it != data.m_breakpoints.end())
+        {
+            // Toggle the enabled state
+            it->m_enabled = !it->m_enabled;
+
+            // Update the callback in the emulator
+            if (it->m_enabled)
+            {
+                // Re-register the callback
+                switch (it->m_type)
+                {
+                case DebuggerState::BreakpointType::PC:
+                    emulator->SetPCCallback(static_cast<uint16_t>(it->m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::Instruction:
+                    emulator->SetInstructionCallback(static_cast<uint8_t>(it->m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::InstructionCount:
+                    emulator->SetInstructionCountCallback(it->m_value, &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                case DebuggerState::BreakpointType::MemoryWrite:
+                    emulator->SetDataCallback(static_cast<uint16_t>(it->m_value), &DebuggerUtils::TriggerDebuggerBreakpoint, &data);
+                    break;
+                }
+            }
+            else
+            {
+                // Remove the callback
+                switch (it->m_type)
+                {
+                case DebuggerState::BreakpointType::PC:
+                    emulator->SetPCCallback(static_cast<uint16_t>(it->m_value), nullptr, nullptr);
+                    break;
+                case DebuggerState::BreakpointType::Instruction:
+                    emulator->SetInstructionCallback(static_cast<uint8_t>(it->m_value), nullptr, nullptr);
+                    break;
+                case DebuggerState::BreakpointType::InstructionCount:
+                    emulator->SetInstructionCountCallback(it->m_value, nullptr, nullptr);
+                    break;
+                case DebuggerState::BreakpointType::MemoryWrite:
+                    emulator->SetDataCallback(static_cast<uint16_t>(it->m_value), nullptr, nullptr);
+                    break;
+                }
+            }
+        }
+    }
+
+    bool HasBreakpointAtAddress(const DebuggerState& data, uint16_t address)
+    {
+        for (const auto& bp : data.m_breakpoints)
+        {
+            if (bp.m_enabled && bp.m_type == DebuggerState::BreakpointType::MemoryWrite && bp.m_value == address)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }
 
@@ -464,6 +627,9 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
         return;
     }
 
+    // Update breakpoints to ensure they're registered with the emulator
+    UpdateBreakpoints(data, emulator);
+
     // Set window style
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(Theme::Padding, Theme::Padding));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(Theme::Spacing, Theme::Spacing));
@@ -602,6 +768,169 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
     ImGui::Separator();
     ImGui::Spacing();
 
+    // --- Breakpoints Section ---
+    if (ImGui::CollapsingHeader("Breakpoints", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // Unified breakpoint input form
+        ImGui::Text("Add Breakpoint:");
+        ImGui::SameLine();
+        
+        // Type dropdown
+        
+        ImGui::SetNextItemWidth(100);
+        if (ImGui::Combo("##Type", &m_state.m_selectedBreakpointType, breakpointTypes, IM_ARRAYSIZE(breakpointTypes)))
+        {
+            // Clear input when type changes
+            m_state.m_unifiedBreakpointInput[0] = '\0';
+            m_state.m_breakpointInputError = false;
+        }
+        ImGui::SameLine();
+        
+        // Value input with validation
+        ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags_CharsHexadecimal;
+        if (m_state.m_selectedBreakpointType == static_cast<int>(DebuggerState::BreakpointType::InstructionCount)) // Count type
+        {
+            inputFlags = ImGuiInputTextFlags_CharsDecimal;
+        }
+        
+        ImGui::SetNextItemWidth(120);
+        if (ImGui::InputText("##Value", m_state.m_unifiedBreakpointInput, IM_ARRAYSIZE(m_state.m_unifiedBreakpointInput), inputFlags))
+        {
+            m_state.m_breakpointInputError = false;
+        }
+        ImGui::SameLine();
+        
+        // Add button
+        if (ImGui::Button("Add Breakpoint"))
+        {
+            bool validInput = true;
+            uint32_t value = 0;
+            
+            // Parse and validate input based on type
+            switch (m_state.m_selectedBreakpointType)
+            {
+            case 0: // PC
+            case 3: // Memory
+                {
+                    char* endPtr;
+                    value = static_cast<uint32_t>(strtoul(m_state.m_unifiedBreakpointInput, &endPtr, 16));
+                    if (endPtr == m_state.m_unifiedBreakpointInput || *endPtr != '\0' || value > 0xFFFF)
+                    {
+                        validInput = false;
+                        strcpy_s(m_state.m_breakpointErrorMessage, "Invalid hex address (0x0000-0xFFFF)");
+                    }
+                }
+                break;
+                
+            case 1: // Instruction
+                {
+                    char* endPtr;
+                    value = static_cast<uint32_t>(strtoul(m_state.m_unifiedBreakpointInput, &endPtr, 16));
+                    if (endPtr == m_state.m_unifiedBreakpointInput || *endPtr != '\0' || value > 0xFF)
+                    {
+                        validInput = false;
+                        strcpy_s(m_state.m_breakpointErrorMessage, "Invalid hex instruction (0x00-0xFF)");
+                    }
+                }
+                break;
+                
+            case 2: // Count
+                {
+                    char* endPtr;
+                    value = static_cast<uint32_t>(strtoull(m_state.m_unifiedBreakpointInput, &endPtr, 10));
+                    if (endPtr == m_state.m_unifiedBreakpointInput || *endPtr != '\0' || value == 0)
+                    {
+                        validInput = false;
+                        strcpy_s(m_state.m_breakpointErrorMessage, "Invalid count (positive integer)");
+                    }
+                }
+                break;
+            }
+            
+            if (validInput)
+            {
+                DebuggerState::BreakpointType type = static_cast<DebuggerState::BreakpointType>(m_state.m_selectedBreakpointType);
+                AddBreakpoint(data, emulator, type, value);
+                m_state.m_unifiedBreakpointInput[0] = '\0'; // Clear input
+                m_state.m_breakpointInputError = false;
+            }
+            else
+            {
+                m_state.m_breakpointInputError = true;
+            }
+        }
+        
+        // Show error message if validation failed
+        if (m_state.m_breakpointInputError)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
+            ImGui::Text("%s", m_state.m_breakpointErrorMessage);
+            ImGui::PopStyleColor();
+        }
+
+        ImGui::Spacing();
+
+        // Active breakpoints table
+        if (ImGui::BeginTable("breakpoints_table", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("Type");
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableSetupColumn("Enabled");
+            ImGui::TableSetupColumn("Action");
+            ImGui::TableHeadersRow();
+
+            for (const auto& bp : data.m_breakpoints)
+            {
+                ImGui::TableNextRow();
+                
+                // Type column
+                ImGui::TableNextColumn();
+
+                ImGui::Text("%s", breakpointTypes[static_cast<int>(bp.m_type)]);
+                
+                // Value column
+                ImGui::TableNextColumn();
+                switch (bp.m_type)
+                {
+                case DebuggerState::BreakpointType::PC:
+                case DebuggerState::BreakpointType::MemoryWrite:
+                    ImGui::Text("0x%04X", bp.m_value);
+                    break;
+                case DebuggerState::BreakpointType::Instruction:
+                    ImGui::Text("0x%02X", bp.m_value);
+                    break;
+                case DebuggerState::BreakpointType::InstructionCount:
+                    ImGui::Text("%u", bp.m_value);
+                    break;
+                }
+                
+                // Enabled column with toggle
+                ImGui::TableNextColumn();
+                bool enabled = bp.m_enabled;
+                if (ImGui::Checkbox(("##Enabled" + std::to_string(bp.m_id)).c_str(), &enabled))
+                {
+                    ToggleBreakpoint(data, emulator, bp.m_id);
+                }
+                
+                // Action column
+                ImGui::TableNextColumn();
+                ImGui::PushID(bp.m_id);
+                if (ImGui::Button("Remove"))
+                {
+                    RemoveBreakpoint(data, emulator, bp.m_id);
+                    ImGui::PopID();
+                    break; // Exit loop since we modified the vector
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     // --- Memory View ---
     if (ImGui::CollapsingHeader("Memory", ImGuiTreeNodeFlags_DefaultOpen)) 
     {
@@ -681,7 +1010,7 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
             ImGui::SameLine();
             if (ImGui::Button("Add BP", ImVec2(50, 20)))
             {
-                /* TODO: Add data breakpoint */
+                AddBreakpoint(data, emulator, DebuggerState::BreakpointType::MemoryWrite, static_cast<uint16_t>(selectedMemory));
             }
         }
         ImGui::EndChild();
@@ -733,6 +1062,12 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
                     {
                         ImU32 tint = GetMemRegionTint(addr);
                         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, tint);
+
+                        // Highlight breakpoints with red tint
+                        if (HasBreakpointAtAddress(data, static_cast<uint16_t>(addr)))
+                        {
+                            ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(255, 0, 0, 80));
+                        }
 
                         if (addr == m_state.m_selectedMemoryCell)
                         {

@@ -166,20 +166,12 @@ void EngineController::CleanupEmulator()
 {
     Emulator::Delete(m_emulator);
     m_emulator = nullptr;
+    m_data.m_debuggerState.ResetEmulatorData();
+    
 }
 
 void EngineController::RunEmulatorLoop()
 {
-    if (m_emulator != nullptr)
-    {
-        //Debug stops
-        //m_emulator->SetDataCallback(0xFF40, &Debugging::TriggerLog, nullptr);
-        //m_emulator->SetPCCallback(0x1AA6, &DumpMemory, this);
-        //m_emulator->SetInstructionCountCallback(148208, &Debugging::TriggerBreakpoint, nullptr);
-        //m_emulator->SetInstructionCallback(0x40, &Debugging::TriggerBreakpoint);
-        //m_emulator->SetInstructionCountCallback(6157, &DumpMemory, this);
-    }
-
     uint32_t frameCount = 0;
     const void* frameBuffer = nullptr;
 
@@ -254,9 +246,13 @@ void EngineController::RunEmulatorLoop()
                 m_emulator->Step(inputState, emulatorDeltaMs, microstep);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
-
-                GatherStats(*m_emulator, m_data);
 			}
+
+            if(shouldStep || m_data.m_debuggerState.m_forceGatherStats)
+            {
+                GatherStats(*m_emulator, m_data);
+                m_data.m_debuggerState.m_forceGatherStats = false;
+            }
 
             HandleSaveLoad();
 

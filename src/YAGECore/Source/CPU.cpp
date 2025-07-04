@@ -1,8 +1,11 @@
 #include "CPU.h"
 #include "Memory.h"
 #include "Allocator.h"
+
+#ifndef FREESTANDING
 #include <cstring>
 #include <cstdio>
+#endif
 
 #if CPU_STATE_LOGGING
 #include "DebuggerUtils.h"
@@ -805,7 +808,7 @@ Emulator::DisassemblyInfo CPU::GetDisassemblyInfo(uint16_t addr, Memory& memory)
 }
 #endif
 
-uint32_t CPU::Step(Memory& memory)
+bool CPU::Step(Memory& memory)
 {
 	// HALT or STOP state, Waiting for interrupt
 	if(m_registers.CpuState != Registers::State::Running)
@@ -818,18 +821,16 @@ uint32_t CPU::Step(Memory& memory)
 		if (m_instructionTempData.m_cycles < m_instructionTempData.m_delay)
 		{
 			m_instructionTempData.m_cycles++;
-			return 0;
+			return false;
 		}
 
-		ExecuteInstruction(memory);
-
-		return 0;
+		return ExecuteInstruction(memory);
 	}
 
-	return 0;
+	return false;
 }
 
-void CPU::ExecuteInstruction(Memory& memory)
+bool CPU::ExecuteInstruction(Memory& memory)
 {
 #if CPU_STATE_LOGGING == 1
 	if (m_instructionTempData.m_cycles == 0 && m_instructionTempData.m_opcode < EXTENSION_OFFSET && DEBUG_instructionCount != 0)
@@ -840,12 +841,14 @@ void CPU::ExecuteInstruction(Memory& memory)
 	}
 #endif
 
+	bool shouldBreak = false;
+
 	//Execute
 	InstructionResult result = m_currentInstruction->m_func(m_currentInstruction->m_mnemonic, m_instructionTempData, &m_registers, memory);
 	if (result == InstructionResult::Finished)
 	{
 		bool executedEI = m_instructionTempData.m_opcode == EI_OPCODE;
-		DecodeAndFetchNext(memory);
+		shouldBreak = DecodeAndFetchNext(memory);
 		ProcessInterrupts(memory);
 		//[Hardware] Enabling of interrupts with EI is delayed by one cycle
 		if (executedEI)
@@ -865,16 +868,19 @@ void CPU::ExecuteInstruction(Memory& memory)
 		}
 #endif
 	}
+	return shouldBreak;
 }
 
-void CPU::DecodeAndFetchNext(Memory& memory)
+bool CPU::DecodeAndFetchNext(Memory& memory)
 {
+	bool shouldBreak = false;
 #if _DEBUG
 	if (DEBUG_PCCallbackMap.size() > 0)
 	{
 		if (DEBUG_PCCallbackMap.count(m_registers.PC))
 		{
 			DEBUG_PCCallbackMap[m_registers.PC](DEBUG_PCCallbackUserData[m_registers.PC]);
+			shouldBreak = true;
 		}
 	}
 	if (DEBUG_instrCallbackMap.size() > 0)
@@ -882,6 +888,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 		if (DEBUG_instrCallbackMap.count(memory[m_registers.PC]))
 		{
 			DEBUG_instrCallbackMap[memory[m_registers.PC]](DEBUG_instrCallbackUserData[memory[m_registers.PC]]);
+			shouldBreak = true;
 		}
 	}
 
@@ -895,6 +902,7 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 		if (DEBUG_instrCountCallbackMap.count(DEBUG_instructionCount))
 		{
 			DEBUG_instrCountCallbackMap[DEBUG_instructionCount](DEBUG_instrCountCallbackUserData[DEBUG_instructionCount]);
+			shouldBreak = true;
 		}
 	}
 #endif
@@ -940,6 +948,8 @@ void CPU::DecodeAndFetchNext(Memory& memory)
 	m_instructionTempData.Reset();
 	m_instructionTempData.m_opcode = encodedInstruction;
 	m_instructionTempData.m_atPC = atPC;
+
+	return shouldBreak;
 }
 
 
