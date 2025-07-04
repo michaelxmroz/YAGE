@@ -38,7 +38,7 @@ void CommandLineParser::Parse(int argc, char** argv)
 		// Skip if not starting with -
 		if (arg.empty() || arg[0] != '-')
 		{
-			std::cout << "Invalid Argument" << std::endl;
+			std::cout << "Invalid Argument " << arg << std::endl;
 			continue;
 		}
 

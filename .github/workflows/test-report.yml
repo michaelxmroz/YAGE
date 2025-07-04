@@ -78,6 +78,8 @@ jobs:
           & $testExe -externalTestDir=$testDir > $outputFile 2>&1
           $testExitCode = $LASTEXITCODE
           
+          Get-Content $outputFile
+
           # Simplify parsing: copy recap portion after the last occurrence of "[==========]"
           $content = Get-Content $outputFile
           $indexes = @()
