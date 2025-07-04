@@ -332,11 +332,12 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
 
     auto currentDisasm = emulator->GetDisassemblyInfo(cpu.m_currentInstructionAddr);
 
-    // Parent table to contain both tables
-    if (ImGui::BeginTable("cpu_state_layout", 2, ImGuiTableFlags_None))
+    // Parent table to contain all three sections
+    if (ImGui::BeginTable("cpu_state_layout", 3, ImGuiTableFlags_None))
     {
         ImGui::TableSetupColumn("Registers", ImGuiTableColumnFlags_WidthFixed, 200);
         ImGui::TableSetupColumn("PC Memory", ImGuiTableColumnFlags_WidthFixed, 400);
+        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 150);
         ImGui::TableNextRow();
 
         // Register pairs table
@@ -482,23 +483,23 @@ void DrawCPUState(const DebuggerState& data, Emulator* emulator)
             ImGui::EndTable();
         }
 
+        // CPU Status column
+        ImGui::TableNextColumn();
+        if (cpu.m_halted != prev.m_halted) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
+        ImGui::Text("Halted: %s", cpu.m_halted ? "Yes" : "No");
+        if (cpu.m_halted != prev.m_halted) ImGui::PopStyleColor();
+
+        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
+        ImGui::Text("Handling Interrupt: %s", cpu.m_handlingInterrupt ? "Yes" : "No");
+        if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
+
+        ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
+        ImGui::Text("Instr: %s", currentDisasm.mnemonic);
+        ImGui::Text("Duration: %d cycles", cpu.m_instructionDurationCycles);
+        ImGui::Text("Processed: %d", cpu.m_cyclesProcessed);
+
         ImGui::EndTable();
     }
-
-    ImGui::Spacing();
-
-    // CPU Status
-    if (cpu.m_halted != prev.m_halted) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
-    ImGui::Text("Halted: %s", cpu.m_halted ? "Yes" : "No");
-    if (cpu.m_halted != prev.m_halted) ImGui::PopStyleColor();
-
-    if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PushStyleColor(ImGuiCol_Text, Theme::Warning);
-    ImGui::Text("Handling Interrupt: %s", cpu.m_handlingInterrupt ? "Yes" : "No");
-    if (cpu.m_handlingInterrupt != prev.m_handlingInterrupt) ImGui::PopStyleColor();
-
-    ImGui::Text("Running: %s", cpu.m_running ? "Yes" : "No");
-    ImGui::Text("Instr: %s", currentDisasm.mnemonic);
-    ImGui::Text("Duration: %d cycles (Processed: %d)", cpu.m_instructionDurationCycles, cpu.m_cyclesProcessed);
 }
 
 void DrawPPUBar(const Emulator::PPUState& ppuState)

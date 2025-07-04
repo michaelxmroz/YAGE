@@ -11,6 +11,21 @@ YAGE is a classic (DMG) GB emulator. The emulator core is written in C++ with no
 YAGE is a cycle-accurate GB (DMG) emulator. For the exact workings of the original GB hardware that this project is trying to emulate please consult the [Pandocs](https://gbdev.io/pandocs/) as this would go beyond the scope of this readme. In its current state YAGE emulates all GB systems except for the serial data connection.
 Furthermore full game-state serialization is supported for save-states.
 
+## Debugger
+
+<img src="debugger.png?" alt="YAGE debugger" width="600"/>
+
+YAGE includes a comprehensive built-in debugger that provides powerful tools for analyzing and debugging ROMs. The debugger is available in debug builds and offers a modern, intuitive interface.
+
+### Key Features
+
+- **Run/Stop/Step**: Step through the emulation execution on a mCycle or tCycle level.
+- **Breakpoints**: Break when a specified condition is reached. The debugger supports program counter addresses, memory address writes, opcodes or opcode execution counts as conditions.
+- **CPU Inspector**: Real-time display of all CPU registers
+- **Instruction Disassembly**: View disassembled instructions around the current PC
+- **Memory Viewer**: Interactive hex dump of the entire Game Boy memory space, including color coding of memory regions
+- **PPU Inspector**: Real-time view of current PPU mode (HBlank, VBlank, OAM Scan, Drawing) and registers, including interal states such as mode timings and pixel FIFO pipelines.
+
 ## Build
 ### Windows
 The "Build/visualstudio" folder contains pre-generated VS2022 project files. For the dependencies to be properly fetched, vcpkg is required:
