@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <string>
 
+#if defined (DEBUGGER)
+
 namespace
 {
     // Theme colors
@@ -1125,3 +1127,8 @@ void DebuggerUI::Toggle(DebuggerState& data)
     m_state.m_showWindow = !m_state.m_showWindow;
     data.m_debuggerActive = m_state.m_showWindow;
 }
+#else
+void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator) {}
+
+void DebuggerUI::Toggle(DebuggerState& data) {}
+#endif

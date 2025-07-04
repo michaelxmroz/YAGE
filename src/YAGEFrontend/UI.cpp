@@ -585,10 +585,12 @@ namespace
                 }
                 if (ImGui::BeginMenu("Debug"))
                 {
+#if defined ( DEBUGGER )
                     if (ImGui::MenuItem("Debugger"))
                     {
                         debugger.Toggle(data.m_debuggerState);
                     }
+#endif
                     if (ImGui::MenuItem("Log Window"))
                     {
                         state.m_showLogWindow = !state.m_showLogWindow;

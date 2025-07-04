@@ -1,13 +1,19 @@
 #pragma once
 #include "EngineState.h"
 
+#if defined (_DEBUG)
+#define DEBUGGER
+#endif
+
+
 class DebuggerUI
 {
 public:
+
     void Draw(DebuggerState& data, Emulator* emulator);
 
     void Toggle(DebuggerState& data);
-
+#if defined (DEBUGGER)
 private:
     struct DebuggerUIState
     {
@@ -26,5 +32,6 @@ private:
     };
 
     DebuggerUIState m_state{};
+#endif
 };
 

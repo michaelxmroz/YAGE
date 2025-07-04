@@ -275,11 +275,13 @@ struct DebuggerState
 {
 	void ResetEmulatorData()
 	{
+#if defined( _DEBUG)
 		m_cpuState = {};
 		m_cpuStatePrevious = {};
 		m_ppuState = {};
 		m_ppuStatePrevious = {};
 		m_rawMemoryView = nullptr;
+#endif
 	}
 
 	bool m_debuggerActive{ false };
