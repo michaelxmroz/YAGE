@@ -20,6 +20,7 @@ std::string CommandLineParser::GetArgument(const std::string& arg)
 	{
 		return m_argumentDb[arg];
 	}
+	std::cout << "Argument not found" << std::endl;
 	return "";
 }
 
@@ -37,6 +38,7 @@ void CommandLineParser::Parse(int argc, char** argv)
 		// Skip if not starting with -
 		if (arg.empty() || arg[0] != '-')
 		{
+			std::cout << "Invalid Argument" << std::endl;
 			continue;
 		}
 
