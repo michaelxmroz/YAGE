@@ -157,6 +157,9 @@
     <ClCompile Include="$(BaseItemPath)\Tween.cpp" />
     <ClCompile Include="$(BaseItemPath)\UIStrings.cpp" />
 	<ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp" />
+	<ClCompile Include="$(BaseItemPath)\DeltaEncoder.cpp" />
+	<ClCompile Include="$(BaseItemPath)\FixedSizeRingbuffer.cpp" />
+	<ClCompile Include="$(BaseItemPath)\RewindController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -192,6 +195,9 @@
     <ClInclude Include="$(BaseItemPath)\Tween.h" />
     <ClInclude Include="$(BaseItemPath)\UIStrings.h" />
 	<ClInclude Include="$(BaseItemPath)\DebuggerUI.h" />
+	<ClInclude Include="$(BaseItemPath)\DeltaEncoder.h" />
+	<ClInclude Include="$(BaseItemPath)\FixedSizeRingbuffer.h" />
+	<ClInclude Include="$(BaseItemPath)\RewindController.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />

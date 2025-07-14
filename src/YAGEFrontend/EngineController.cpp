@@ -257,6 +257,11 @@ void EngineController::RunEmulatorLoop()
             HandleSaveLoad();
 
             frameCount++;
+
+            if (frameCount % 60 == 0)
+            {
+                Save(false);
+            }
         }
 
         if (m_renderer->BeginDraw(frameBuffer))
@@ -281,6 +286,7 @@ void EngineController::HandleSaveLoad()
     {
         Load();
     }
+
     m_data.m_saveLoadState = EngineData::SaveLoadState::NONE;
 }
 
@@ -303,6 +309,16 @@ void EngineController::Load()
 void EngineController::Save(bool rawData) const
 {
     SerializationView savedState = m_emulator->Serialize(rawData);
+
+    if (m_data.m_previousFrame.size != 0)
+    {
+        CalculateDelta(savedState);              
+    }
+
+    m_data.m_previousFrame.size = savedState.size;
+    m_data.m_previousFrame.data = new uint8_t[savedState.size];
+    memcpy(m_data.m_previousFrame.data, savedState.data, savedState.size);
+
     std::string saveStatePath = m_data.m_saveLoadPath;
     if (saveStatePath.empty())
     {
@@ -311,4 +327,20 @@ void EngineController::Save(bool rawData) const
     }
 
     FileParser::Write(saveStatePath, savedState.data, savedState.size);
+}
+
+void EngineController::CalculateDelta(const SerializationView& savedState) const
+{
+    uint8_t* deltaData = new uint8_t[savedState.size];
+    memset(deltaData, 0, savedState.size);
+
+    for (uint32_t i = 0; i < savedState.size; i++)
+    {
+        if (savedState.data[i] != m_data.m_previousFrame.data[i])
+        {
+            deltaData[i] = savedState.data[i] ^ m_data.m_previousFrame.data[i];
+        }
+    }
+    FileParser::Write("delta.txt", deltaData, savedState.size);
+    delete[] deltaData;
 }

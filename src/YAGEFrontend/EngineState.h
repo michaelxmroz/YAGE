@@ -345,7 +345,10 @@ struct EngineData
 		, m_baseWidth(0)
 		, m_baseHeight(0)
 		, m_turbo(false)
-	{}
+		, m_previousFrame()
+	{
+		m_previousFrame.size = 0;
+	}
 
 	StateMachine m_engineState;
 	SaveLoadState m_saveLoadState;
@@ -365,6 +368,8 @@ struct EngineData
 	DebuggerState m_debuggerState;
 
 	Stats m_stats;
+
+	SerializationView m_previousFrame;
 private:
     EngineData(const EngineData&) = delete;
 	EngineData& operator=(const EngineData&) = delete;

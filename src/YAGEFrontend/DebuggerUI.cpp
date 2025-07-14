@@ -652,7 +652,7 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
 
     // Bigger default size
     ImGui::SetNextWindowSize(ImVec2(800, 700), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin("Debugger", &m_state.m_showWindow)) 
+    if (!ImGui::Begin("Debugger", &data.m_debuggerActive))
     { 
         ImGui::PopStyleColor(7);
         ImGui::PopStyleVar(6);
