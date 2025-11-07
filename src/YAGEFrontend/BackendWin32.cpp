@@ -22,7 +22,6 @@
 #include <shtypes.h>      // for COMDLG_FILTERSPEC
 #include <new>
 #include "Logger.h"
-#include "Logging.h"
 #include <locale>
 #include <codecvt>
 #include "resource.h"
@@ -361,6 +360,7 @@ void BackendWin32::GetDefaultInputMapping(std::unordered_map<uint32_t, InputActi
     inputMapping[ConvertCharToVirtualKey('2')] = InputActions::QuickLoad;
     inputMapping[ConvertCharToVirtualKey('P')] = InputActions::Pause;
     inputMapping[ConvertCharToVirtualKey('T')] = InputActions::Turbo;
+    inputMapping[ConvertCharToVirtualKey('R')] = InputActions::Rewind;
 }
 
 std::string BackendWin32::ConvertVirtualKeyToString(uint32_t virtualKey)

@@ -8,32 +8,57 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YAGEFrontend", "YAGEFrontend.vcxproj", "{E522B312-42C3-4C11-B9F6-A4A40848CFEE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9} = {815E8E62-4E72-45BB-9E10-826FAF8F16A9}
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15} = {ABB3B519-DA55-4C13-9A92-54A871D3EF15}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rewinding", "Rewinding.vcxproj", "{ABB3B519-DA55-4C13-9A92-54A871D3EF15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Win-x64 = Debug|Win-x64
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
 		Release|Win-x64 = Release|Win-x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|Any CPU.Build.0 = Debug|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|Win-x64.ActiveCfg = Debug|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|Win-x64.Build.0 = Debug|x64
+		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|x64.ActiveCfg = Debug|x64
+		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Debug|x64.Build.0 = Debug|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|Any CPU.ActiveCfg = Release|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|Any CPU.Build.0 = Release|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|Win-x64.ActiveCfg = Release|x64
 		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|Win-x64.Build.0 = Release|x64
+		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|x64.ActiveCfg = Release|x64
+		{815E8E62-4E72-45BB-9E10-826FAF8F16A9}.Release|x64.Build.0 = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|Any CPU.Build.0 = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|Win-x64.ActiveCfg = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|Win-x64.Build.0 = Debug|x64
+		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|x64.ActiveCfg = Debug|x64
+		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Debug|x64.Build.0 = Debug|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|Any CPU.ActiveCfg = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|Any CPU.Build.0 = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|Win-x64.ActiveCfg = Release|x64
 		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|Win-x64.Build.0 = Release|x64
+		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|x64.ActiveCfg = Release|x64
+		{E522B312-42C3-4C11-B9F6-A4A40848CFEE}.Release|x64.Build.0 = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|Any CPU.Build.0 = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|Win-x64.ActiveCfg = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|Win-x64.Build.0 = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|x64.ActiveCfg = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Debug|x64.Build.0 = Debug|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|Any CPU.ActiveCfg = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|Any CPU.Build.0 = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|Win-x64.ActiveCfg = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|Win-x64.Build.0 = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|x64.ActiveCfg = Release|x64
+		{ABB3B519-DA55-4C13-9A92-54A871D3EF15}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

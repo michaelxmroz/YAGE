@@ -23,6 +23,7 @@ InputHandler::InputHandler()
 	m_buttonStates[InputActions::QuickSave] = ButtonState();
 	m_buttonStates[InputActions::QuickLoad] = ButtonState();
 	m_buttonStates[InputActions::Turbo] = ButtonState();
+	m_buttonStates[InputActions::Rewind] = ButtonState();
 }
 
 void InputHandler::RegisterOptionsCallbacks(UserSettings& userSettings)
@@ -110,6 +111,11 @@ void InputHandler::Update(EngineData& data, const std::unordered_map<uint32_t, b
 				data.m_turbo = !data.m_turbo;
 				break;
 			}
+		}
+
+		if (buttonState.first == InputActions::Rewind)
+		{
+			data.m_rewind = buttonState.second.IsPressed();
 		}
 	}
 }

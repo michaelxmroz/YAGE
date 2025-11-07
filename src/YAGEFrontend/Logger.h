@@ -6,6 +6,8 @@
 #include <mutex>
 #include <cassert>
 
+#include "StringHelper.h"
+
 //This can be your custom string type, as long as it supports .c_str()
 #define EzString std::string
 

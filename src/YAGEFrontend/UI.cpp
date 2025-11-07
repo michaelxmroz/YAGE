@@ -6,7 +6,6 @@
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Logger.h"
-#include "Logging.h"
 #include "EngineState.h"
 #include "Input.h"
 #include "UIStrings.h"
@@ -465,7 +464,7 @@ namespace
         ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
 
         float menuAlpha = 1.0f;
-        if (!data.m_gameLoaded || state.m_submenuState.IsOpen() || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
+        if (!data.m_gameData.m_gameLoaded || state.m_submenuState.IsOpen() || ImGui::IsMouseHoveringRect(viewportPos, ImVec2(viewportPos.x + viewportSize.x, viewportPos.y + ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2), false))
         {
             state.m_menuBarAlphaTween.Reset();
         }
@@ -483,7 +482,7 @@ namespace
             if (ImGui::BeginMenu("File"))
             {
                 state.m_submenuState.Update(true);
-                if (ImGui::MenuItem("Reset", 0, false, data.m_gameLoaded))
+                if (ImGui::MenuItem("Reset", 0, false, data.m_gameData.m_gameLoaded))
                 {
                 	data.m_engineState.SetState(StateMachine::EngineState::RESET);
                     ShowUIMessage(state, UIStrings::EMULATOR_RESET);
@@ -493,7 +492,7 @@ namespace
                     std::string path = Backend::OpenFileLoadDialog(L"Rom Files (*.gb; *.rom)", L"*.gb;*.rom");
                     if (!path.empty())
                     {
-                        data.m_gamePath = path;
+                        data.m_gameData.m_gamePath = path;
                         data.m_userSettings.AddRecentFile(path);
                         data.m_engineState.SetState(StateMachine::EngineState::RESET);
                         data.m_userSettings.Save();
@@ -514,7 +513,7 @@ namespace
 
 						if (ImGui::MenuItem(path.c_str()))
 						{
-							data.m_gamePath = path;
+							data.m_gameData.m_gamePath = path;
 							data.m_engineState.SetState(StateMachine::EngineState::RESET);
                             ShowUIMessage(state, UIStrings::SUCCESSFUL_LOAD);
 						}
@@ -529,35 +528,35 @@ namespace
 
                     ImGui::EndMenu();
                 }
-                if (ImGui::MenuItem("Quick Save", "CTRL+1", false, data.m_gameLoaded))
+                if (ImGui::MenuItem("Quick Save", "CTRL+1", false, data.m_gameData.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
-                    data.m_saveLoadPath = "";
+                    data.m_gameData.m_saveLoadPath = "";
                     ShowUIMessage(state, UIStrings::STATE_SAVED);
                 }
-                if (ImGui::MenuItem("Quick Load", "CTRL+2", false, data.m_gameLoaded))
+                if (ImGui::MenuItem("Quick Load", "CTRL+2", false, data.m_gameData.m_gameLoaded))
                 {
                     data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
-                    data.m_saveLoadPath = "";
+                    data.m_gameData.m_saveLoadPath = "";
                     ShowUIMessage(state, UIStrings::STATE_LOADED);
                 }
-                if (ImGui::MenuItem("Save state as", 0, false, data.m_gameLoaded))
+                if (ImGui::MenuItem("Save state as", 0, false, data.m_gameData.m_gameLoaded))
                 {
                     std::string path = Backend::OpenFileSaveDialog(L"Save state files (*.ssf)", L"*.ssf", L"ssf");
                     if (!path.empty())
                     {
                         data.m_saveLoadState = EngineData::SaveLoadState::SAVE;
-                        data.m_saveLoadPath = path;
+                        data.m_gameData.m_saveLoadPath = path;
                         ShowUIMessage(state, UIStrings::STATE_SAVED);
                     }
                 }
-                if (ImGui::MenuItem("Load state", 0, false, data.m_gameLoaded))
+                if (ImGui::MenuItem("Load state", 0, false, data.m_gameData.m_gameLoaded))
                 {
                     std::string path = Backend::OpenFileLoadDialog(L"Save state files (*.ssf)", L"*.ssf");
                     if (!path.empty())
                     {
                         data.m_saveLoadState = EngineData::SaveLoadState::LOAD;
-                        data.m_saveLoadPath = path;
+                        data.m_gameData.m_saveLoadPath = path;
                         ShowUIMessage(state, UIStrings::STATE_LOADED);
                     }
                 }
@@ -588,7 +587,7 @@ namespace
 #if defined ( DEBUGGER )
                     if (ImGui::MenuItem("Debugger"))
                     {
-                        debugger.Toggle(data.m_debuggerState);
+                        debugger.Toggle(data.m_gameData.m_debuggerState);
                     }
 #endif
                     if (ImGui::MenuItem("Log Window"))
@@ -672,7 +671,11 @@ void UI::Prepare(EngineData& data, double deltaMs, Emulator* emulator)
 
     DrawLogWindow(m_state);
     DrawStatsWindow(m_state, data);
-    m_debugger.Draw(data.m_debuggerState, emulator);
+
+    if (emulator)
+    {
+        m_debugger.Draw(data.m_gameData.m_debuggerState, emulator);
+    }
 
     ShowSystemOptions(m_state, data);
     ShowGraphicsOptions(m_state, data);

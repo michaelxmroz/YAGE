@@ -235,7 +235,7 @@ void SerializationFactory::WriteChunkHeader(uint32_t writeDataSize, const ChunkI
 	m_serializedChunks++;
 }
 
-DeserializationFactory::DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint32_t size)
+DeserializationFactory::DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint64_t size)
 	: m_parameters(parameters)
 	, m_finished(false)
 {

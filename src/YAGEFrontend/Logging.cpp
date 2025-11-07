@@ -1,6 +1,8 @@
-#include "Logger.h"
+#include "StringHelper.h"
+
 #include <iostream>
 
+#include "Logger.h"
 
 void LogMessage(const char* message, uint8_t severity)
 {

@@ -1,7 +1,7 @@
 #include "ShaderCompiler.h"
 #include <shaderc/shaderc.hpp>
 #include <vector>
-#include "Logging.h"
+#include "Logger.h"
 #include "FileParser.h"
 
 #define SHADER_CACHE_DIR "shadercache"

@@ -1,5 +1,5 @@
 #include "CommandLineArguments.h"
-#include "Logging.h"
+#include "Logger.h"
 #include "EngineState.h"
 #include "EngineController.h"
 
@@ -15,15 +15,15 @@ int main(int argc, char* argv[])
     std::string bootromPath = commandLine.GetArgument("bootrom");
 
     EngineData data;
-    data.m_gamePath = filePath;
-    data.m_bootromPath = bootromPath;
+    data.m_gameData.m_gamePath = filePath;
+    data.m_gameData.m_bootromPath = bootromPath;
 
-    if (data.m_gamePath.empty())
+    if (data.m_gameData.m_gamePath.empty())
     {
-        data.m_gamePath = SPLASH_PATH;
+        data.m_gameData.m_gamePath = SPLASH_PATH;
     }
 
-    data.m_debuggerState.m_debuggerActive = commandLine.HasArgument("debugger");
+    data.m_gameData.m_debuggerState.m_debuggerActive = commandLine.HasArgument("debugger");
 
     EngineController controller(data);
 

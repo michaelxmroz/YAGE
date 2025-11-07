@@ -39,7 +39,7 @@ extern "C"
 struct SerializationView
 {
 	uint8_t* data;
-	uint32_t size;
+	uint64_t size;
 };
 
 #define EMULATOR_SCREEN_WIDTH 160

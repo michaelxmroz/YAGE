@@ -90,7 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CPP;_DEBUG;_LOGGING;_CONSOLE;VK_USE_PLATFORM_WIN32_KHR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectRoot)\src\YAGECore\Include\;$(ProjectRoot)\externalLibs\imgui\;$(ProjectRoot)\externalLibs\vulkan\include\;$(ProjectRoot)\externalLibs\volk\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectRoot)\src\YAGECore\Include\;$(ProjectRoot)\externalLibs\imgui\;$(ProjectRoot)\externalLibs\vulkan\include\;$(ProjectRoot)\externalLibs\volk\;$(ProjectRoot)\src\Rewinding\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -98,7 +98,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>portaudio.lib;glslangd.lib;shaderc.lib;shaderc_util.lib;SPIRV-Tools-opt.lib;SPIRV-Tools.lib;SPIRV-Tools-diff.lib;SPIRV-Tools-link.lib;SPIRV-Tools-lint.lib;SPIRV-Tools-reduce.lib;propsys.lib;shlwapi.lib;comctl32.lib;YAGECore.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>portaudio.lib;glslangd.lib;shaderc.lib;shaderc_util.lib;SPIRV-Tools-opt.lib;SPIRV-Tools.lib;SPIRV-Tools-diff.lib;SPIRV-Tools-link.lib;SPIRV-Tools-lint.lib;SPIRV-Tools-reduce.lib;propsys.lib;shlwapi.lib;comctl32.lib;YAGECore.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Rewinding.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -156,10 +156,7 @@
     <ClCompile Include="$(BaseItemPath)\UI.cpp" />
     <ClCompile Include="$(BaseItemPath)\Tween.cpp" />
     <ClCompile Include="$(BaseItemPath)\UIStrings.cpp" />
-	<ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp" />
-	<ClCompile Include="$(BaseItemPath)\DeltaEncoder.cpp" />
-	<ClCompile Include="$(BaseItemPath)\FixedSizeRingbuffer.cpp" />
-	<ClCompile Include="$(BaseItemPath)\RewindController.cpp" />
+    <ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h" />
@@ -184,7 +181,7 @@
     <ClInclude Include="$(BaseItemPath)\EngineController.h" />
     <ClInclude Include="$(BaseItemPath)\EngineState.h" />
     <ClInclude Include="$(BaseItemPath)\Logger.h" />
-    <ClInclude Include="$(BaseItemPath)\Logging.h" />
+    <ClInclude Include="$(BaseItemPath)\StringHelper.h" />
     <ClInclude Include="$(BaseItemPath)\MiniMath.h" />
     <ClInclude Include="$(BaseItemPath)\RendererVulkan.h" />
     <ClInclude Include="$(BaseItemPath)\ShaderCompiler.h" />
@@ -194,22 +191,19 @@
     <ClInclude Include="$(BaseItemPath)\resource.h" />
     <ClInclude Include="$(BaseItemPath)\Tween.h" />
     <ClInclude Include="$(BaseItemPath)\UIStrings.h" />
-	<ClInclude Include="$(BaseItemPath)\DebuggerUI.h" />
-	<ClInclude Include="$(BaseItemPath)\DeltaEncoder.h" />
-	<ClInclude Include="$(BaseItemPath)\FixedSizeRingbuffer.h" />
-	<ClInclude Include="$(BaseItemPath)\RewindController.h" />
+    <ClInclude Include="$(BaseItemPath)\DebuggerUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectRoot)\externalLibs\imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="$(BaseItemPath)\main.glsl" />
-	<None Include="$(ProjectRoot)\splash.gb" />
+    <None Include="$(ProjectRoot)\splash.gb" />
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(BaseItemPath)\main.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-	<Content Include="$(ProjectRoot)\splash.gb">
+    <Content Include="$(ProjectRoot)\splash.gb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

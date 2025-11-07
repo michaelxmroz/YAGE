@@ -135,16 +135,6 @@
     <ClCompile Include="$(BaseItemPath)\DebuggerUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-
-    <ClCompile Include="$(BaseItemPath)\DeltaEncoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(BaseItemPath)\FixedSizeRingbuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(BaseItemPath)\RewindController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BaseItemPath)\CommandLineArguments.h">
@@ -187,9 +177,6 @@
       <Filter>Header Files\Platforms\Windows</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\Logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(BaseItemPath)\DebuggerUtils.h">
@@ -243,18 +230,12 @@
     <ClInclude Include="$(BaseItemPath)\Tween.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\DeltaEncoder.h">
+    <ClInclude Include="$(BaseItemPath)\DebuggerUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(BaseItemPath)\FixedSizeRingbuffer.h">
+    <ClInclude Include="$(BaseItemPath)\StringHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-      <ClInclude Include="$(BaseItemPath)\RewindController.h">
-        <Filter>Header Files</Filter>
-      </ClInclude>
-      <ClInclude Include="$(BaseItemPath)\DebuggerUI.h">
-        <Filter>Header Files</Filter>
-      </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(BaseItemPath)\main.glsl">

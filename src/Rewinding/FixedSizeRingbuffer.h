@@ -76,6 +76,12 @@ public:
 	{
 		return m_head == m_tail;
 	}
+
+	void Clear()
+	{
+		m_head = 0;
+		m_tail = 0;
+	}
 private:
 	T* m_buffer;
 	size_t m_maxSize;

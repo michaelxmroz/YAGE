@@ -24,6 +24,6 @@ namespace FileParser
 	bool Read(std::string path, std::vector<char>& parsedBlob);
 
 	std::string GetFileNameFromPath(std::string path);
-	std::vector<std::string> GetFilesInPathRecursive(std::string path);
+	std::vector<std::string> GetFilesInPathRecursive(std::string path, const char* fileEnding);
 };
 

@@ -67,7 +67,7 @@ public:
 		const uint32_t m_dataSize;
 	};
 
-	DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint32_t size);
+	DeserializationFactory(SerializationParameters parameters, const uint8_t* buffer, const uint64_t size);
 	void Deserialize(const uint8_t* buffer, ISerializable** components) const;
 	const uint8_t* GetDataForChunk(const uint8_t* buffer, uint32_t index) const;
 	void Finish();

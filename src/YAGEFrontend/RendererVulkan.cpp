@@ -6,7 +6,7 @@
 #include "volk.h"
 
 #include "RendererVulkan.h"
-#include "Logging.h"
+#include "Logger.h"
 #include <vector>
 #include <set>
 #include <algorithm>

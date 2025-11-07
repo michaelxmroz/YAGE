@@ -28,11 +28,11 @@ void GatherStats(Emulator& emulator, EngineData& state)
 {
     state.m_stats.m_allocatedMemory = emulator.GetMemoryUse();
 #if defined (_DEBUG)
-    state.m_debuggerState.m_cpuStatePrevious = state.m_debuggerState.m_cpuState;
-    state.m_debuggerState.m_cpuState = emulator.GetCPUState();
-    state.m_debuggerState.m_tCyclesStepped = state.m_debuggerState.m_cpuState.m_tCyclesStepped;
-    state.m_debuggerState.m_rawMemoryView = emulator.GetRawMemoryView();
-    state.m_debuggerState.m_ppuState = emulator.GetPPUState();
+    state.m_gameData.m_debuggerState.m_cpuStatePrevious = state.m_gameData.m_debuggerState.m_cpuState;
+    state.m_gameData.m_debuggerState.m_cpuState = emulator.GetCPUState();
+    state.m_gameData.m_debuggerState.m_tCyclesStepped = state.m_gameData.m_debuggerState.m_cpuState.m_tCyclesStepped;
+    state.m_gameData.m_debuggerState.m_rawMemoryView = emulator.GetRawMemoryView();
+    state.m_gameData.m_debuggerState.m_ppuState = emulator.GetPPUState();
 #endif
 }
 
@@ -70,9 +70,9 @@ void EngineController::Run()
         }
 
         std::vector<char> romBlob;
-        if (!m_data.m_gamePath.empty())
+        if (!m_data.m_gameData.m_gamePath.empty())
         {
-            if (!FileParser::Read(m_data.m_gamePath, romBlob))
+            if (!FileParser::Read(m_data.m_gameData.m_gamePath, romBlob))
             {
                 LOG_ERROR("Could not read file at provided path");
             }
@@ -81,17 +81,17 @@ void EngineController::Run()
         std::vector<char> bootromBlob;
         if (m_data.m_userSettings.m_systemUseBootrom.GetValue())
         {
-            m_data.m_bootromPath = m_data.m_userSettings.m_systemBootromPath.GetValue();
-            if (!m_data.m_bootromPath.empty())
+            m_data.m_gameData.m_bootromPath = m_data.m_userSettings.m_systemBootromPath.GetValue();
+            if (!m_data.m_gameData.m_bootromPath.empty())
             {
-                if (!FileParser::Read(m_data.m_bootromPath, bootromBlob))
+                if (!FileParser::Read(m_data.m_gameData.m_bootromPath, bootromBlob))
                 {
                     LOG_ERROR("Could not read bootrom file");
                 }
             }
         }
 
-        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
+        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gameData.m_gamePath.c_str());
         s_persistentMemoryPath = string_format("%s.%s", fileWithoutEnding.c_str(), PERSISTENT_MEMORY_FILE_ENDING);
 
         std::vector<char> ramBlob;
@@ -138,11 +138,11 @@ void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, cons
 {
     m_emulator = Emulator::Create(&AllocFunc, &FreeFunc);
 
-    m_data.m_gameLoaded = true;
+    m_data.m_gameData.m_gameLoaded = true;
 
     m_emulator->SetLoggerCallback(&LogMessage);
 
-    std::string filename = FileParser::StripPath(m_data.m_gamePath.c_str());
+    std::string filename = FileParser::StripPath(m_data.m_gameData.m_gamePath.c_str());
 
     if (!bootromBlob.empty())
     {
@@ -166,13 +166,12 @@ void EngineController::CleanupEmulator()
 {
     Emulator::Delete(m_emulator);
     m_emulator = nullptr;
-    m_data.m_debuggerState.ResetEmulatorData();
-    delete(m_data.m_previousFrame.data);
+    m_data.m_gameData.Reset();
 }
 
 void EngineController::RunEmulatorLoop()
 {
-    uint32_t frameCount = 0;
+    uint64_t frameCount = 0;
     const void* frameBuffer = nullptr;
 
     Clock clock;
@@ -208,28 +207,36 @@ void EngineController::RunEmulatorLoop()
         EmulatorInputs::InputState inputState;
         m_inputHandler->Update(m_data, m_renderer->GetInputEventMap(), inputState);
 
-        if (m_data.m_gameLoaded)
+        if (m_data.m_gameData.m_gameLoaded)
         {
             bool shouldStep = m_data.m_engineState.GetState() != StateMachine::EngineState::PAUSED;
             double emulatorDeltaMs = deltaMs;
-            bool microstep = m_data.m_debuggerState.m_microstepping;
-            if(m_data.m_debuggerState.m_debuggerActive && m_data.m_debuggerState.m_debuggerSteps >= 0)
+            bool microstep = m_data.m_gameData.m_debuggerState.m_microstepping;
+            if(m_data.m_gameData.m_debuggerState.m_debuggerActive && m_data.m_gameData.m_debuggerState.m_debuggerSteps >= 0)
             {
                 emulatorDeltaMs = microstep ? EMULATOR_CLOCK_MS : EMULATOR_CLOCK_MS * 4;
 
-                if (!microstep && m_data.m_debuggerState.m_tCyclesStepped != 0)
+                if (!microstep && m_data.m_gameData.m_debuggerState.m_tCyclesStepped != 0)
                 {
-                    emulatorDeltaMs = EMULATOR_CLOCK_MS * (4 - m_data.m_debuggerState.m_tCyclesStepped);
+                    emulatorDeltaMs = EMULATOR_CLOCK_MS * (4 - m_data.m_gameData.m_debuggerState.m_tCyclesStepped);
                     microstep = true;
                 }
 
-                if(m_data.m_debuggerState.m_debuggerSteps == 0)
+                if(m_data.m_gameData.m_debuggerState.m_debuggerSteps == 0)
                 {
                     shouldStep = false;
                 }
-                else if(m_data.m_debuggerState.m_debuggerSteps > 0)
+                else if(m_data.m_gameData.m_debuggerState.m_debuggerSteps > 0)
                 {
-                    m_data.m_debuggerState.m_debuggerSteps--;
+                    m_data.m_gameData.m_debuggerState.m_debuggerSteps--;
+                }
+
+                if (m_data.m_gameData.m_debuggerState.m_stepBack)
+                {
+					m_data.m_gameData.m_debuggerState.m_stepBack = false;
+                    HandleRewind();
+                    shouldStep = true;
+                    emulatorDeltaMs = deltaMs;
                 }
             }
 
@@ -237,31 +244,35 @@ void EngineController::RunEmulatorLoop()
 			{
                 m_emulator->SetTurboSpeed(m_data.m_turbo ? m_data.m_userSettings.m_systemTurboSpeed.GetValue() : 1.0f);
 
-                if (m_data.m_debuggerState.m_triggerDebugBreak)
+                if (m_data.m_gameData.m_debuggerState.m_triggerDebugBreak)
                 {
-                    m_data.m_debuggerState.m_triggerDebugBreak = false;
+                    m_data.m_gameData.m_debuggerState.m_triggerDebugBreak = false;
                     DebuggerUtils::TriggerBreakpoint(nullptr);
                 }
 
                 m_emulator->Step(inputState, emulatorDeltaMs, microstep);
                 frameBuffer = m_emulator->GetFrameBuffer();
                 m_audio->Play();
+
+                frameCount++;
+
+                if (m_data.m_rewind)
+                {
+                    HandleRewind();
+                }
+                else if (frameCount % 2 == 0)
+                {
+                    CreateFrameDelta();
+                }
 			}
 
-            if(shouldStep || m_data.m_debuggerState.m_forceGatherStats)
+            if(shouldStep || m_data.m_gameData.m_debuggerState.m_forceGatherStats)
             {
                 GatherStats(*m_emulator, m_data);
-                m_data.m_debuggerState.m_forceGatherStats = false;
+                m_data.m_gameData.m_debuggerState.m_forceGatherStats = false;
             }
 
             HandleSaveLoad();
-
-            frameCount++;
-
-            if (frameCount % 60 == 0)
-            {
-                CreateFrameDelta();
-            }
         }
 
         if (m_renderer->BeginDraw(frameBuffer))
@@ -278,7 +289,7 @@ void EngineController::RunEmulatorLoop()
 
 void EngineController::HandleSaveLoad()
 {
-    if (m_data.m_saveLoadState == EngineData::SaveLoadState::SAVE && m_data.m_gameLoaded)
+    if (m_data.m_saveLoadState == EngineData::SaveLoadState::SAVE && m_data.m_gameData.m_gameLoaded)
     {
         Save(false);
     }
@@ -293,15 +304,23 @@ void EngineController::HandleSaveLoad()
 void EngineController::CreateFrameDelta()
 {
     SerializationView savedState = m_emulator->Serialize(false);
-	m_data.m_rewindController.EncodeFrameDelta(savedState);
+	m_data.m_gameData.m_rewindController.EncodeFrameDelta(savedState);
+}
+
+void EngineController::HandleRewind()
+{
+	if (SerializationView* reconstructedFrame = m_data.m_gameData.m_rewindController.Rewind())
+	{
+		m_emulator->Deserialize(*reconstructedFrame);
+	}
 }
 
 void EngineController::Load()
 {
-    std::string saveStatePath = m_data.m_saveLoadPath;
+    std::string saveStatePath = m_data.m_gameData.m_saveLoadPath;
     if (saveStatePath.empty())
     {
-        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
+        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gameData.m_gamePath.c_str());
         saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
     }
     std::vector<char> saveState;
@@ -316,10 +335,10 @@ void EngineController::Save(bool rawData) const
 {
     SerializationView savedState = m_emulator->Serialize(rawData);
 
-    std::string saveStatePath = m_data.m_saveLoadPath;
+    std::string saveStatePath = m_data.m_gameData.m_saveLoadPath;
     if (saveStatePath.empty())
     {
-        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gamePath.c_str());
+        std::string fileWithoutEnding = FileParser::StripFileEnding(m_data.m_gameData.m_gamePath.c_str());
         saveStatePath = string_format("%s.%s", fileWithoutEnding.c_str(), SAVE_STATE_FILE_ENDING);
     }
 

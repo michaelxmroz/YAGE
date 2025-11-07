@@ -103,7 +103,7 @@ std::string FileParser::GetFileNameFromPath(std::string path)
 	return parsedPath.stem().string();
 }
 
-std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
+std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path, const char* fileEnding)
 {
 	fs::path dirPath(path);
 	if (!fs::exists(dirPath))
@@ -126,7 +126,7 @@ std::vector<std::string> FileParser::GetFilesInPathRecursive(std::string path)
 		std::filesystem::recursive_directory_iterator(dirPath))
 	{
 		fs::path filePath = dir_entry.path();
-		if (filePath.extension().string().compare(".gb") == 0)
+		if (filePath.extension().string().compare(fileEnding) == 0)
 		{
 			std::string filename = dir_entry.path().stem().string();
 			// Only add the file if it does not have one of the excluded suffixes.

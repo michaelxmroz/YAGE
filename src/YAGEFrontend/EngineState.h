@@ -6,8 +6,7 @@
 
 #include "Emulator.h"
 #include "FileParser.h"
-#include "logging.h"
-#include "logger.h"
+#include "Logger.h"
 #include "RewindController.h"
 
 class RegisteredTypes;
@@ -291,6 +290,7 @@ struct DebuggerState
 	bool m_microstepping{ false };
 	uint32_t m_tCyclesStepped{ 0 };
 	bool m_forceGatherStats{ false };
+	bool m_stepBack{ false };
 
 	// Breakpoint management
 	enum class BreakpointType
@@ -326,6 +326,33 @@ struct DebuggerState
 #endif
 };
 
+struct GameData
+{
+	GameData()
+		: m_gameLoaded(false)
+		, m_bootromPath("")
+		, m_gamePath("")
+		, m_saveLoadPath("")
+	{
+	}
+
+	void Reset()
+	{
+		m_gameLoaded = false;
+		m_rewindController.Reset();
+		m_debuggerState.ResetEmulatorData();
+	}
+
+	bool m_gameLoaded;
+	std::string m_bootromPath;
+	std::string m_gamePath;
+	std::string m_saveLoadPath;
+
+	RewindController m_rewindController;
+
+	DebuggerState m_debuggerState;
+};
+
 struct EngineData
 {
 	enum class SaveLoadState : uint8_t
@@ -339,23 +366,19 @@ struct EngineData
 		: m_engineState()
 		, m_saveLoadState(SaveLoadState::NONE)
 		, m_userSettings()
-		, m_gameLoaded(false)
-		, m_bootromPath("")
-		, m_gamePath("") 
-		, m_saveLoadPath("")
+		, m_gameData()
 		, m_baseWidth(0)
 		, m_baseHeight(0)
 		, m_turbo(false)
+		, m_rewind(false)
+		, m_stats()
 	{
 	}
 
 	StateMachine m_engineState;
 	SaveLoadState m_saveLoadState;
 	UserSettings m_userSettings;
-	bool m_gameLoaded;
-	std::string m_bootromPath;
-	std::string m_gamePath;
-	std::string m_saveLoadPath;
+	GameData m_gameData;
 
 	KeyBindRequest m_keyBindRequest;
 
@@ -363,12 +386,9 @@ struct EngineData
 	uint32_t m_baseHeight;
 
 	bool m_turbo;
-
-	DebuggerState m_debuggerState;
+	bool m_rewind;
 
 	Stats m_stats;
-
-	RewindController m_rewindController;
 
 private:
     EngineData(const EngineData&) = delete;

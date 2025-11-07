@@ -15,9 +15,9 @@ void FreeFunc(void* ptr)
     delete[] reinterpret_cast<uint8_t*>(ptr);
 }
 
-std::vector<std::string> GetExternalTests()
+std::vector<std::string> GetTestFiles()
 {
-    auto tests = FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("externalTestDir"));
+    auto tests = FileParser::GetFilesInPathRecursive(CommandLineParser::GlobalCMDParser->GetArgument("externalTestDir"), ".gb");
     return tests;
 }
 
@@ -31,10 +31,12 @@ bool IsFibonacci(Registers& regs)
         && regs.L == 34;
 }
 
-class ExternalTestFixture : public testing::TestWithParam<std::string> {
+class ExternalTestFixture : public testing::TestWithParam<std::string> 
+{
 };
 
-TEST_P(ExternalTestFixture, Main) {
+TEST_P(ExternalTestFixture, Main) 
+{
     // Inside a test, access the test parameter with the GetParam() method
     // of the TestWithParam<T> class:
     std::string test = GetParam();
@@ -77,4 +79,4 @@ std::string GetTestName(testing::TestParamInfo<std::string> param)
 
 INSTANTIATE_TEST_CASE_P(ExternalTests,
     ExternalTestFixture,
-    testing::ValuesIn(GetExternalTests()), GetTestName);
+    testing::ValuesIn(GetTestFiles()), GetTestName);

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "EngineState.h"
+
+#include <iostream>
+
 #include "../Include/Emulator.h"
-#include "Logging.h"
+#include "Logger.h"
 #include "Clock.h"
 #include "FileParser.h"
-#include <iostream>
 #include "RendererVulkan.h"
 #include "Audio.h"
 #include "Input.h"
@@ -40,6 +42,8 @@ private:
     void HandleSaveLoad();
 
     void CreateFrameDelta();
+
+    void HandleRewind();
 
     static std::string s_persistentMemoryPath;
 

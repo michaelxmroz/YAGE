@@ -14,6 +14,7 @@ enum class InputActions : uint32_t
 	Start,
 	Pause,
 	Turbo,
+	Rewind,
 	QuickSave,
 	QuickLoad,
 	Count
@@ -32,6 +33,7 @@ static const char* InputActionNames[static_cast<uint32_t>(InputActions::Count)] 
 	"Start",
 	"Pause",
 	"Turbo",
+	"Rewind",
 	"QuickSave",
 	"QuickLoad"
 };

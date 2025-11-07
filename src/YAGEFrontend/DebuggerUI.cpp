@@ -682,7 +682,7 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
         ImGui::PushStyleColor(ImGuiCol_Button, Theme::StepButton);
         if (ImGui::Button("Step", ImVec2(100, 40))) data.m_debuggerSteps++;
         ImGui::SameLine();
-        if (ImGui::Button("Back", ImVec2(100, 40))) { /* TODO */ }
+        if (ImGui::Button("Back", ImVec2(100, 40))) data.m_stepBack = true;
         ImGui::SameLine();
         ImGui::PopStyleColor();
 
