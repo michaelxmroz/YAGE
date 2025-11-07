@@ -652,6 +652,9 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
 
     // Bigger default size
     ImGui::SetNextWindowSize(ImVec2(800, 700), ImGuiCond_FirstUseEver);
+
+    //std::string debuggerName = string_format("Debugger (Frametime: %.2f) ##DebuggerWindow", 1.0);
+
     if (!ImGui::Begin("Debugger", &data.m_debuggerActive))
     { 
         ImGui::PopStyleColor(7);
@@ -708,6 +711,8 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
 
         ImGui::PopStyleVar();
     }
+
+    ImGui::Text("(Frametime: % .2f)", data.m_frameDeltaMs);
 
     ImGui::Spacing();
     ImGui::Separator();

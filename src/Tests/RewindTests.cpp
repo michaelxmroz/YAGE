@@ -36,10 +36,10 @@ bool TestRewind(SerializationView frame1, SerializationView frame2)
     RewindController RewindController;
 
     //Save initial frame
-    RewindController.EncodeFrameDelta(frame1);
+    RewindController.EncodeFrameDelta(1,frame1);
 
     // Save delta
-    RewindController.EncodeFrameDelta(frame2);
+    RewindController.EncodeFrameDelta(1,frame2);
 
     //Rewind to previous frame
     SerializationView* rewoundData = RewindController.Rewind();
@@ -122,10 +122,10 @@ TEST(RewindIntegrationTest, Main)
     RewindController RewindController;
 
     //Save initial frame
-    RewindController.EncodeFrameDelta(frame1);
+    RewindController.EncodeFrameDelta(1,frame1);
 
     // Save delta
-    RewindController.EncodeFrameDelta(frame2);
+    RewindController.EncodeFrameDelta(1,frame2);
 
 	//Rewind to previous frame
 	SerializationView* rewoundData = RewindController.Rewind();
@@ -186,10 +186,10 @@ TEST(RewindIntegrationTest, 60Frames)
     RewindController RewindController;
 
     //Save initial frame
-    RewindController.EncodeFrameDelta(frame1);
+    RewindController.EncodeFrameDelta(1,frame1);
 
     // Save delta
-    RewindController.EncodeFrameDelta(frame2);
+    RewindController.EncodeFrameDelta(1,frame2);
 
     //Rewind to previous frame
     SerializationView* rewoundData = RewindController.Rewind();
@@ -241,14 +241,14 @@ TEST(RewindIntegrationTest, MultiRewind)
 
     RewindController RewindController;
     //Save initial frame
-    RewindController.EncodeFrameDelta(frame1);
+    RewindController.EncodeFrameDelta(1,frame1);
 
     for (uint64_t i = 0; i < 10; ++i)
     {
         emu->Step(inputState, 16.67, false);
         SerializationView frameN = emu->Serialize(false);
         // Save delta
-        RewindController.EncodeFrameDelta(frameN);
+        RewindController.EncodeFrameDelta(1,frameN);
     }
 
     for (uint64_t i = 0; i < 10; ++i)

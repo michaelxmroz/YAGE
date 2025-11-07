@@ -185,6 +185,7 @@ namespace
             ImGui::SameLine();
             ImGui::Text(std::to_string(data.m_stats.m_allocatedMemory).c_str());
 
+            ImGui::Text("Frametime: % .2f", data.m_gameData.m_debuggerState.m_frameDeltaMs);
             ImGui::End();
         }
     }

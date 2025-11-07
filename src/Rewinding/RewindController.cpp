@@ -4,66 +4,65 @@
 RewindController::RewindController()
 {
 	m_deltaEncoder = std::make_unique<DeltaEncoder>();
-	m_deltaBuffer = new FixedSizeRingbuffer<FixedSizeDeltaFrame>(DELTA_FRAME_MAX_FRAMES);
-	m_previousFrame = new FixedSizeDeltaFrame();
-}
 
-RewindController::~RewindController()
-{
-	delete m_deltaBuffer;
-	delete m_previousFrame;
-}
-
-RewindController::RewindController(const RewindController& other)
-{
-	m_deltaBuffer = new FixedSizeRingbuffer<FixedSizeDeltaFrame>(*(other.m_deltaBuffer));
-	m_previousFrame = new FixedSizeDeltaFrame(*(other.m_previousFrame));
-	m_deltaEncoder = std::make_unique<DeltaEncoder>();
-}
-
-RewindController& RewindController::operator=(const RewindController& other)
-{
-	if (this != &other)
-	{
-		delete m_deltaBuffer;
-		delete m_previousFrame;
-		m_deltaBuffer = new FixedSizeRingbuffer<FixedSizeDeltaFrame>(*(other.m_deltaBuffer));
-		m_previousFrame = new FixedSizeDeltaFrame(*(other.m_previousFrame));
-	}
-	return *this;
 }
 
 void RewindController::Reset()
 {
-	m_deltaBuffer->Clear();
-	m_previousFrame->m_size = 0;
+	for (RewindData& dataSet : m_rewindDataSets)
+	{
+		dataSet.m_deltaBuffer->Clear();
+		dataSet.m_previousFrame->m_size = 0;
+	}
 }
 
 SerializationView* RewindController::Rewind()
 {
-	const FixedSizeDeltaFrame* delta = m_deltaBuffer->Pop();
-	if (delta == nullptr)
+	for (const RewindData& dataSet : m_rewindDataSets)
 	{
-		return nullptr; // No more frames to rewind
+		if (!dataSet.m_deltaBuffer->IsEmpty())
+		{
+			const FixedSizeDeltaFrame* delta = dataSet.m_deltaBuffer->Pop();
+
+			m_deltaEncoder->DecodeFrameDelta(*delta, *dataSet.m_previousFrame);
+
+			m_reconstructedFrame.data = reinterpret_cast<uint8_t*>(dataSet.m_previousFrame->m_data);
+			m_reconstructedFrame.size = dataSet.m_previousFrame->m_size;
+
+			return &m_reconstructedFrame;
+		}
 	}
 
-	m_deltaEncoder->DecodeFrameDelta(*delta, *m_previousFrame);
-
-	m_reconstructedFrame.data = reinterpret_cast<uint8_t*>(m_previousFrame->m_data);
-	m_reconstructedFrame.size = m_previousFrame->m_size;
-
-	return &m_reconstructedFrame;
+	return nullptr;
 }
 
-void RewindController::EncodeFrameDelta(SerializationView& currentFrameData)
+bool RewindController::ShouldRecordFrame(uint64_t frameNumber)
 {
-	if (m_previousFrame->m_size != 0)
+	for (const RewindData& dataSet : m_rewindDataSets)
 	{
-		FixedSizeDeltaFrame& delta = m_deltaBuffer->Push();
-
-		m_deltaEncoder->EncodeFrameDelta(currentFrameData.data, currentFrameData.size, m_previousFrame, delta);
+		if (frameNumber % dataSet.m_frequency == 0)
+		{
+			return true;
+		}
 	}
+	return false;
+}
 
-	m_previousFrame->m_size = currentFrameData.size;
-	memcpy(m_previousFrame->m_data, currentFrameData.data, currentFrameData.size);
+void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView& currentFrameData)
+{
+	for (const RewindData& dataSet : m_rewindDataSets)
+	{
+		if (frameNumber % dataSet.m_frequency == 0)
+		{
+			if (dataSet.m_previousFrame->m_size != 0)
+			{
+				FixedSizeDeltaFrame& delta = dataSet.m_deltaBuffer->Push();
+
+				m_deltaEncoder->EncodeFrameDelta(currentFrameData.data, currentFrameData.size, dataSet.m_previousFrame, delta);
+			}
+
+			dataSet.m_previousFrame->m_size = currentFrameData.size;
+			memcpy(dataSet.m_previousFrame->m_data, currentFrameData.data, currentFrameData.size);
+		}
+	}
 }

@@ -233,7 +233,6 @@ void EngineController::RunEmulatorLoop()
 
                 if (m_data.m_gameData.m_debuggerState.m_stepBack)
                 {
-					m_data.m_gameData.m_debuggerState.m_stepBack = false;
                     HandleRewind();
                     shouldStep = true;
                     emulatorDeltaMs = deltaMs;
@@ -260,10 +259,11 @@ void EngineController::RunEmulatorLoop()
                 {
                     HandleRewind();
                 }
-                else if (frameCount % 2 == 0)
+                else if ( !m_data.m_gameData.m_debuggerState.m_stepBack && m_data.m_gameData.m_rewindController.ShouldRecordFrame(frameCount))
                 {
-                    CreateFrameDelta();
+                    CreateFrameDelta(frameCount);
                 }
+                m_data.m_gameData.m_debuggerState.m_stepBack = false;
 			}
 
             if(shouldStep || m_data.m_gameData.m_debuggerState.m_forceGatherStats)
@@ -281,6 +281,11 @@ void EngineController::RunEmulatorLoop()
             m_UI->Draw(*m_renderer);
             m_renderer->EndDraw();
         }
+
+        int64_t endFrameUs = clock.Query();
+        int64_t actualDeltaUs = endFrameUs - currentFrameUs;
+        double actualDeltaMs = actualDeltaUs / 1000.0;
+        m_data.m_gameData.m_debuggerState.m_frameDeltaMs = actualDeltaMs;
 
         clock.Limit(static_cast<int64_t>(m_preferredFrameTime * 1000));
     }
@@ -301,10 +306,10 @@ void EngineController::HandleSaveLoad()
     m_data.m_saveLoadState = EngineData::SaveLoadState::NONE;
 }
 
-void EngineController::CreateFrameDelta()
+void EngineController::CreateFrameDelta(uint64_t frameCount)
 {
     SerializationView savedState = m_emulator->Serialize(false);
-	m_data.m_gameData.m_rewindController.EncodeFrameDelta(savedState);
+	m_data.m_gameData.m_rewindController.EncodeFrameDelta(frameCount, savedState);
 }
 
 void EngineController::HandleRewind()

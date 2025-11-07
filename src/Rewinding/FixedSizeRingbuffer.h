@@ -82,6 +82,11 @@ public:
 		m_head = 0;
 		m_tail = 0;
 	}
+
+	size_t Capacity() const
+	{
+		return m_maxSize;
+	}
 private:
 	T* m_buffer;
 	size_t m_maxSize;

@@ -41,7 +41,7 @@ private:
 
     void HandleSaveLoad();
 
-    void CreateFrameDelta();
+    void CreateFrameDelta(uint64_t frameCount);
 
     void HandleRewind();
 

@@ -6,7 +6,8 @@
 
 constexpr size_t DELTA_FRAME_MAX_SIZE_UNCOMPRESSED = 1024 * 60; // 50KB max size for uncompressed frames
 constexpr size_t DELTA_FRAME_MAX_SIZE = 1024 * 4; // 4KB max size for delta frames
-constexpr size_t DELTA_FRAME_MAX_FRAMES = 2500;
+constexpr size_t DELTA_FRAME_MAX_FRAMES_L1 = 60;
+constexpr size_t DELTA_FRAME_MAX_FRAMES_L2 = 60;
 
 struct FixedSizeDeltaFrame
 {

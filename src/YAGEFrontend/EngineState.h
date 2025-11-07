@@ -292,6 +292,8 @@ struct DebuggerState
 	bool m_forceGatherStats{ false };
 	bool m_stepBack{ false };
 
+	double m_frameDeltaMs{ 0.0 };
+
 	// Breakpoint management
 	enum class BreakpointType
 	{
