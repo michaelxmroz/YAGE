@@ -8,6 +8,7 @@
 #include "FileParser.h"
 #include "logging.h"
 #include "logger.h"
+#include "RewindController.h"
 
 class RegisteredTypes;
 
@@ -345,9 +346,7 @@ struct EngineData
 		, m_baseWidth(0)
 		, m_baseHeight(0)
 		, m_turbo(false)
-		, m_previousFrame()
 	{
-		m_previousFrame.size = 0;
 	}
 
 	StateMachine m_engineState;
@@ -369,7 +368,8 @@ struct EngineData
 
 	Stats m_stats;
 
-	SerializationView m_previousFrame;
+	RewindController m_rewindController;
+
 private:
     EngineData(const EngineData&) = delete;
 	EngineData& operator=(const EngineData&) = delete;

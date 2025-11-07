@@ -39,7 +39,7 @@ private:
 
     void HandleSaveLoad();
 
-    void CalculateDelta(const SerializationView& savedState) const;
+    void CreateFrameDelta();
 
     static std::string s_persistentMemoryPath;
 
