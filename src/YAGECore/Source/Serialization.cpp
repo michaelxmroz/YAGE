@@ -3,7 +3,7 @@
 #include "Helpers.h"
 
 #define HEADER_DEFAULT_NAME "GBSerializedStateFile"
-#define HEADER_MAGIC_TOKEN 4242
+#define HEADER_MAGIC_TOKEN 4142
 
 // Bump this on major changes to the file format
 #define HEADER_CURRENT_VERSION 2
@@ -27,7 +27,8 @@ namespace Serializer_Internal
 	FileHeader& WriteHeader(const char* name, uint32_t version, uint8_t* buffer)
 	{
 		FileHeader header;
-		memcpy_y(header.m_name, name, SERIALIZER_HEADER_NAME_MAXLENGTH);
+		memset_y(header.m_name, 0, SERIALIZER_HEADER_NAME_MAXLENGTH);
+		memcpy_y(header.m_name, name, strlen_y(name));
 		header.m_magicToken = HEADER_MAGIC_TOKEN;
 		header.m_version = version;
 
@@ -99,7 +100,8 @@ SerializationView GamestateSerializer::Serialize(uint8_t headerChecksum, const y
 	}
 
 	SerializationParameters params;
-	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memset_y(params.m_dataName, 0, SERIALIZER_HEADER_NAME_MAXLENGTH);
+	memcpy_y(params.m_dataName, HEADER_DEFAULT_NAME, strlen_y(HEADER_DEFAULT_NAME));
 	params.m_version = HEADER_CURRENT_VERSION;
 	params.m_romChecksum = headerChecksum;
 	params.m_romName = romName;

@@ -3,7 +3,7 @@
 #include "YString.h"
 #include "YVector.h"
 
-#define SERIALIZER_HEADER_NAME_MAXLENGTH 27
+#define SERIALIZER_HEADER_NAME_MAXLENGTH sizeof(uint32_t) * 7
 
 enum class ChunkId
 {
