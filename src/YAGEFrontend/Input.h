@@ -38,6 +38,8 @@ static const char* InputActionNames[static_cast<uint32_t>(InputActions::Count)] 
 	"QuickLoad"
 };
 
+
+
 class ButtonState
 {
 public:

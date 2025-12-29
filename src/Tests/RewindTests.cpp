@@ -218,7 +218,7 @@ TEST(RewindIntegrationTest, 60Frames)
     Emulator::Delete(emu);
 }
 
-TEST(RewindIntegrationTest, MultiRewind)
+TEST(RewindIntegrationTest, MultiRewindSingleTier)
 {
     std::vector<char> romBlob;
     if (!FileParser::Read(SPLASH_PATH, romBlob))
@@ -265,6 +265,72 @@ TEST(RewindIntegrationTest, MultiRewind)
     SerializationView RewoundFrame1 = emu->Serialize(false);
 
     EXPECT_TRUE(memcmp(frame1.data, RewoundFrame1.data, frame1.size) == 0);
+
+    Emulator::Delete(emu);
+}
+
+TEST(RewindIntegrationTest, MultiRewindMultiTier)
+{
+    std::vector<char> romBlob;
+    if (!FileParser::Read(SPLASH_PATH, romBlob))
+    {
+        FAIL();
+    }
+
+    VirtualMachine* emu = static_cast<VirtualMachine*>(Emulator::Create(RewindAllocFunc, RewindFreeFunc));
+
+    emu->Load(SPLASH_PATH, romBlob.data(), static_cast<uint32_t>(romBlob.size()));
+
+    constexpr uint32_t framesToStep = 68;
+
+    // Step the first frame
+    EmulatorInputs::InputState inputState;
+    emu->Step(inputState, 16.67, false);
+
+    SerializationView frame1 = emu->Serialize(false);
+    std::vector<uint8_t> CachedFrame1Data;
+    frame1 = CopySerializationView(CachedFrame1Data, frame1);
+
+    RewindController RewindController;
+    //Save initial frame
+    RewindController.EncodeFrameDelta(0, frame1);
+
+    constexpr uint32_t frameToCheck = 4;
+    std::vector<uint8_t> CachedFrameCheckedData;
+    SerializationView frameToCheckView;
+    for (uint64_t i = 1; i < framesToStep; ++i)
+    {
+        if (i == frameToCheck)
+        {
+            SerializationView frameN = emu->Serialize(false);
+            frameToCheckView = CopySerializationView(CachedFrameCheckedData, frameN);
+        }
+        emu->Step(inputState, 16.67, false);
+        SerializationView frameN = emu->Serialize(false);
+        // Save delta
+        RewindController.EncodeFrameDelta(i, frameN);
+    }
+
+    constexpr uint32_t T0CacheCapacity = 60;
+	constexpr uint32_t T1CacheFrequency = 2;
+	constexpr uint32_t ExpectedStop = (framesToStep - T0CacheCapacity - frameToCheck) / 2;
+
+    for (uint64_t i = 0; i < (T0CacheCapacity + ExpectedStop); ++i)
+    {
+        SerializationView* rewoundData = RewindController.Rewind();
+
+        if (!rewoundData)
+        {
+            FAIL();
+        }
+        emu->Deserialize(*rewoundData);
+    }
+
+    SerializationView RewoundFrame1 = emu->Serialize(false);
+
+    //EXPECT_TRUE(memcmp(frame1.data, RewoundFrame1.data, frame1.size) == 0);
+
+    EXPECT_TRUE(memcmp(frameToCheckView.data, RewoundFrame1.data, frameToCheckView.size) == 0);
 
     Emulator::Delete(emu);
 }

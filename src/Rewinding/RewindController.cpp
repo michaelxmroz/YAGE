@@ -38,31 +38,72 @@ SerializationView* RewindController::Rewind()
 
 bool RewindController::ShouldRecordFrame(uint64_t frameNumber)
 {
-	for (const RewindData& dataSet : m_rewindDataSets)
-	{
-		if (frameNumber % dataSet.m_frequency == 0)
-		{
-			return true;
-		}
-	}
-	return false;
+	return frameNumber % m_rewindDataSets.front().m_frequency == 0;
 }
 
 void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView& currentFrameData)
 {
-	for (const RewindData& dataSet : m_rewindDataSets)
+	auto dataSetIt = m_rewindDataSets.begin();
+	const RewindData& firstDataSet = *dataSetIt;
+	// Populate the frame cache structure on the first frame
+	if (firstDataSet.m_previousFrame->m_size == 0)
 	{
-		if (frameNumber % dataSet.m_frequency == 0)
+		for (const RewindData& dataSet : m_rewindDataSets)
 		{
-			if (dataSet.m_previousFrame->m_size != 0)
-			{
-				FixedSizeDeltaFrame& delta = dataSet.m_deltaBuffer->Push();
-
-				m_deltaEncoder->EncodeFrameDelta(currentFrameData.data, currentFrameData.size, dataSet.m_previousFrame, delta);
-			}
-
 			dataSet.m_previousFrame->m_size = currentFrameData.size;
 			memcpy(dataSet.m_previousFrame->m_data, currentFrameData.data, currentFrameData.size);
+
+			dataSet.m_cachedDelta->m_size = currentFrameData.size;
+			memcpy(dataSet.m_cachedDelta->m_data, currentFrameData.data, currentFrameData.size);
+		}
+		return;
+	}
+
+	uint8_t* deltaDataPtr = currentFrameData.data;
+	uint64_t deltaSize = currentFrameData.size;
+
+	while (dataSetIt != m_rewindDataSets.end())
+	{
+		const RewindData& dataSet = *dataSetIt;
+		if (frameNumber % dataSet.m_frequency == 0)
+		{
+			bool needHigherLevelUpdate = dataSet.m_deltaBuffer->IsFull();
+					
+			if (needHigherLevelUpdate)
+			{
+				const FixedSizeDeltaFrame* evictedDelta = dataSet.m_deltaBuffer->First();
+				dataSetIt++;
+				const RewindData& nextDataSet = *dataSetIt;
+				if (nextDataSet.m_cachedDelta->m_size == 0)
+				{
+					nextDataSet.m_cachedDelta->m_size = evictedDelta->m_size;
+					memcpy(nextDataSet.m_cachedDelta->m_data, evictedDelta->m_data, evictedDelta->m_size);
+				}
+
+				m_deltaEncoder->EncodeFrameDelta(evictedDelta->m_data, evictedDelta->m_size, nextDataSet.m_cachedDelta, *nextDataSet.m_cachedDelta);
+			}
+			else
+			{
+				dataSetIt = m_rewindDataSets.end();
+			}
+
+			FixedSizeDeltaFrame& delta = dataSet.m_deltaBuffer->Push();
+
+			m_deltaEncoder->EncodeFrameDelta(deltaDataPtr, deltaSize, dataSet.m_previousFrame, delta);
+
+
+			dataSet.m_previousFrame->m_size = deltaSize;
+			memcpy(dataSet.m_previousFrame->m_data, deltaDataPtr, deltaSize);
+
+			if (needHigherLevelUpdate)
+			{
+				deltaDataPtr = dataSet.m_cachedDelta->m_data;
+				deltaSize = dataSet.m_cachedDelta->m_size;
+			}
+		}
+		else 
+		{
+			break;
 		}
 	}
 }

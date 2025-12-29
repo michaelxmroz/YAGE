@@ -62,6 +62,21 @@ public:
 		}
 		return ret;
 	}
+
+	bool IsFull() const
+	{
+		return (m_head + 1) % m_maxSize == m_tail;
+	}
+
+	const T* First() const
+	{
+		if (IsEmpty())
+		{
+			return nullptr;
+		}
+		return m_buffer + m_tail;
+	}
+
 	const T* Pop()
 	{
 		if (IsEmpty())

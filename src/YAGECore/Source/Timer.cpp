@@ -19,12 +19,12 @@ namespace
 {
 	bool IsTimerEnabled(Memory& memory)
 	{
-		return (memory[TAC_REGISTER] & 0x4) > 0;
+		return (memory.ReadIO(TAC_REGISTER) & 0x4) > 0;
 	}
 
 	uint16_t GetTimerFrequency(Memory& memory)
 	{
-		return TIMER_SPEED_BITS[memory[TAC_REGISTER] & 0x3];
+		return TIMER_SPEED_BITS[memory.ReadIO(TAC_REGISTER) & 0x3];
 	}
 }
 
@@ -106,7 +106,7 @@ void Timer::CheckForTimerTick(uint16_t timerBits, bool isTimerEnabled, Memory& m
 
 void Timer::TickTimer(Memory& memory)
 {
-	uint8_t TIMA = memory[TIMA_REGISTER];
+	uint8_t TIMA = memory.ReadIO(TIMA_REGISTER);
 	if (TIMA == 0xFF)
 	{
 		memory.WriteDirect(TIMA_REGISTER, 0x00);
