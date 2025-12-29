@@ -281,7 +281,7 @@ TEST(RewindIntegrationTest, MultiRewindMultiTier)
 
     emu->Load(SPLASH_PATH, romBlob.data(), static_cast<uint32_t>(romBlob.size()));
 
-    constexpr uint32_t framesToStep = 68;
+    constexpr uint32_t framesToStep = 69;
 
     // Step the first frame
     EmulatorInputs::InputState inputState;
@@ -295,7 +295,7 @@ TEST(RewindIntegrationTest, MultiRewindMultiTier)
     //Save initial frame
     RewindController.EncodeFrameDelta(0, frame1);
 
-    constexpr uint32_t frameToCheck = 4;
+    constexpr uint32_t frameToCheck = 0;
     std::vector<uint8_t> CachedFrameCheckedData;
     SerializationView frameToCheckView;
     for (uint64_t i = 1; i < framesToStep; ++i)

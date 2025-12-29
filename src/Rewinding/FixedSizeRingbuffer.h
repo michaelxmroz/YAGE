@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 
 template<typename T>
 class FixedSizeRingbuffer
@@ -10,6 +11,7 @@ public:
 		m_buffer = new T[m_maxSize];
 		m_head = 0;
 		m_tail = 0;
+		m_count = 0;
 	}
 
 	~FixedSizeRingbuffer()
@@ -24,6 +26,7 @@ public:
 		memcpy(m_buffer, other.m_buffer, m_maxSize * sizeof(T));
 		m_head = other.m_head;
 		m_tail = other.m_tail;
+		m_count = other.m_count;
 	}
 	FixedSizeRingbuffer& operator=(const FixedSizeRingbuffer& other)
 	{
@@ -35,37 +38,38 @@ public:
 			memcpy(m_buffer, other.m_buffer, m_maxSize * sizeof(T));
 			m_head = other.m_head;
 			m_tail = other.m_tail;
+			m_count = other.m_count;
 		}
 		return *this;
 	}
 
-	// This class will provide a fixed-size circular buffer
-	// for storing rewind states efficiently
 	void Push(const T& item)
 	{
-		m_buffer[m_head] = item;
-		m_head = (m_head + 1) % m_maxSize;
 		if (m_head == m_tail)
 		{
 			// Buffer is full, move the tail forward
 			m_tail = (m_tail + 1) % m_maxSize;
 		}
+		m_buffer[m_head] = item;
+		m_head = (m_head + 1) % m_maxSize;
+		m_count = std::min(m_count + 1, m_maxSize);	
 	}
 	T& Push()
 	{
-		T& ret = m_buffer[m_head];
-		m_head = (m_head + 1) % m_maxSize;
 		if (m_head == m_tail)
 		{
 			// Buffer is full, move the tail forward
 			m_tail = (m_tail + 1) % m_maxSize;
 		}
+		T& ret = m_buffer[m_head];
+		m_head = (m_head + 1) % m_maxSize;
+		m_count = std::min(m_count + 1, m_maxSize);	
 		return ret;
 	}
 
 	bool IsFull() const
 	{
-		return (m_head + 1) % m_maxSize == m_tail;
+		return m_count == m_maxSize;
 	}
 
 	const T* First() const
@@ -84,18 +88,20 @@ public:
 			return nullptr;
 		}
 		m_head = (m_head + m_maxSize - 1) % m_maxSize;
+		m_count--;
 		return m_buffer + m_head;
 	}
 
 	bool IsEmpty() const
 	{
-		return m_head == m_tail;
+		return m_count == 0;
 	}
 
 	void Clear()
 	{
 		m_head = 0;
 		m_tail = 0;
+		m_count = 0;
 	}
 
 	size_t Capacity() const
@@ -107,4 +113,5 @@ private:
 	size_t m_maxSize;
 	size_t m_head;
 	size_t m_tail;
+	size_t m_count;
 }; 

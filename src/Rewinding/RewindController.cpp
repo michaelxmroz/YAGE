@@ -67,6 +67,7 @@ void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView&
 		const RewindData& dataSet = *dataSetIt;
 		if (frameNumber % dataSet.m_frequency == 0)
 		{
+			// We are overflowing the current cache, so get the last entry and push that into the next highest tier in the hierarchy
 			bool needHigherLevelUpdate = dataSet.m_deltaBuffer->IsFull();
 					
 			if (needHigherLevelUpdate)
@@ -74,12 +75,7 @@ void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView&
 				const FixedSizeDeltaFrame* evictedDelta = dataSet.m_deltaBuffer->First();
 				dataSetIt++;
 				const RewindData& nextDataSet = *dataSetIt;
-				if (nextDataSet.m_cachedDelta->m_size == 0)
-				{
-					nextDataSet.m_cachedDelta->m_size = evictedDelta->m_size;
-					memcpy(nextDataSet.m_cachedDelta->m_data, evictedDelta->m_data, evictedDelta->m_size);
-				}
-
+				// reconstruct the next frame from the cached delta and the evicted delta and save it it the cached delta
 				m_deltaEncoder->EncodeFrameDelta(evictedDelta->m_data, evictedDelta->m_size, nextDataSet.m_cachedDelta, *nextDataSet.m_cachedDelta);
 			}
 			else
@@ -97,8 +93,9 @@ void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView&
 
 			if (needHigherLevelUpdate)
 			{
-				deltaDataPtr = dataSet.m_cachedDelta->m_data;
-				deltaSize = dataSet.m_cachedDelta->m_size;
+				const RewindData& nextDataSet = *dataSetIt;
+				deltaDataPtr = nextDataSet.m_cachedDelta->m_data;
+				deltaSize = nextDataSet.m_cachedDelta->m_size;
 			}
 		}
 		else 
