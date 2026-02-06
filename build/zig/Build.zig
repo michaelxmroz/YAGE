@@ -21,11 +21,14 @@ pub fn build(b: *Builder) void {
     const common_path_core_source = std.fs.path.join(allocator, &.{ common_path_core, "Source" }) catch unreachable;
     const common_path_core_include = std.fs.path.join(allocator, &.{ common_path_core, "Include" }) catch unreachable;
 
-    const static_lib = b.addStaticLibrary(.{ .name = "staticlib", .target = target, .optimize = .ReleaseFast });
+    const static_lib = b.addLibrary(.{ .linkage = .static, .name = "staticlib", .root_module = b.createModule(.{
+            .target = target,
+            .optimize = .ReleaseFast,
+        }),});
     static_lib.addIncludePath(b.path(common_path_core_include));
     static_lib.addIncludePath(b.path(common_path_core_source));
 
-    var fileList = std.ArrayList([]const u8).init(b.allocator);
+    var fileList = std.ArrayList([]const u8).initCapacity(b.allocator, 0) catch unreachable;
     var dir = std.fs.cwd().openDir(common_path_core_source, .{ .iterate = true }) catch unreachable;
     defer dir.close();
 
@@ -34,12 +37,12 @@ pub fn build(b: *Builder) void {
         if (entry.kind == .file) {
             if (std.mem.endsWith(u8, entry.name, ".cpp")) {
                 const abs_path = std.fs.path.join(allocator, &[_][]const u8{ common_path_core_source, entry.name }) catch unreachable;
-                fileList.append(abs_path) catch unreachable;
+                fileList.append(b.allocator, abs_path) catch unreachable;
             }
         }
     }
 
-    static_lib.addCSourceFiles(.{ .files = fileList.toOwnedSlice() catch unreachable, .flags = &.{ "-std=c++14", "-ffreestanding", "-o2", "-fbuiltin", "--define-macro=FREESTANDING", "-fno-threadsafe-statics", "-fno-exceptions", "-fno-rtti" } });
+    static_lib.addCSourceFiles(.{ .files = fileList.toOwnedSlice(b.allocator) catch unreachable, .flags = &.{ "-std=c++14", "-ffreestanding", "-o2", "-fbuiltin", "--define-macro=FREESTANDING", "-fno-threadsafe-statics", "-fno-exceptions", "-fno-rtti" } });
     static_lib.root_module.single_threaded = true;
     //b.installArtifact(static_lib);
 
@@ -49,9 +52,11 @@ pub fn build(b: *Builder) void {
 
     const kernel = b.addExecutable(.{
         .name = "kernel.elf",
-        .root_source_file = b.path(std.fs.path.join(allocator, &.{ common_path_kernel, "main.zig" }) catch unreachable),
-        .target = target,
-        .optimize = optimize,
+		.root_module = b.createModule(.{
+            .root_source_file = b.path(std.fs.path.join(allocator, &.{ common_path_kernel, "main.zig" }) catch unreachable),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
 
     kernel.setLinkerScript(b.path(std.fs.path.join(allocator, &.{ common_path_kernel, "linker.ld" }) catch unreachable));

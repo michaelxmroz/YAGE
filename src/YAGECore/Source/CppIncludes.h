@@ -61,6 +61,19 @@ extern "C" inline void __cxa_pure_virtual()
 	while (1);
 }
 
+// Despite the way __builtin_strlen sounds, clang does not, in fact use a built-in version of strlen if the string is not a constexpr.
+// It will instead try to call the stdlib version of strlen. Therefore this slow implementation for runtime strings. Only used in serialization code
+inline int strlen_slow(const char* str)
+{
+	if (!str) return 0;  // optional null check
+
+	int len = 0;
+	while (str[len] != '\0')
+		++len;
+
+	return len;
+}
+
 #endif
 
 namespace y

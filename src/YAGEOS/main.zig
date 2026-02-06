@@ -1,4 +1,4 @@
-﻿const mmio = @import("mmio.zig");
+const mmio = @import("mmio.zig");
 const renderer = @import("renderer.zig");
 const log = @import("log.zig");
 const std = @import("std");
@@ -41,15 +41,14 @@ pub fn setupInterruptVectorTable() void {
         : [buf] "x5" (@intFromPtr(&defs.VECTOR_TABLE)),
           [jumpAddr] "x6" (&dummyInterruptHandler),
           [count] "x7" (16),
-        : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"
-    );
+        : .{ .x0 = true, .x1 = true, .x2 = true, .x3 = true, .x4 = true, .x5 = true, .x6 = true, .x7 = true, .x8 = true });
 }
 
 export fn initMMU() void {
     mmu.initMMU();
 }
 
-export fn _start() callconv(.Naked) noreturn {
+export fn _start() callconv(.naked) noreturn {
     // Kernel entry point
     // Set up the CPU and initialize the MMU
     //
@@ -136,12 +135,12 @@ pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usi
     utils.hang();
 }
 
-fn c_alloc(size: u32) callconv(.C) ?*anyopaque {
+fn c_alloc(size: u32) callconv(.c) ?*anyopaque {
     log.INFO("Memory allocated: {} bytes\n", .{size});
     return alloc.activeBucketAlloc(size);
 }
 
-fn c_free(addr: ?*anyopaque) callconv(.C) void {
+fn c_free(addr: ?*anyopaque) callconv(.c) void {
     log.INFO("Memory freed at {}\n", .{@intFromPtr(addr)});
     alloc.activeBucketFree();
 }

@@ -28,7 +28,13 @@ namespace Serializer_Internal
 	{
 		FileHeader header;
 		memset_y(header.m_name, 0, SERIALIZER_HEADER_NAME_MAXLENGTH);
-		memcpy_y(header.m_name, name, strlen_y(name));
+#if FREESTANDING
+		int len = strlen_slow(name);
+#else
+		int len = strlen_y(name);
+#endif
+		
+		memcpy_y(header.m_name, name, len);
 		header.m_magicToken = HEADER_MAGIC_TOKEN;
 		header.m_version = version;
 
