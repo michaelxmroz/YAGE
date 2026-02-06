@@ -712,7 +712,7 @@ void DebuggerUI::Draw(DebuggerState& data, Emulator* emulator)
         ImGui::PopStyleVar();
     }
 
-    ImGui::Text("(Frametime: % .2f)", data.m_frameDeltaMs);
+    ImGui::Text("(Frametime: % .2f) Frame Compression (Kb): Avg % .2f, Max % .2f, Min % .2f", data.m_frameDeltaMs, static_cast<float>(data.m_compressionStats.m_avg) / 1024.0f, static_cast<float>(data.m_compressionStats.m_max) / 1024.0f, static_cast<float>(data.m_compressionStats.m_min) / 1024.0f);
 
     ImGui::Spacing();
     ImGui::Separator();

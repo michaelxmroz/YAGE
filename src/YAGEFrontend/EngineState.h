@@ -294,6 +294,8 @@ struct DebuggerState
 
 	double m_frameDeltaMs{ 0.0 };
 
+	CompressionStats m_compressionStats;
+
 	// Breakpoint management
 	enum class BreakpointType
 	{

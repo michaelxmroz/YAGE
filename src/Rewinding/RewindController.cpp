@@ -41,7 +41,7 @@ bool RewindController::ShouldRecordFrame(uint64_t frameNumber)
 	return frameNumber % m_rewindDataSets.front().m_frequency == 0;
 }
 
-void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView& currentFrameData)
+void RewindController::EncodeFrameDelta(uint64_t frameNumber, const SerializationView& currentFrameData, CompressionStats& stats)
 {
 	auto dataSetIt = m_rewindDataSets.begin();
 	const RewindData& firstDataSet = *dataSetIt;
@@ -76,7 +76,8 @@ void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView&
 				dataSetIt++;
 				const RewindData& nextDataSet = *dataSetIt;
 				// reconstruct the next frame from the cached delta and the evicted delta and save it it the cached delta
-				m_deltaEncoder->EncodeFrameDelta(evictedDelta->m_data, evictedDelta->m_size, nextDataSet.m_cachedDelta, *nextDataSet.m_cachedDelta);
+				m_deltaEncoder->DecodeFrameDelta(*evictedDelta, *nextDataSet.m_cachedDelta);
+				//m_deltaEncoder->EncodeFrameDeltaWithDecompress(evictedDelta->m_data, evictedDelta->m_size, nextDataSet.m_cachedDelta, *nextDataSet.m_cachedDelta, stats);
 			}
 			else
 			{
@@ -85,7 +86,7 @@ void RewindController::EncodeFrameDelta(uint64_t frameNumber, SerializationView&
 
 			FixedSizeDeltaFrame& delta = dataSet.m_deltaBuffer->Push();
 
-			m_deltaEncoder->EncodeFrameDelta(deltaDataPtr, deltaSize, dataSet.m_previousFrame, delta);
+			m_deltaEncoder->EncodeFrameDelta(deltaDataPtr, deltaSize, dataSet.m_previousFrame, delta, stats);
 
 
 			dataSet.m_previousFrame->m_size = deltaSize;

@@ -34,12 +34,12 @@ SerializationView CopySerializationView(std::vector<uint8_t>& buffer, Serializat
 bool TestRewind(SerializationView frame1, SerializationView frame2)
 {
     RewindController RewindController;
-
+    CompressionStats stats;
     //Save initial frame
-    RewindController.EncodeFrameDelta(1,frame1);
+    RewindController.EncodeFrameDelta(1,frame1, stats);
 
     // Save delta
-    RewindController.EncodeFrameDelta(1,frame2);
+    RewindController.EncodeFrameDelta(1,frame2, stats);
 
     //Rewind to previous frame
     SerializationView* rewoundData = RewindController.Rewind();
@@ -89,8 +89,40 @@ TEST_P(RewindTestFixture, Main)
 
 #define SPLASH_PATH "../../../splash.gb"
 
+TEST(RewindIntegrationTest, Compression)
+{
+   
+    RewindController RewindController;
+    CompressionStats stats;
+
+    constexpr uint64_t BUFF_SIZE = 10;
+    uint8_t zeroBuffer[BUFF_SIZE];
+    memset(zeroBuffer, 0, BUFF_SIZE);
+    SerializationView tmpView{ zeroBuffer, BUFF_SIZE };
+
+    uint8_t testData[BUFF_SIZE] = { 3,3,3,5,5,5,5,1,2,2 };
+    SerializationView tmpView2{ testData, BUFF_SIZE };
+
+    // Save delta
+    RewindController.EncodeFrameDelta(1, tmpView2, stats);
+    RewindController.EncodeFrameDelta(1, tmpView, stats);
+
+    //Rewind to previous frame
+    SerializationView* rewoundData = RewindController.Rewind();
+
+    if (!rewoundData)
+    {
+        FAIL();
+    }
+
+    //Compare rewound data to frame1
+    EXPECT_TRUE(memcmp(testData, rewoundData->data, BUFF_SIZE) == 0);
+
+}
+
 TEST(RewindIntegrationTest, Main) 
 {
+    CompressionStats stats;
     std::vector<char> romBlob;
     if (!FileParser::Read(SPLASH_PATH, romBlob))
     {
@@ -122,10 +154,10 @@ TEST(RewindIntegrationTest, Main)
     RewindController RewindController;
 
     //Save initial frame
-    RewindController.EncodeFrameDelta(1,frame1);
+    RewindController.EncodeFrameDelta(1,frame1, stats);
 
     // Save delta
-    RewindController.EncodeFrameDelta(1,frame2);
+    RewindController.EncodeFrameDelta(1,frame2, stats);
 
 	//Rewind to previous frame
 	SerializationView* rewoundData = RewindController.Rewind();
@@ -156,6 +188,7 @@ TEST(RewindIntegrationTest, Main)
 
 TEST(RewindIntegrationTest, 60Frames)
 {
+    CompressionStats stats;
     std::vector<char> romBlob;
     if (!FileParser::Read(SPLASH_PATH, romBlob))
     {
@@ -186,10 +219,10 @@ TEST(RewindIntegrationTest, 60Frames)
     RewindController RewindController;
 
     //Save initial frame
-    RewindController.EncodeFrameDelta(1,frame1);
+    RewindController.EncodeFrameDelta(1,frame1, stats);
 
     // Save delta
-    RewindController.EncodeFrameDelta(1,frame2);
+    RewindController.EncodeFrameDelta(1,frame2, stats);
 
     //Rewind to previous frame
     SerializationView* rewoundData = RewindController.Rewind();
@@ -220,6 +253,7 @@ TEST(RewindIntegrationTest, 60Frames)
 
 TEST(RewindIntegrationTest, MultiRewindSingleTier)
 {
+    CompressionStats stats;
     std::vector<char> romBlob;
     if (!FileParser::Read(SPLASH_PATH, romBlob))
     {
@@ -241,14 +275,14 @@ TEST(RewindIntegrationTest, MultiRewindSingleTier)
 
     RewindController RewindController;
     //Save initial frame
-    RewindController.EncodeFrameDelta(1,frame1);
+    RewindController.EncodeFrameDelta(1,frame1, stats);
 
     for (uint64_t i = 0; i < 10; ++i)
     {
         emu->Step(inputState, 16.67, false);
         SerializationView frameN = emu->Serialize(false);
         // Save delta
-        RewindController.EncodeFrameDelta(1,frameN);
+        RewindController.EncodeFrameDelta(1,frameN, stats);
     }
 
     for (uint64_t i = 0; i < 10; ++i)
@@ -271,6 +305,7 @@ TEST(RewindIntegrationTest, MultiRewindSingleTier)
 
 TEST(RewindIntegrationTest, MultiRewindMultiTier)
 {
+    CompressionStats stats;
     std::vector<char> romBlob;
     if (!FileParser::Read(SPLASH_PATH, romBlob))
     {
@@ -293,7 +328,7 @@ TEST(RewindIntegrationTest, MultiRewindMultiTier)
 
     RewindController RewindController;
     //Save initial frame
-    RewindController.EncodeFrameDelta(0, frame1);
+    RewindController.EncodeFrameDelta(0, frame1, stats);
 
     constexpr uint32_t frameToCheck = 0;
     std::vector<uint8_t> CachedFrameCheckedData;
@@ -308,7 +343,7 @@ TEST(RewindIntegrationTest, MultiRewindMultiTier)
         emu->Step(inputState, 16.67, false);
         SerializationView frameN = emu->Serialize(false);
         // Save delta
-        RewindController.EncodeFrameDelta(i, frameN);
+        RewindController.EncodeFrameDelta(i, frameN, stats);
     }
 
     constexpr uint32_t T0CacheCapacity = 60;

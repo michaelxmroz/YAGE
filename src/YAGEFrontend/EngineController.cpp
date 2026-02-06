@@ -309,7 +309,7 @@ void EngineController::HandleSaveLoad()
 void EngineController::CreateFrameDelta(uint64_t frameCount)
 {
     SerializationView savedState = m_emulator->Serialize(false);
-	m_data.m_gameData.m_rewindController.EncodeFrameDelta(frameCount, savedState);
+	m_data.m_gameData.m_rewindController.EncodeFrameDelta(frameCount, savedState, m_data.m_gameData.m_debuggerState.m_compressionStats);
 }
 
 void EngineController::HandleRewind()

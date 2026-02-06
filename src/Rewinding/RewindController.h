@@ -6,7 +6,6 @@
 #include "Emulator.h"
 #include <vector>
 
-
 class RewindController
 {
 public:
@@ -15,7 +14,7 @@ public:
 	void Reset();
 	SerializationView* Rewind();
 	bool ShouldRecordFrame(uint64_t frameNumber);
-	void EncodeFrameDelta(uint64_t frameNumber, SerializationView& currentFrameData);
+	void EncodeFrameDelta(uint64_t frameNumber, const SerializationView& currentFrameData, CompressionStats& stats);
 
 private:
 
