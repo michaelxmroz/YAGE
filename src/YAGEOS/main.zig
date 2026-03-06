@@ -184,9 +184,16 @@ export fn main() void {
     if (rom.getRomSize() > 10000) {
         log.INFO("Rom is present: {}\n", .{rom.getRomSize()});
     }
-    renderer.initFramebuffer();
+
+    const width = cpp.EMULATOR_SCREEN_WIDTH;
+    const height = cpp.EMULATOR_SCREEN_HEIGHT;
+    const scale = 4;
+
+    renderer.initFramebuffer(width * scale, height * scale);
 
     const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
+    defer cpp.Delete(emu);
+
     cpp.SetPersistentMemoryCallback(emu, c_persistentMemoryCallback);
     cpp.SetLoggerCallback(emu, c_loggerCallback);
     cpp.Load(emu, "Splash.bin", rom.getRom(), rom.getRomSize());
@@ -196,10 +203,17 @@ export fn main() void {
         .m_buttons = 0,
     };
 
-    cpp.Step(emu, input_state, 16.6666);
-    cpp.Delete(emu);
+    while (true) {
+        cpp.Step(emu, input_state, 16.6666);
 
-    renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
+        const raw = cpp.GetFrameBuffer(emu);
+
+        const ptr: [*]const renderer.Color = @ptrCast(@alignCast(raw));
+
+        const slice = ptr[0..(width * height)];
+        renderer.drawImage(width, height, scale, slice);
+    }
+    //renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
 
     _ = alloc.activeBucketAlloc(0x10000);
 

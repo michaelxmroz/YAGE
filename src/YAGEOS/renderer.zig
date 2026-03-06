@@ -16,44 +16,42 @@ const MBOX_READ = (VIDEOCORE_MBOX + 0x0);
 const MBOX_STATUS = (VIDEOCORE_MBOX + 0x18);
 const MBOX_WRITE = (VIDEOCORE_MBOX + 0x20);
 
-const MBOX_POLL      = (VIDEOCORE_MBOX + 0x10);
-const MBOX_SENDER    = (VIDEOCORE_MBOX + 0x14);
-const MBOX_CONFIG    = (VIDEOCORE_MBOX + 0x1C);
+const MBOX_POLL = (VIDEOCORE_MBOX + 0x10);
+const MBOX_SENDER = (VIDEOCORE_MBOX + 0x14);
+const MBOX_CONFIG = (VIDEOCORE_MBOX + 0x1C);
 const MBOX_DATA_MASK = 0xF;
 
-const MBOX_FULL = 0x80000000;  // Mailbox full flag
+const MBOX_FULL = 0x80000000; // Mailbox full flag
 const MBOX_EMPTY = 0x40000000; // Mailbox empty flag
-const MBOX_VC_CHANNEL = 0x8;   // Mailbox VideoCore channel
+const MBOX_VC_CHANNEL = 0x8; // Mailbox VideoCore channel
 
 // Mailbox tags
-const MBOX_TAGS = enum (u32) {
-    SETPHYWH   = 0x48003,
-    SETVIRTWH  = 0x48004,
+const MBOX_TAGS = enum(u32) {
+    SETPHYWH = 0x48003,
+    SETVIRTWH = 0x48004,
     SETVIRTOFF = 0x48009,
-    SETDEPTH   = 0x48005,
+    SETDEPTH = 0x48005,
     SETPXLORDR = 0x48006,
-    ALLOCFB    = 0x40001,
-    GETPITCH   = 0x40008,
-    LAST       = 0,
+    ALLOCFB = 0x40001,
+    GETPITCH = 0x40008,
+    LAST = 0,
 };
 
 // VideoCore request and response codes
 const VIDEOCORE_REQUEST = 0x0;
-const VIDEOCORE_RESPONSE_CODES = enum (u32) {
+const VIDEOCORE_RESPONSE_CODES = enum(u32) {
     SUCCESS = 0x80000000,
     ERROR = 0x80000001,
 };
 
-pub const Components = packed struct
-{
-    r : u8,
-    g : u8,
-    b : u8,
-    a : u8,
+pub const Components = packed struct {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
 };
 
-pub const Color = union
-{
+pub const Color = union {
     components: Components,
 
     fn toUnified(self: *const Color) u32 {
@@ -67,37 +65,30 @@ pub const Color = union
     }
 };
 
-
-
-fn writeToVCMailbox(data : usize) void
-{
-    const msg = (data & ~@as(u32,MBOX_DATA_MASK)) | MBOX_VC_CHANNEL;
-    while(mmio.mmioReadDirect(MBOX_STATUS) & MBOX_FULL != 0)
-    {
+fn writeToVCMailbox(data: usize) void {
+    const msg = (data & ~@as(u32, MBOX_DATA_MASK)) | MBOX_VC_CHANNEL;
+    while (mmio.mmioReadDirect(MBOX_STATUS) & MBOX_FULL != 0) {
         @call(.never_inline, utils.delay, .{4});
     }
     mmio.mmioWriteDirect(MBOX_WRITE, @intCast(msg));
 }
 
-fn readFromVCMailbox() u32
-{
-    while(mmio.mmioReadDirect(MBOX_STATUS) & MBOX_EMPTY != 0)
-    {
+fn readFromVCMailbox() u32 {
+    while (mmio.mmioReadDirect(MBOX_STATUS) & MBOX_EMPTY != 0) {
         @call(.never_inline, utils.delay, .{4});
     }
 
     const resp = mmio.mmioReadDirect(MBOX_READ);
-    return resp & ~@as(u32,MBOX_DATA_MASK);
+    return resp & ~@as(u32, MBOX_DATA_MASK);
 }
 
-fn addTag(buf: []u32, idx: *u32, tag: MBOX_TAGS, data: []const u32) void 
-{
+fn addTag(buf: []u32, idx: *u32, tag: MBOX_TAGS, data: []const u32) void {
     const u32len = @as(u32, @intCast(data.len));
-    buf[idx.*] = @intFromEnum(tag);                // Tag identifier
-    buf[idx.* + 1] = u32len * 4;                // Value size in bytes
-    buf[idx.* + 2] = 0;                           // Request code (0)
-    @memcpy( buf[idx.* + 3..idx.* + 3 + u32len], data); // Copy tag data
-    idx.* += 3 + u32len;                        // Move the index forward
+    buf[idx.*] = @intFromEnum(tag); // Tag identifier
+    buf[idx.* + 1] = u32len * 4; // Value size in bytes
+    buf[idx.* + 2] = 0; // Request code (0)
+    @memcpy(buf[idx.* + 3 .. idx.* + 3 + u32len], data); // Copy tag data
+    idx.* += 3 + u32len; // Move the index forward
 }
 
 // Utility function to find a tag and retrieve its data from the mailbox response
@@ -107,7 +98,7 @@ fn findTag(buf: []const u32, tag: MBOX_TAGS) ?[]const u32 {
         const current_tag = @intFromEnum(tag);
         if (buf[idx] == current_tag) {
             const data_len = buf[idx + 1] / 4; // Length in words (u32)
-            return buf[idx + 3..idx + 3 + data_len];
+            return buf[idx + 3 .. idx + 3 + data_len];
         }
         // Skip to the next tag: tag + size (2 words) + data length
         idx += 3 + (buf[idx + 1] / 4);
@@ -115,13 +106,9 @@ fn findTag(buf: []const u32, tag: MBOX_TAGS) ?[]const u32 {
     return null; // Tag not found
 }
 
-
 // Initialize the framebuffer
-pub fn initFramebuffer() void 
-{
-    const width = 1920;  // Desired framebuffer width
-    const height = 1080; // Desired framebuffer height
-    const depth = 32;    // Bits per pixel (color depth)
+pub fn initFramebuffer(width: u32, height: u32) void {
+    const depth = 32; // Bits per pixel (color depth)
 
     @memset(&mbox, 0);
 
@@ -133,12 +120,12 @@ pub fn initFramebuffer() void
     mbox[idx] = VIDEOCORE_REQUEST; // VideoCore request code
     idx += 1;
 
-    addTag(&mbox, &idx, MBOX_TAGS.SETPHYWH, &.{width, height});
-    addTag(&mbox, &idx, MBOX_TAGS.SETVIRTWH, &.{width, height});
-    addTag(&mbox, &idx, MBOX_TAGS.SETVIRTOFF, &.{0, 0});
+    addTag(&mbox, &idx, MBOX_TAGS.SETPHYWH, &.{ width, height });
+    addTag(&mbox, &idx, MBOX_TAGS.SETVIRTWH, &.{ width, height });
+    addTag(&mbox, &idx, MBOX_TAGS.SETVIRTOFF, &.{ 0, 0 });
     addTag(&mbox, &idx, MBOX_TAGS.SETDEPTH, &.{depth});
     addTag(&mbox, &idx, MBOX_TAGS.SETPXLORDR, &.{1});
-    addTag(&mbox, &idx, MBOX_TAGS.ALLOCFB, &.{4096, 0});
+    addTag(&mbox, &idx, MBOX_TAGS.ALLOCFB, &.{ 4096, 0 });
     addTag(&mbox, &idx, MBOX_TAGS.GETPITCH, &.{0});
 
     // Mark the end of the message
@@ -181,28 +168,32 @@ pub fn initFramebuffer() void
         return;
     }
 
-    log.INFO(
-        "Framebuffer initialized at {x} with width {d}, height {d}, and pitch {d}\n",
-        .{mbox[28], framebuffer_width, framebuffer_height, framebuffer_pitch}
-    );
+    log.INFO("Framebuffer initialized at {x} with width {d}, height {d}, and pitch {d}\n", .{ mbox[28], framebuffer_width, framebuffer_height, framebuffer_pitch });
 }
 
-
-fn drawPixel(x: usize, y: usize, col: Color) void
-{
+fn drawPixel(x: usize, y: usize, col: Color) void {
     const offs = (y * framebuffer_pitch) + (x * 4);
     //const u32off = @as(u32, @intCast(offs));
-    const pos : *volatile u32 = @ptrFromInt( @intFromPtr(framebuffer) + offs);
+    const pos: *volatile u32 = @ptrFromInt(@intFromPtr(framebuffer) + offs);
     pos.* = col.toUnified();
 }
 
-pub fn drawRect(x1: usize, y1: usize, x2: usize, y2: usize, col: Color) void
-{
-    for(y1..y2) |y|
-    {
-        for(x1..x2) |x|
-        {
+pub fn drawRect(x1: usize, y1: usize, x2: usize, y2: usize, col: Color) void {
+    for (y1..y2) |y| {
+        for (x1..x2) |x| {
             drawPixel(x, y, col);
+        }
+    }
+}
+
+pub fn drawImage(width: usize, height: usize, scale: usize, image: []const Color) void {
+    for (0..height) |y| {
+        for (0..width) |x| {
+            for (0..scale) |ys| {
+                for (0..scale) |xs| {
+                    drawPixel(x * scale + xs, y * scale + ys, image[y * width + x]);
+                }
+            }
         }
     }
 }
