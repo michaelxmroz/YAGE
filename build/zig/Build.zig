@@ -42,7 +42,7 @@ pub fn build(b: *Builder) void {
         }
     }
 
-    static_lib.addCSourceFiles(.{ .files = fileList.toOwnedSlice(b.allocator) catch unreachable, .flags = &.{ "-std=c++14", "-ffreestanding", "-o2", "-fbuiltin", "--define-macro=FREESTANDING", "-fno-threadsafe-statics", "-fno-exceptions", "-fno-rtti" } });
+    static_lib.addCSourceFiles(.{ .files = fileList.toOwnedSlice(b.allocator) catch unreachable, .flags = &.{ "-std=c++14", "-ffreestanding", "-o2", "-fbuiltin", "--define-macro=FREESTANDING","--define-macro=_LOGGING", "-fno-threadsafe-statics", "-fno-exceptions", "-fno-rtti" } });
     static_lib.root_module.single_threaded = true;
     //b.installArtifact(static_lib);
 
@@ -65,6 +65,33 @@ pub fn build(b: *Builder) void {
     kernel.root_module.single_threaded = true;
 
     kernel.addIncludePath(b.path(common_path_core_include));
+	
+	const rom_path = b.option([]const u8, "rom", "ROM path") orelse "../../splash.gb";
+
+	const options = b.addOptions();
+    options.addOption([]const u8, "rom_path", rom_path);
+
+    kernel.root_module.addOptions("build_options", options);
+	
+	const gen = b.addWriteFiles();
+	
+	const rom_filename = "embeddedrom.gb";
+	
+	_ = gen.addCopyFile(.{ .cwd_relative = rom_path }, rom_filename);
+
+    const rom_zig = gen.add("romfile.zig",
+        b.fmt(
+            \\pub const rombinary : []const u8 = @embedFile("{s}");
+        , .{rom_filename})
+    );
+
+    const rom_mod = b.createModule(.{
+        .root_source_file = rom_zig,
+    });
+
+    kernel.root_module.addImport("romfile", rom_mod);
+	
+	//kernel.step.dependOn(&copy_rom.step);
 
     install_kernel = b.addInstallArtifact(kernel, .{
         .dest_dir = .{ .override = .{ .custom = "../../../bin/ARM64/Release/" } },

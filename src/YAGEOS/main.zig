@@ -7,6 +7,7 @@ const defs = @import("defs.zig");
 const mmu = @import("mmu.zig");
 const emmc = @import("emmc.zig");
 const alloc = @import("allocation.zig");
+const rom = @import("rom.zig");
 
 const cpp = @cImport({
     @cDefine("_CINTERFACE", "1");
@@ -83,21 +84,25 @@ export fn _start() callconv(.naked) noreturn {
         \\    ldr x0, ={6}
         \\    msr mair_el1, x0            // Set MAIR_EL1 to define memory attributes for normal and device memory
         \\
-        \\    adr x0, setupMMU
+        \\    adrp x0, setupMMU
+        \\    add  x0, x0, :lo12:setupMMU
         \\    msr elr_el3, x0             // Set Exception Link Register EL3 to start executing at setupMMU
         \\    eret                        // Exception return to EL1, transferring control to setupMMU
         \\
         \\ setupMMU:
         \\    mov sp, #{7}                // Set stack pointer to LOW_MEMORY (initial stack for kernel)
         \\
-        \\    adr x0, __bss_start
-        \\    adr x1, __bss_end
-        \\    sub x1, x1, x0
-        \\    bl  memzero                 // Call memzero to clear the .bss section (zero-initialize)
+        \\    adrp x0, __bss_start
+        \\    add  x0, x0, :lo12:__bss_start
+        \\    adrp x1, __bss_end
+        \\    add  x1, x1, :lo12:__bss_end
+        \\    sub  x1, x1, x0
+        \\    bl   memzero
         \\
         \\    bl  initMMU                 // Initialize the MMU, setting up the page tables and memory mappings
         \\
         \\    adrp x0, pg_dir             // Load base address of the page directory into x0
+        \\    add  x0, x0, :lo12:pg_dir
         \\    msr ttbr0_el1, x0           // Set TTBR0_EL1 to page directory for user/kernel translation table base
         \\    msr ttbr1_el1, x0           // Set TTBR1_EL1 to page directory for higher memory regions
         \\
@@ -110,6 +115,7 @@ export fn _start() callconv(.naked) noreturn {
         \\ .globl id_pgd_addr
         \\ id_pgd_addr: 
         \\    adrp x0, pg_dir             // Load page directory base address
+        \\    add  x0, x0, :lo12:pg_dir
         \\    ret
         \\
         \\ .globl memzero
@@ -136,13 +142,27 @@ pub fn panic(message: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usi
 }
 
 fn c_alloc(size: u32) callconv(.c) ?*anyopaque {
-    log.INFO("Memory allocated: {} bytes\n", .{size});
-    return alloc.activeBucketAlloc(size);
+    const ptr = alloc.activeBucketAlloc(size);
+    log.INFO("Memory allocated: {} bytes at {}\n", .{ size, @intFromPtr(ptr) });
+    return @ptrCast(ptr);
 }
 
 fn c_free(addr: ?*anyopaque) callconv(.c) void {
     log.INFO("Memory freed at {}\n", .{@intFromPtr(addr)});
     alloc.activeBucketFree();
+}
+
+fn c_persistentMemoryCallback(addr: ?*const anyopaque, size: u32) callconv(.c) void {
+    log.INFO("Persistent memory callback called {} size {}\n", .{ @intFromPtr(addr), size });
+}
+
+fn c_loggerCallback(message: [*c]const u8, severity: u8) callconv(.c) void {
+    switch (severity) {
+        0 => log.INFO("Emulator: {s}", .{message}),
+        1 => log.WARNING("Emulator: {s}", .{message}),
+        2 => log.ERROR("Emulator: {s}", .{message}),
+        else => log.INFO("Emulator: {s}", .{message}),
+    }
 }
 
 export fn main() void {
@@ -154,18 +174,32 @@ export fn main() void {
     mmio.uartInit();
     mmio.uartSendString("Success\n");
 
-    //utils.hang();
+    alloc.init(); //utils.hang();
 
     const prevIRQVal = mmio.mmioReadDirect(mmio.IRQ_GPU_ENABLE2);
     mmio.mmioWriteDirect(mmio.IRQ_GPU_ENABLE2, (prevIRQVal & ~@as(u32, mmio.IRQ_GPU_FAKE_ISR)) | mmio.IRQ_GPU_FAKE_ISR);
 
-    log.INFO("Hello, Raspberry Pi {}!\n", .{defs.raspi});
+    log.INFO("Hello, Raspberry Pi {}!Romsize: {}\n ", .{ defs.raspi, rom.getRomSize() });
+
+    if (rom.getRomSize() > 10000) {
+        log.INFO("Rom is present: {}\n", .{rom.getRomSize()});
+    }
     renderer.initFramebuffer();
 
-    renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
-
     const emu = cpp.CreateEmulatorHandle(c_alloc, c_free);
+    cpp.SetPersistentMemoryCallback(emu, c_persistentMemoryCallback);
+    cpp.SetLoggerCallback(emu, c_loggerCallback);
+    cpp.Load(emu, "Splash.bin", rom.getRom(), rom.getRomSize());
+
+    const input_state = cpp.EmulatorInputState{
+        .m_dPad = 0,
+        .m_buttons = 0,
+    };
+
+    cpp.Step(emu, input_state, 16.6666);
     cpp.Delete(emu);
+
+    renderer.drawRect(150, 150, 400, 400, renderer.Color{ .components = renderer.Components{ .a = 0xFF, .r = 0xFF, .g = 0x0, .b = 0x0 } });
 
     _ = alloc.activeBucketAlloc(0x10000);
 

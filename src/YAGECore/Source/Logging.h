@@ -6,15 +6,11 @@ namespace Logger_Helpers
 	extern Emulator::LoggerCallback loggerCallback;
 }
 
-#if _DEBUG
 #define CPU_STATE_LOGGING 0
 constexpr bool LOG_CPU = CPU_STATE_LOGGING;
 
 #define PPU_STATE_LOGGING 0
 constexpr bool LOG_PPU = PPU_STATE_LOGGING;
-#endif
-
-
 
 #if _LOGGING
 

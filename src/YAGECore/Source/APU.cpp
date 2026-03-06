@@ -370,6 +370,11 @@ void APU::GenerateSamples(ExternalAudioBuffer& externalAudioBuffer, const Sample
 
 void APU::WriteToAudioBuffer(ExternalAudioBuffer* buffer, float leftSample, float rightSample)
 {
+	if (!buffer->buffer)
+	{
+		return;
+	}
+
 	float* left = buffer->buffer + (*buffer->currentPosition)++;
 	float* right = buffer->buffer + (*buffer->currentPosition)++;
 	*left = leftSample;

@@ -13,6 +13,13 @@
 #define INITIAL_MEMORY_REQUEST 0xA000000
 #endif
 
+
+template<typename T>
+T Align(T value, uint64_t alignment)
+{
+	return (T)((((uint64_t)(value) + alignment - 1) & ~(alignment - 1)));
+}
+
 class Allocator
 {
 public:
@@ -21,7 +28,7 @@ public:
 		Allocator& instance = GetInstance();
 		instance.m_allocFunc = allocFunc;
 		instance.m_freeFunc = freeFunc;
-		instance.m_buffer = static_cast<uint8_t*>(allocFunc(INITIAL_MEMORY_REQUEST));
+		instance.m_buffer = static_cast<uint8_t*>(Align(allocFunc(INITIAL_MEMORY_REQUEST),16));
 		instance.m_nextFree = instance.m_buffer;
 		instance.m_allocatedSize = 0;
 #ifdef _DEBUG
@@ -54,23 +61,21 @@ public:
 	static void* Malloc(uint32_t size)
 	{
 		Allocator& instance = GetInstance();
-#ifdef _DEBUG
+
 		if (!instance.m_buffer)
 		{
 			LOG_ERROR("Trying to allocate memory from a non-initialized allocator");
 			return nullptr;
 		}
-#endif
 
+		size = Align(size, 16);
 		instance.m_allocatedSize += size;
 
-#ifdef _DEBUG
 		if (instance.m_allocatedSize >= instance.m_bufferCapacity)
 		{
 			LOG_ERROR("Max requested memory size reached. Cannot allocate more. Bump up the requested memory count.");
 			return nullptr;
 		}
-#endif
 
 		void* returnAddr = instance.m_nextFree;
 
@@ -154,17 +159,23 @@ void YAGEDelete(T* ptr)
 	}
 }
 
+struct ArrayHeader
+{
+	uint32_t size;
+	uint8_t  padding[12]; //16 byte alignment
+};
+
 template <typename T>
 T* YAGENewA(size_t count)
 {
-	void* memory = Allocator::Malloc(sizeof(T) * static_cast<uint32_t>(count) + sizeof(uint32_t));
+	void* memory = Allocator::Malloc(sizeof(T) * static_cast<uint32_t>(count) + sizeof(ArrayHeader));
 	if (!memory)
 	{
 		// TODO Handle allocation failure
 	}
 
-	uint32_t* countStore = static_cast<uint32_t*>(memory);
-	*countStore = static_cast<uint32_t>(count);
+	ArrayHeader* countStore = static_cast<ArrayHeader*>(memory);
+	countStore->size = static_cast<uint32_t>(count);
 
 	++countStore;
 	T* firstEntry = reinterpret_cast<T*>(countStore);
@@ -185,8 +196,8 @@ YAGEDeleteA(T* ptr)
 {
 	if (ptr)
 	{
-		uint32_t* countPtr = reinterpret_cast<uint32_t*>(ptr)-1;
-		uint32_t count = *countPtr;
+		ArrayHeader* countPtr = reinterpret_cast<ArrayHeader*>(ptr)-1;
+		uint32_t count = countPtr->size;
 
 		for (uint32_t i = 0; i < count; ++i)
 		{
@@ -204,7 +215,7 @@ YAGEDeleteA(T* ptr)
 {
 	if (ptr)
 	{
-		uint32_t* countPtr = reinterpret_cast<uint32_t*>(ptr) - 1;
+		ArrayHeader* countPtr = reinterpret_cast<ArrayHeader*>(ptr) - 1;
 
 		Allocator::Free(countPtr);
 	}

@@ -37,6 +37,8 @@ void VirtualMachine::Load(const char* romName, const char* rom, uint32_t size)
 	m_joypad.Init(m_memory);
 	m_serial.Init(m_memory);
 
+	LOG_INFO("Rom Loaded\n");
+
 #if _DEBUG
 	m_cpu.DisassembleROM(m_memory);
 #endif

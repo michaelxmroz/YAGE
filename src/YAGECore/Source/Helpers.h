@@ -25,15 +25,10 @@ yString string_format(const char* fmt, Args ... args)
 }
 #else
 
-struct DummyString
-{
-    void c_str() {};
-};
-
 template<typename ... Args>
-DummyString string_format(Args ... args)
+yString string_format(const char* fmt, Args ... args)
 {
-    return DummyString();
+    return yString(fmt);
 }
 
 #endif
