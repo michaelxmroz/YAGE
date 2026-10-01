@@ -78,7 +78,7 @@ private:
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void CheckForInterrupts(Memory& memory);
 
-	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const;
+	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
 
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -108,7 +108,6 @@ private:
 			, m_lineX(0)
 			, m_windowState(WindowState::NoWindow)
 			, m_state(PPUState::OAMScan)
-			, m_spritePrefetchLine(0)
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
@@ -130,7 +129,6 @@ private:
 		uint8_t m_lineSpriteCount;
 		SpriteAttributes m_lineSprites[MAX_SPRITES_PER_LINE];
 		uint16_t m_lineSpriteMask;
-		uint8_t m_spritePrefetchLine;
 
 		PixelFIFO m_spriteFIFO;
 		PixelFIFO m_backgroundFIFO;
@@ -152,6 +150,12 @@ private:
 
 		bool m_cachedBackgroundEnabled;
 		RGBA m_cachedBackgroundColors[4];
+
+		uint8_t m_firstSpriteX = 0;
+		uint16_t m_mode3StartDot = 0;
+		uint16_t m_mode3EndDot = 0;
+		uint16_t m_mode3remainingduration = 0;
+
 
 		bool m_firstFrame;
 	} data;

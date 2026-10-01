@@ -1,6 +1,20 @@
 #include "EngineController.h"
 #include "DebuggerUtils.h"
 
+#if _DEBUG
+namespace
+{
+    constexpr uint8_t MOONEYE_STOP_INSTRUCTION = 0x40;
+
+    void PauseOnMooneyeStop(void* userData)
+    {
+        StateMachine* stateMachine = static_cast<StateMachine*>(userData);
+        stateMachine->SetState(StateMachine::EngineState::PAUSED);
+        LOG_INFO("Mooneye stop instruction encountered - emulator paused");
+    }
+}
+#endif
+
 std::string EngineController::s_persistentMemoryPath;
 
 void* AllocFunc(uint32_t size)
@@ -160,6 +174,13 @@ void EngineController::CreateEmulator(const std::vector<char>& bootromBlob, cons
     m_emulator->SetPersistentMemoryCallback(SavePersistentMemory);
 
     m_emulator->SetAudioBuffer(m_audio->GetAudioBuffer(), m_audio->GetAudioBufferSize(), m_audio->GetSampleRate(), m_audio->GetWritePosition());
+
+#if _DEBUG
+    if (m_data.m_mooneyeAutobreak)
+    {
+        m_emulator->SetInstructionCallback(MOONEYE_STOP_INSTRUCTION, &PauseOnMooneyeStop, &m_data.m_engineState);
+    }
+#endif
 }
 
 void EngineController::CleanupEmulator()

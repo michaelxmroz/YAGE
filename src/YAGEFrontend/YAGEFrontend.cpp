@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[])
 {
-    Logger::FileOutput::Init("log.txt");
+    Logger::FileOutput::Init("yagelog.txt");
 
     CommandLineParser commandLine(argc, argv);
 
@@ -24,6 +24,9 @@ int main(int argc, char* argv[])
     }
 
     data.m_gameData.m_debuggerState.m_debuggerActive = commandLine.HasArgument("debugger");
+#if _DEBUG
+    data.m_mooneyeAutobreak = commandLine.HasArgument("mooneye-autobreak");
+#endif
 
     EngineController controller(data);
 

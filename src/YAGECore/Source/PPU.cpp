@@ -281,7 +281,69 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 					memory.SetVRamWriteAccess(Memory::VRamAccess::VRamOAMBlocked);
 				}
 
-				DrawPixels(memory, processedCycles);
+
+
+
+				if (data.m_lineSpriteCount > 0 )
+				{
+					if( data.m_mode3remainingduration == 0)
+					{
+						uint8_t offsetWait = 0;
+						uint8_t smallestX = 255;
+						uint8_t spritesContributingPenalty = data.m_lineSpriteCount;
+						uint8_t tilePenalties[21];
+
+						memset(tilePenalties, 255, sizeof(tilePenalties));
+
+						for (uint8_t i = 0; i < data.m_lineSpriteCount; ++i)
+						{
+							uint8_t posX = data.m_lineSprites[i].m_posX;
+							uint8_t tile = posX / 8;
+
+							if (posX >= 168)
+							{
+								spritesContributingPenalty--;
+								continue;
+							}
+
+							tilePenalties[tile] = y::min(tilePenalties[tile], posX);
+
+							smallestX = y::min(smallestX, posX);
+						}
+
+						for (uint8_t i = 0; i < 21; ++i)
+						{
+							if (tilePenalties[i] != 255)
+							{
+								offsetWait += y::max(0, 5 - (tilePenalties[i] & 7));
+							}
+						}
+
+						data.m_firstSpriteX = smallestX;
+						data.m_mode3remainingduration = (6 * spritesContributingPenalty) + offsetWait + 170;
+					}
+
+					if (data.m_mode3remainingduration >= 2)
+					{
+						data.m_mode3remainingduration -= 2;
+						processedCycles += 2;
+					}
+					else
+					{
+						processedCycles += data.m_mode3remainingduration;
+						data.m_mode3remainingduration = 0;
+					}
+
+					if (data.m_mode3remainingduration == 0)
+					{
+						data.m_lineX = EmulatorConstants::SCREEN_WIDTH;
+					}
+
+				}
+				else
+				{
+					DrawPixels(memory, processedCycles);
+				}
 
 				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
@@ -336,6 +398,7 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 						data.m_windowLineY = 0;
 						data.m_totalCycles = 0;
 						data.m_frameCount++;
+
 						TransitionToOAMScan(memory, processedCycles);
 
 						data.m_stateTransition = StateTransition::Cycle1;
@@ -409,6 +472,18 @@ void PPU::TransitionToHBlank(Memory& memory, uint32_t processedCycles)
 	}
 	data.m_firstFrame = false;
 
+	// DEBUG BEGIN
+	uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
+	data.m_mode3EndDot = positionInLine;
+
+	yString logMsg = string_format("LY %u, Sprites: %u, Sprite X: %u, Mode 3 length: %u", memory.ReadIO(LY_REGISTER), data.m_lineSpriteCount, data.m_firstSpriteX, data.m_mode3EndDot - data.m_mode3StartDot);
+	LOG_INFO(logMsg.c_str());
+
+	data.m_firstSpriteX = 0;
+	data.m_mode3StartDot = 0;
+	data.m_mode3EndDot = 0;
+	// DEBUG END
+
 	data.m_state = PPUState::HBlank;
 	data.m_stateTransition = StateTransition::Cycle0;
 	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
@@ -422,9 +497,14 @@ void PPU::TransitionToDraw(Memory& memory, uint32_t processedCycles)
 	data.m_backgroundFetcher.Reset();
 	data.m_spriteFetcher.Reset();
 
+	uint32_t positionInLine = (data.m_totalCycles + processedCycles) % SCANLINE_DURATION;
+	data.m_mode3StartDot = positionInLine;
+
 	data.m_state = PPUState::Drawing;
 	data.m_stateTransition = StateTransition::Cycle0;
 	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
+
+	data.m_mode3remainingduration = 0;
 }
 
 void PPU::TransitionToOAMScan(Memory& memory, uint32_t processedCycles)
@@ -473,23 +553,6 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 	
 	uint8_t currentSpriteIndex;
 
-	if (data.m_lineX == 0)
-	{
-		while (data.m_spritePrefetchLine < SPRITE_SINGLE_SIZE)
-		{
-			if (GetCurrentSprite(currentSpriteIndex, SPRITE_SINGLE_SIZE - data.m_spritePrefetchLine))
-			{
-				data.m_spriteFetcher.SetSpriteAttributes(&data.m_lineSprites[currentSpriteIndex]);
-				bool fetchFinished = data.m_spriteFetcher.Step(data.m_lineX, data.m_lineY, data.m_spriteFIFO, processedCycles, memory);
-				if (fetchFinished)
-				{
-					data.m_lineSpriteMask |= (1 << currentSpriteIndex);
-				}
-				return;
-			}
-			data.m_spritePrefetchLine++;
-		}
-	}
 
 	if (GetCurrentSprite(currentSpriteIndex, 8))
 	{
@@ -576,7 +639,7 @@ void PPU::ScanOAM(uint32_t positionInLine, Memory& memory)
 	}
 }
 
-bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset) const
+bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
 {
 	bool foundSprite = false;
 	int16_t minDifference = SCANLINE_DURATION;

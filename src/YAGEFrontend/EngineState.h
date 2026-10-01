@@ -373,6 +373,9 @@ struct EngineData
 		, m_baseHeight(0)
 		, m_turbo(false)
 		, m_rewind(false)
+#if _DEBUG
+		, m_mooneyeAutobreak(false)
+#endif
 		, m_stats()
 	{
 	}
@@ -389,6 +392,9 @@ struct EngineData
 
 	bool m_turbo;
 	bool m_rewind;
+#if _DEBUG
+	bool m_mooneyeAutobreak;
+#endif
 
 	Stats m_stats;
 

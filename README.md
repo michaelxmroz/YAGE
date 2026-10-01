@@ -68,7 +68,7 @@ The unit tests require the [Google Test](https://github.com/google/googletest) f
 
 ## Usage
 
-All operations can be performed from the main bar UI, but the executable can also be started with the -file "x" command line parameter, where x is a valid path to a *.rom file. A second supported parameter is -bootrom "x" to provide a [bootrom](https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM) to the emulator, but it is not strictly necessary.
+All operations can be performed from the main bar UI, but the executable can also be started with the -file "x" command line parameter, where x is a valid path to a *.rom file. A second supported parameter is -bootrom "x" to provide a [bootrom](https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM) to the emulator, but it is not strictly necessary. In debug builds, pass -mooneye-autobreak to pause emulation when a Mooneye test reaches its 0x40 stop instruction.
 
 ## Controls
 Currently the default control scheme is as follows, but this can be remapped through the options menu.

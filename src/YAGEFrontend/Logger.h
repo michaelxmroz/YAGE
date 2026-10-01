@@ -451,12 +451,12 @@ namespace Logger
  //----------------------------------//
     typedef SubLogger<LogSeverity::All, LogVerbosity::All, VSDebugOutput> VSLogger;
     typedef SubLogger<LogSeverity::All, LogVerbosity::All, ConsoleOutput> ConsoleLogger;
-    typedef SubLogger<LogSeverity::Errors, LogVerbosity::All, FileOutput> FileLogger;
+    typedef SubLogger<LogSeverity::All, LogVerbosity::All, FileOutput> FileLogger;
     typedef SubLogger<LogSeverity::All, LogVerbosity::All, LogBufferOutput> GlobalBufferLogger;
 
     typedef SubLogger<LogSeverity::All, LogVerbosity::Minimal, FileOutput> FileLoggerMinimal;
 
-    typedef CompoundLogger<GlobalBufferLogger, VSLogger> DefaultLogger;
+    typedef CompoundLogger<GlobalBufferLogger, VSLogger, FileLogger> DefaultLogger;
     typedef CompoundLogger<FileLoggerMinimal> MinimalLogger;
 }
 
