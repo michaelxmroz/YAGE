@@ -73,11 +73,14 @@ void PixelFetcher::SetSpriteAttributes(const SpriteAttributes* attributes)
 	m_spriteAttributes = attributes;
 }
 
-bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& processedCycles, Memory& memory)
+bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, Memory& memory)
 {
 	switch (m_state)
 	{
 	case FetcherState::GetTile:
+		m_state = FetcherState::GetTile_2;
+	break;
+	case FetcherState::GetTile_2:
 	{
 		if (m_spriteMode)
 		{
@@ -103,7 +106,6 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 			m_tileAddr = tileIndex * TILE_BYTE_SIZE + yOffset * 2;
 			m_tileAddr += block;
 
-			processedCycles += 2;
 		}
 		else
 		{
@@ -113,16 +115,22 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 	}
 	break;
 	case FetcherState::ReadTileLow:
+		m_state = FetcherState::ReadTileLow_2;
+	break;
+	case FetcherState::ReadTileLow_2:
 	{
 		m_tileDataLow = memory.ReadDirect(m_tileAddr);
 		m_state = FetcherState::ReadTileHigh;
 	}
 	break;
 	case FetcherState::ReadTileHigh:
+		m_state = FetcherState::ReadTileHigh_2;
+	break;
+	case FetcherState::ReadTileHigh_2:
 	{
 		m_tileDataHigh = memory.ReadDirect(m_tileAddr + 1);
 		m_state = FetcherState::Sleep;
-		if (fifo.Size() < 8 && !m_spriteMode)
+		if (fifo.Size() < 8 || m_spriteMode)
 		{
 			PushPixels(fifo, x);
 			return true;
@@ -131,7 +139,7 @@ bool PixelFetcher::Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& process
 	break;
 	case FetcherState::Sleep:
 	{
-		if (fifo.Size() <= 8 || m_spriteMode)
+		if (fifo.Size() <= 8)
 		{
 			PushPixels(fifo, x);
 			return true;
@@ -147,21 +155,10 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 {
 	if (m_spriteMode)
 	{
-		bool isOddPosition = m_spriteAttributes->m_posX != currentX + TILE_SIZE;
-
-		uint8_t start = fifo.Size();
+		
+		uint8_t start = 0;
 		uint8_t offscreenX = static_cast<uint8_t>(y::max(0, TILE_SIZE - static_cast<int16_t>(m_spriteAttributes->m_posX)));
 		start = offscreenX;
-
-		if (isOddPosition && start == 0)
-		{
-			Pixel pixel{
-			0x00,
-			false,
-			false
-			};
-			fifo.Push(pixel);
-		}
 
 		for (uint8_t i = start; i < TILE_SIZE; ++i)
 		{	
@@ -174,8 +171,8 @@ void PixelFetcher::PushPixels(PixelFIFO& fifo, uint8_t currentX)
 				IsSpriteFlagSet(SpriteFlags::BgOverObj, m_spriteAttributes->m_flags)
 			};
 			Pixel oldPixel;
-			uint8_t fifoIndex = isOddPosition ? i + 1 : i;
-			fifoIndex = y::max(0,fifoIndex - start);
+
+			uint8_t fifoIndex = y::max(0,i - start);
 			if (fifo.Size() > fifoIndex)
 			{
 				oldPixel = fifo.Get(fifoIndex);

@@ -24,6 +24,7 @@
 
 #define SPRITE_SINGLE_SIZE 8
 #define SPRITE_DOUBLE_SIZE 16
+#define SPRITE_OFFSCREEN_POSITION_X 168
 
 const RGBA SCREEN_COLORS[4]
 {
@@ -97,6 +98,21 @@ namespace PPUHelpers
 			return true;
 		}
 		return false;
+	}
+
+	bool HasLatchedSprite(uint8_t spriteIndex)
+	{
+		return spriteIndex != MAX_SPRITES_PER_LINE;
+	}
+
+	void ResetSpriteLatch(uint8_t& spriteIndex)
+	{
+		spriteIndex = MAX_SPRITES_PER_LINE;
+	}
+
+	uint8_t GetSpriteBackgroundTileIndex(uint8_t spriteX, uint8_t fineScrollX)
+	{
+		return (spriteX + fineScrollX) / SPRITE_SINGLE_SIZE;
 	}
 }
 
@@ -223,8 +239,6 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 		data.m_stateTransition = StateTransition::Cycle0;
 	}
 
-	bool hblankend = false;
-
 	// Update externally visible registers end
 
 	int32_t targetCycles = tCycles;
@@ -281,9 +295,7 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 					memory.SetVRamWriteAccess(Memory::VRamAccess::VRamOAMBlocked);
 				}
 
-
-
-
+#if TIMING_DEBUG
 				if (data.m_lineSpriteCount > 0 )
 				{
 					if( data.m_mode3remainingduration == 0)
@@ -344,7 +356,9 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 				{
 					DrawPixels(memory, processedCycles);
 				}
-
+#else
+				DrawPixels(memory, processedCycles);
+#endif
 				if (data.m_lineX == EmulatorConstants::SCREEN_WIDTH)
 				{
 					TransitionToHBlank(memory, processedCycles);
@@ -360,15 +374,10 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 					memory.SetVRamWriteAccess(Memory::VRamAccess::All);
 				}
 
-				processedCycles += 2;
+				processedCycles++;
 
 				if (PPUHelpers::IsNewScanline(data.m_totalCycles + processedCycles, data.m_lineY, memory))
 				{
-					if (data.m_totalCycles % 2 != 0)
-					{
-						data.m_totalCycles--;
-					}
-					hblankend = true;
 					if (data.m_lineY == EmulatorConstants::SCREEN_HEIGHT)
 					{
 						SwapBackbuffer();
@@ -389,7 +398,7 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 				{
 					if (processedCycles % 4 != 0)
 						LOG_ERROR("non-4 divisible cycle count");
-					hblankend = true;
+	
 					data.m_stateTransition = StateTransition::Cycle0;
 
 					if (data.m_lineY == 0)
@@ -434,10 +443,6 @@ void PPU::Render(uint32_t tCycles, Memory& memory)
 	Helpers::HexToString(memory.ReadIO(LY_REGISTER), logStr + 2);
 
 	LOG_PPU_STATE(logStr);
-	if (hblankend)
-	{
-		LOG_PPU_STATE("\n");
-	}
 #endif
 	//TODO is this necessary?
 	data.m_cycleDebt =  targetCycles - processedCycles;
@@ -491,6 +496,8 @@ void PPU::TransitionToHBlank(Memory& memory, uint32_t processedCycles)
 
 void PPU::TransitionToDraw(Memory& memory, uint32_t processedCycles)
 {
+	data.m_mode3DelayCounter = 0;
+	data.m_nextBackgroundTileSpritePenalty = 0;
 	data.m_lineX = 0;
 	data.m_backgroundFIFO.Clear();
 	data.m_spriteFIFO.Clear();
@@ -504,15 +511,17 @@ void PPU::TransitionToDraw(Memory& memory, uint32_t processedCycles)
 	data.m_stateTransition = StateTransition::Cycle0;
 	data.m_cyclesInMode = -static_cast<int32_t>(processedCycles);
 
+	data.m_latchedSpriteIndex = MAX_SPRITES_PER_LINE;
+
 	data.m_mode3remainingduration = 0;
 }
 
 void PPU::TransitionToOAMScan(Memory& memory, uint32_t processedCycles)
 {
-	data.m_fineScrollX = memory.ReadIO(SCX_REGISTER) & 0x7;
+	data.m_currentFineScrollX = memory.ReadIO(SCX_REGISTER) & 0x7;
+	data.m_fineScrollX = data.m_currentFineScrollX;
 	data.m_lineSpriteCount = 0;
 	data.m_lineSpriteMask = 0;
-	data.m_spritePrefetchLine = 0;
 	data.m_windowState = PPUHelpers::IsControlFlagSet(LCDControlFlags::WindowEnable, memory) && data.m_lineY >= memory.ReadIO(WY_REGISTER) ? WindowState::InScanline : WindowState::NoWindow;
 	
 	data.m_state = PPUState::OAMScan;
@@ -540,7 +549,13 @@ void PPU::DisableScreen(Memory& memory)
 
 void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 {
-	processedCycles += 2;
+	processedCycles++; // draw needs more fine-grained stepping
+
+	if(data.m_mode3DelayCounter > 0)
+	{
+		data.m_mode3DelayCounter--;
+		return;
+	}
 
 	if (data.m_windowState == WindowState::InScanline && data.m_lineX + 7 >= memory.ReadIO(WX_REGISTER))
 	{
@@ -548,40 +563,38 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 		data.m_backgroundFIFO.Clear();
 		data.m_backgroundFetcher.FetchWindow(data.m_windowLineY);
 		data.m_windowState = WindowState::Draw;
-		data.m_fineScrollX = 0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
+		data.m_currentFineScrollX = 0x7 - memory.ReadIO(WX_REGISTER) & 0x7;
 	}
 	
-	uint8_t currentSpriteIndex;
+	uint8_t backgroundTile = data.m_lineX + data.m_fineScrollX;
 
-
-	if (GetCurrentSprite(currentSpriteIndex, 8))
+	if(!PPUHelpers::HasLatchedSprite(data.m_latchedSpriteIndex) && PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable,memory))
 	{
-		data.m_spriteFetcher.SetSpriteAttributes(&data.m_lineSprites[currentSpriteIndex]);
-		bool fetchFinished = data.m_spriteFetcher.Step(data.m_lineX, data.m_lineY, data.m_spriteFIFO, processedCycles, memory);
+		LatchNextSprite();
+	}
+
+	if (PPUHelpers::HasLatchedSprite(data.m_latchedSpriteIndex))
+	{
+
+		bool fetchFinished = data.m_spriteFetcher.Step(data.m_lineX, data.m_lineY, data.m_spriteFIFO, memory);
 		if (fetchFinished)
 		{
-			data.m_lineSpriteMask |= (1 << currentSpriteIndex);
+			data.m_lineSpriteMask |= (1 << data.m_latchedSpriteIndex);
+			PPUHelpers::ResetSpriteLatch(data.m_latchedSpriteIndex);
 		}
 		return;
 	}
 	else
 	{
-		data.m_backgroundFetcher.Step(data.m_lineX, data.m_lineY, data.m_backgroundFIFO, processedCycles, memory);
+		data.m_backgroundFetcher.Step(data.m_lineX, data.m_lineY, data.m_backgroundFIFO, memory);
 	}
 	
 	if (data.m_lineX == 0)
 	{
-		if (data.m_fineScrollX > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
-		{	
-			for (uint8_t i = 0; i < 2; ++i)
-			{
-				data.m_backgroundFIFO.Pop();
-				data.m_fineScrollX--;
-				if (data.m_fineScrollX == 0)
-				{
-					break;
-				}
-			}
+		if (data.m_currentFineScrollX > 0 && data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE)
+		{			
+			data.m_backgroundFIFO.Pop();
+			data.m_currentFineScrollX--;
 
 			return;
 		}
@@ -589,7 +602,6 @@ void PPU::DrawPixels(Memory& memory, uint32_t& processedCycles)
 
 	if (data.m_backgroundFIFO.Size() > SPRITE_SINGLE_SIZE )
 	{
-		RenderNextPixel(memory);
 		RenderNextPixel(memory);
 	}
 }
@@ -611,7 +623,7 @@ void PPU::RenderNextPixel(Memory& memory)
 		RGBA spritePixelColor = PPUHelpers::ResolvePixelColor(spritePixel.m_color, spritePixel.m_palette == 0 ? OBJ0_REGISTER : OBJ1_REGISTER, memory);
 
 		if (PPUHelpers::IsControlFlagSet(LCDControlFlags::ObjEnable, memory) && 
-			(spritePixel.m_color != 0 && (!spritePixel.m_backgroundPriority || pixelColor == SCREEN_COLORS[0])))
+			(spritePixel.m_color != 0 && (!spritePixel.m_backgroundPriority || bgPixel.m_color == 0)))
 		{
 			pixelColor = spritePixelColor;
 		}
@@ -639,22 +651,44 @@ void PPU::ScanOAM(uint32_t positionInLine, Memory& memory)
 	}
 }
 
-bool PPU::GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset)
+void PPU::LatchNextSprite()
 {
 	bool foundSprite = false;
-	int16_t minDifference = SCANLINE_DURATION;
+	int16_t minDifference = 0;
+
 	for (uint8_t i = 0; i < data.m_lineSpriteCount; ++i)
 	{
-		int16_t posDifference = data.m_lineSprites[i].m_posX - (data.m_lineX + offset);
+		int16_t posDifference = data.m_lineSprites[i].m_posX - (data.m_lineX + SPRITE_SINGLE_SIZE);
 		bool isAvailable = (data.m_lineSpriteMask & (1 << i)) == 0;
-		if (isAvailable && (posDifference == 0 || posDifference == 1) && abs_y(posDifference) < minDifference)
+		if (isAvailable && ((!foundSprite && posDifference <= minDifference) || (posDifference < minDifference)))
 		{
-			minDifference = abs_y(posDifference);
-			spriteIndex = i;
+			minDifference = posDifference;
+			data.m_latchedSpriteIndex = i;
 			foundSprite = true;
 		}
 	}
-	return foundSprite;
+
+	if (foundSprite)
+	{
+		data.m_spriteFetcher.SetSpriteAttributes(&data.m_lineSprites[data.m_latchedSpriteIndex]);
+
+		uint8_t spriteX = data.m_lineSprites[data.m_latchedSpriteIndex].m_posX;
+		uint8_t spriteBackgroundTile = PPUHelpers::GetSpriteBackgroundTileIndex(spriteX, data.m_fineScrollX);
+		if (spriteBackgroundTile >= data.m_nextBackgroundTileSpritePenalty)
+		{
+			data.m_nextBackgroundTileSpritePenalty = spriteBackgroundTile + 1;
+			//todo is this the correct variable to add the penalty dots?
+			if (spriteX == 0)
+			{
+				//Hardware quirk: if the sprite is at x=0, it takes 5 cycles to fetch the sprite data, regardless of SCX
+				data.m_mode3DelayCounter += 5;
+			}
+			else
+			{
+				data.m_mode3DelayCounter += y::max(0, 5 - (data.m_lineSprites[data.m_latchedSpriteIndex].m_posX + data.m_fineScrollX) % SPRITE_SINGLE_SIZE);
+			}
+		}
+	}
 }
 
 void PPU::CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData)

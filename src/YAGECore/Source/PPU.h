@@ -78,7 +78,7 @@ private:
 	void DrawPixels(Memory& memory, uint32_t& processedCycles);
 	void CheckForInterrupts(Memory& memory);
 
-	bool GetCurrentSprite(uint8_t& spriteIndex, uint8_t offset);
+	void LatchNextSprite();
 
 	static void CacheBackgroundPalette(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
 	static void LCDCWrite(Memory* memory, uint16_t addr, uint8_t prevValue, uint8_t newValue, void* userData);
@@ -111,7 +111,7 @@ private:
 			, m_lineSpriteMask(0)
 			, m_cycleDebt(0)
 			, m_cachedBackgroundColors()
-			, m_fineScrollX(0)
+			, m_currentFineScrollX(0)
 			, m_windowLineY(0)
 			, m_statLine()
 			, m_vblankLine()
@@ -144,7 +144,8 @@ private:
 		PPUState m_state;
 		StateTransition m_stateTransition;
 
-		uint8_t m_fineScrollX;
+		uint8_t m_currentFineScrollX;
+		uint8_t m_fineScrollX = 0;
 		TrackedBool m_statLine;
 		TrackedBool m_vblankLine;
 
@@ -155,6 +156,10 @@ private:
 		uint16_t m_mode3StartDot = 0;
 		uint16_t m_mode3EndDot = 0;
 		uint16_t m_mode3remainingduration = 0;
+
+		uint8_t m_latchedSpriteIndex = MAX_SPRITES_PER_LINE;
+		uint8_t m_nextBackgroundTileSpritePenalty = 0;
+		uint8_t m_mode3DelayCounter = 0;
 
 
 		bool m_firstFrame;

@@ -10,14 +10,17 @@ public:
 	void Reset();
 	void FetchWindow(uint8_t windowY);
 	void SetSpriteAttributes(const SpriteAttributes* attributes);
-	bool Step(uint8_t x, uint8_t y, PixelFIFO& fifo, uint32_t& processedCycles, Memory& memory);
+	bool Step(uint8_t x, uint8_t y, PixelFIFO& fifo, Memory& memory);
 
 private:
 	enum class FetcherState
 	{
-		GetTile,
+		GetTile = 0,
+		GetTile_2,
 		ReadTileLow,
+		ReadTileLow_2,
 		ReadTileHigh,
+		ReadTileHigh_2,
 		Sleep,
 	};
 
